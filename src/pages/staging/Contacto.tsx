@@ -1,4 +1,5 @@
 // /contacto: formulario (guarda en Turso, POST /contact → contact_messages) y correo directo.
+import { Honeypot } from "@/components/forms/Honeypot";
 import { useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { Loader2, Mail } from "lucide-react";
@@ -78,7 +79,7 @@ export default function Contacto() {
                 <Button variant="outline" onClick={() => { setF({ name: "", email: "", subject: TOPICS[0], message: "" }); setState("idle"); }}>Enviar otro mensaje</Button>
               </div>
             ) : (
-              <form onSubmit={submit} className="mt-6 space-y-4">
+              <form onSubmit={submit} className="mt-6 space-y-4"><Honeypot />
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-1.5"><Label htmlFor="c-name">Nombre</Label><Input id="c-name" required maxLength={120} autoComplete="name" value={f.name} onChange={set("name")} /></div>
                   <div className="space-y-1.5"><Label htmlFor="c-email">Correo electrónico</Label><Input id="c-email" type="email" required autoComplete="email" value={f.email} onChange={set("email")} /></div>

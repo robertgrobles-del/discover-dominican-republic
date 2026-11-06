@@ -1,3 +1,4 @@
+import { Honeypot } from "@/components/forms/Honeypot";
 import { useState } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -347,7 +348,7 @@ export default function Partners() {
                       <Button variant="outline" onClick={() => setIsSubmitted(false)} className="rounded-xl">{pc.tx("Button.6", "Enviar otra consulta")}</Button>
                     </div>
                   ) : (
-                    <form onSubmit={handleSubmit}>
+                    <form onSubmit={handleSubmit}><Honeypot />
                       <div className="grid sm:grid-cols-2 gap-4 mb-4">
                         <div>
                           <label className="text-sm text-muted-foreground mb-2 block">{pc.tx("label.1", "Nombre Completo *")}</label>

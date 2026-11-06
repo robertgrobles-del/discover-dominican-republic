@@ -1,3 +1,4 @@
+import { Honeypot } from "@/components/forms/Honeypot";
 import React, { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -99,7 +100,7 @@ export const SorteoLectorBanner: React.FC<SorteoLectorBannerProps> = ({
 
           {/* Form */}
           <div className="lg:col-span-5 bg-card/90 backdrop-blur-sm p-6 rounded-2xl border border-border shadow-sm">
-            <form onSubmit={handleSubmit} className="space-y-3">
+            <form onSubmit={handleSubmit} className="space-y-3"><Honeypot />
               <div>
                 <Label className="text-xs font-semibold block mb-1">Tu Nombre Completo *</Label>
                 <Input

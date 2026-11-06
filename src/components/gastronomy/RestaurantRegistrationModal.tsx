@@ -1,3 +1,4 @@
+import { Honeypot } from "@/components/forms/Honeypot";
 import { useState } from "react";
 import { 
   Utensils, FileText, Upload, Plus, Trash2, CheckCircle2, 
@@ -288,7 +289,7 @@ export function RestaurantRegistrationModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl sm:max-w-3xl rounded-3xl p-6 overflow-hidden max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl sm:max-w-3xl rounded-3xl p-6 overflow-hidden max-h-[90vh] overflow-y-auto"><Honeypot />
         <DialogHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">

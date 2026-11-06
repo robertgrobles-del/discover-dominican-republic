@@ -331,6 +331,8 @@ export function StagingEventsManager() {
         { key: "price_range", label: "Precio", placeholder: "Gratis, RD$500 – RD$1,500…" },
         { key: "ticket_url", label: "Enlace de entradas", type: "url" },
         { key: "organizer", label: "Organizador" },
+        { key: "submitter_email", label: "Correo de contacto", hint: "Solo lo ve el equipo; no sale en la web." },
+        { key: "submitter_phone", label: "Teléfono de contacto", hint: "Solo lo ve el equipo." },
         { key: "is_featured", label: "Evento destacado", type: "checkbox" },
       ]}
     />

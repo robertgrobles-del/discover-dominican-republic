@@ -1,3 +1,4 @@
+import { Honeypot } from "@/components/forms/Honeypot";
 import { useState, useMemo } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Header } from "@/components/Header";
@@ -278,7 +279,7 @@ export default function CentroSaludDetalle() {
                     <CardDescription className="text-xs">{pc.tx("CardDescription.1", "Envía tus datos y el centro médico se comunicará contigo para confirmar tu turno.")}</CardDescription>
                   </CardHeader>
                   <CardContent className="p-0 pt-2">
-                    <form onSubmit={handleAppointment} className="space-y-3 text-xs sm:text-sm">
+                    <form onSubmit={handleAppointment} className="space-y-3 text-xs sm:text-sm"><Honeypot />
                       <div className="space-y-1.5">
                         <label className="font-semibold text-foreground">{pc.tx("label.1", "Nombre del Paciente")}</label>
                         <input

@@ -30,9 +30,19 @@ export const queryClient = new QueryClient({
  * como un 404: cada pantalla ya trata ese fallo usando su contenido local, y la landing se ahorra ~12 peticiones
  * en la cadena crítica (datasets, clima, gamificación, favoritos, carrito…).
  */
-const STAGING_API = /^\/(auth\/|public\/|admin\/(provinces|news|news-categories|events|users|media|leads|establishment-requests|contact-messages)\b|ads\/catalog\b|media\/|leads$|contact$|establishments\/register$)/;
+const STAGING_API = /^\/(auth\/|public\/|admin\/(provinces|news|news-categories|events|users|media|leads|establishment-requests|contact-messages)\b|ads\/catalog\b|media\/|leads$|contact$|establishments\/register$|events\/submissions$)/;
+const FORM_POST = /^\/(leads|contact|establishments\/register|events\/submissions)$/;
 
-export async function fetchApi<T>(endpoint: string, options?: RequestInit): Promise<T> {
+/** Copia el campo trampa de la página (ver components/forms/Honeypot) en el envío de un formulario público. */
+function withHoneypot(endpoint: string, options?: RequestInit): RequestInit | undefined {
+  if (options?.method !== "POST" || typeof options.body !== "string" || !FORM_POST.test(endpoint) || typeof document === "undefined") return options;
+  const hp = [...document.querySelectorAll<HTMLInputElement>('input[name="hp_website"]')].map((i) => i.value).find(Boolean);
+  if (!hp) return options;
+  try { return { ...options, body: JSON.stringify({ ...JSON.parse(options.body), hp_website: hp }) }; } catch { return options; }
+}
+
+export async function fetchApi<T>(endpoint: string, rawOptions?: RequestInit): Promise<T> {
+  const options = withHoneypot(endpoint, rawOptions);
   if (import.meta.env.VITE_STAGING_API === "true" && !endpoint.startsWith("http") && !STAGING_API.test(endpoint.startsWith("/") ? endpoint : `/${endpoint}`)) {
     throw new HttpError("Ruta no disponible en staging", 404);
   }

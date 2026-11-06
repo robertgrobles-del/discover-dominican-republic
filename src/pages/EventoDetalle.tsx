@@ -291,6 +291,14 @@ export default function EventoDetalle() {
                 onOpenFreeTicketModal={() => setIsFreeTicketModalOpen(true)}
               />
 
+              <aside className="rounded-2xl border border-primary/20 bg-primary/5 p-6">
+                <h2 className="text-lg font-bold">¿Organizas un evento?</h2>
+                <p className="mt-2 text-sm text-muted-foreground">Publícalo gratis en la agenda de Descubre RD. Lo revisamos y te avisamos cuando salga.</p>
+                <Button className="mt-4 w-full gap-2" onClick={() => setIsRegisterEventModalOpen(true)}>
+                  <PlusCircle className="h-4 w-4" /><span>Registrar mi evento</span>
+                </Button>
+              </aside>
+
               <DetailPageSidebarAd
                 category="Eventos & Conciertos"
                 location={event.province || "República Dominicana"}

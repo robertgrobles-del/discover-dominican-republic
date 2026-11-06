@@ -1,3 +1,4 @@
+import { Honeypot } from "@/components/forms/Honeypot";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -206,7 +207,7 @@ export function RegistroEstablecimientoModal({ open, onClose, tipo: tipoInicial 
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-4xl max-h-[92vh] overflow-y-auto sm:p-8">
+      <DialogContent className="max-w-4xl max-h-[92vh] overflow-y-auto sm:p-8"><Honeypot />
         {/* Header */}
         <DialogHeader className="pb-2">
           <div className="flex items-center gap-3 mb-1">

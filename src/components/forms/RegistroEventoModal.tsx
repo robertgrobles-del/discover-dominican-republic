@@ -1,3 +1,4 @@
+import { Honeypot } from "@/components/forms/Honeypot";
 import { useState } from "react";
 import { 
   Calendar, Ticket, Globe, Sparkles, Building2, 
@@ -64,7 +65,8 @@ export function RegistroEventoModal({ open, onClose }: RegistroEventoModalProps)
     }
 
     if (HAS_BACKEND_SESSION) {
-      if (!user) { toast.error("Inicia sesión para enviar tu evento a revisión."); return; }
+      // En staging no hay cuentas de visitante: el evento entra como borrador y el equipo lo revisa.
+      if (!user && import.meta.env.VITE_STAGING_API !== "true") { toast.error("Inicia sesión para enviar tu evento a revisión."); return; }
       if (description.trim().length < 20) { toast.error("Describe el evento con al menos 20 caracteres."); return; }
       setLoading(true);
       try {
@@ -171,7 +173,7 @@ export function RegistroEventoModal({ open, onClose }: RegistroEventoModalProps)
               </DialogDescription>
             </DialogHeader>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-6"><Honeypot />
               {/* Información Básica */}
               <div className="space-y-4">
                 <h4 className="text-xs font-bold text-foreground uppercase tracking-wider flex items-center gap-1.5 border-b border-border/80 pb-2">

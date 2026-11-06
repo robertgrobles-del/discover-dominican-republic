@@ -1,3 +1,4 @@
+import { Honeypot } from "@/components/forms/Honeypot";
 import { Link } from "react-router-dom";
 import { 
   Instagram, Facebook, Twitter, Youtube, Mail, 
@@ -182,7 +183,7 @@ export function Footer({ hidePreFooterBanner = false }: FooterProps = {}) {
             <p className="text-sm text-muted-foreground mb-3">
               {t("footer.newsletter")}
             </p>
-            <form onSubmit={handleNewsletterSubmit} className="flex gap-2">
+            <form onSubmit={handleNewsletterSubmit} className="flex gap-2"><Honeypot />
               <Input
                 type="email"
                 placeholder={t("footer.newsletterPlaceholder")}
@@ -263,7 +264,7 @@ export function Footer({ hidePreFooterBanner = false }: FooterProps = {}) {
             </div>
 
             <p className="text-sm text-muted-foreground mb-3">{pc.tx("p.1", "Newsletter")}</p>
-            <form onSubmit={handleNewsletterSubmit} className="flex gap-2">
+            <form onSubmit={handleNewsletterSubmit} className="flex gap-2"><Honeypot />
               <Input
                 type="email"
                 placeholder={t("footer.newsletterPlaceholder")}

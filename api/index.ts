@@ -225,6 +225,8 @@ const eventSpec = (b: Fields) => ({
   organizer: () => str(b, "organizer", 200),
   is_featured: () => bool(b, "is_featured"),
   status: () => oneOf(b, "status", STATUSES, "draft"),
+  submitter_email: () => str(b, "submitter_email", 254),
+  submitter_phone: () => str(b, "submitter_phone", 30),
 });
 
 // ---------- usuarios ----------
@@ -406,6 +408,11 @@ async function usersApi(db: Client, method: string, id: string | undefined, body
 // Solo lo publicado; los borradores se quedan en el panel. Caché corta en la CDN de Vercel.
 const PUBLIC_CACHE = { "Cache-Control": "public, max-age=0, s-maxage=30, stale-while-revalidate=300" };
 
+// Un evento deja de salir al llegar su fecha y hora de fin (hora de RD, UTC-4); sin hora de fin, al acabar el día.
+const EVENT_LIVE = "(COALESCE(end_date, start_date) IS NULL OR datetime(COALESCE(end_date, start_date) || ' ' || COALESCE(end_time, '23:59'), '+4 hours') > datetime('now'))";
+// Sin los datos de contacto de quien lo envió ni la huella de IP.
+const EVENT_PUBLIC = "id, slug, name, event_type, short_description, description, image_url, start_date, end_date, start_time, end_time, venue, address, province, price_range, ticket_url, organizer, is_featured, updated_at";
+
 async function publicApi(db: Client, path: string, lang?: Lang): Promise<ApiResponse | null> {
   if (path === "/public/provinces") {
     const r = await db.execute(`SELECT id, slug, name, region, capital, short_description, description, image_url, latitude, longitude, updated_at
@@ -418,12 +425,12 @@ async function publicApi(db: Client, path: string, lang?: Lang): Promise<ApiResp
     return n ? { status: 200, body: { data: (await localizeNews(db, [n], lang))[0] }, headers: PUBLIC_CACHE } : err(404, "No encontrada");
   }
   if (path === "/public/events") {
-    const r = await db.execute("SELECT * FROM events WHERE status = 'published' ORDER BY start_date, name COLLATE NOCASE");
+    const r = await db.execute(`SELECT ${EVENT_PUBLIC} FROM events WHERE status = 'published' AND ${EVENT_LIVE} ORDER BY start_date, name COLLATE NOCASE`);
     return { status: 200, body: { data: r.rows }, headers: PUBLIC_CACHE };
   }
   const ev = path.match(/^\/public\/events\/([^/]+)$/);
   if (ev) {
-    const r = SLUG.test(ev[1]) ? await db.execute({ sql: "SELECT * FROM events WHERE status = 'published' AND slug = ?", args: [ev[1]] }) : null;
+    const r = SLUG.test(ev[1]) ? await db.execute({ sql: `SELECT ${EVENT_PUBLIC} FROM events WHERE status = 'published' AND ${EVENT_LIVE} AND slug = ?`, args: [ev[1]] }) : null;
     return r?.rows[0] ? { status: 200, body: { data: r.rows[0] }, headers: PUBLIC_CACHE } : err(404, "No encontrado");
   }
   if (path === "/public/news") {
@@ -819,8 +826,9 @@ async function tooManySubmissions(db: Client, hash: string | null): Promise<bool
   const r = await db.execute({
     sql: `SELECT (SELECT COUNT(*) FROM leads WHERE ip_hash = ? AND created_at > ?)
                + (SELECT COUNT(*) FROM establishment_requests WHERE ip_hash = ? AND created_at > ?)
-               + (SELECT COUNT(*) FROM contact_messages WHERE ip_hash = ? AND created_at > ?) AS n`,
-    args: [hash, since, hash, since, hash, since],
+               + (SELECT COUNT(*) FROM contact_messages WHERE ip_hash = ? AND created_at > ?)
+               + (SELECT COUNT(*) FROM events WHERE ip_hash = ? AND created_at > ?) AS n`,
+    args: [hash, since, hash, since, hash, since, hash, since],
   });
   return Number(r.rows[0]?.n ?? 0) >= MAX_FORM_SUBMISSIONS_PER_HOUR;
 }
@@ -867,6 +875,51 @@ async function submitContact(db: Client, body: Fields, hash: string | null): Pro
     args: [randomUUID(), values.name, email, values.subject, values.message, hash],
   });
   return { status: 201, body: { data: { received: true } } };
+}
+
+const FORM_POSTS = new Set(["/leads", "/contact", "/establishments/register", "/events/submissions"]);
+
+/**
+ * Barrera común de los formularios públicos: el campo trampa (un bot lo rellena; se le responde como si
+ * hubiera ido bien para que no reintente) y el origen (solo se aceptan envíos desde el propio sitio).
+ */
+function formGuard(req: ApiRequest, body: Fields): ApiResponse | null {
+  if (typeof body.hp_website === "string" && body.hp_website.trim()) return { status: 201, body: { data: { received: true } } };
+  const origin = req.headers.origin;
+  const host = req.headers["x-forwarded-host"] ?? req.headers.host;
+  if (origin && host) {
+    try { if (new URL(origin).host !== host) return err(403, "Origen no permitido"); } catch { return err(403, "Origen no permitido"); }
+  }
+  return null;
+}
+
+/** «Registrar mi evento»: entra como borrador y el equipo lo revisa en el panel antes de publicarlo. */
+async function submitEvent(db: Client, body: Fields, hash: string | null): Promise<ApiResponse> {
+  const email = emailOf({ email: body.organizer_email });
+  if (email instanceof Error) return err(422, email.message);
+  const values = collect({
+    name: () => str(body, "title", 200, true),
+    start_date: fmt(body, "start_date", DATE, "una fecha AAAA-MM-DD"),
+    start_time: fmt(body, "start_time", TIME, "una hora HH:MM"),
+    address: () => str(body, "location", 300, true),
+    description: () => { const d = str(body, "description", 5000, true); return d instanceof Error || d!.length >= 20 ? d : new Error("Describe el evento con al menos 20 caracteres"); },
+    event_type: () => str(body, "category", 60),
+    organizer: () => str(body, "organizer_name", 200, true),
+    submitter_phone: () => { const ph = str(body, "organizer_phone", 30); return ph instanceof Error || ph === null || /^[+\d\s().-]{7,30}$/.test(ph) ? ph : new Error("Teléfono no válido"); },
+    ticket_url: () => url(body, "ticket_url"),
+    price_range: () => str(body, "price_info", 120),
+  });
+  if (values instanceof Error) return err(422, values.message);
+  if (!values.start_date) return err(422, "start_date es obligatorio");
+  if (await tooManySubmissions(db, hash)) return err(429, "Demasiados envíos. Inténtalo más tarde.");
+  const base = String(values.name).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 100) || "evento";
+  const id = randomUUID();
+  const cols = Object.keys(values);
+  await db.execute({
+    sql: `INSERT INTO events (id, slug, status, submitter_email, ip_hash, ${cols.join(", ")}) VALUES (?, ?, 'draft', ?, ?, ${cols.map(() => "?").join(", ")})`,
+    args: [id, `${base}-${id.slice(0, 6)}`, email, hash, ...Object.values(values)],
+  });
+  return { status: 201, body: { data: { id, status: "pending" } } };
 }
 
 async function submitEstablishment(db: Client, body: Fields, hash: string | null): Promise<ApiResponse> {
@@ -1126,6 +1179,11 @@ export async function handle(req: ApiRequest, db: Client, secret: string, secure
   // La landing pide el catálogo de anuncios del backend completo; staging no tiene anuncios.
   if (m === "GET" && path === "/ads/catalog") return { status: 200, body: { data: [] }, headers: PUBLIC_CACHE };
 
+  if (m === "POST" && FORM_POSTS.has(path)) {
+    const blocked = formGuard(req, body);
+    if (blocked) return blocked;
+  }
+  if (m === "POST" && path === "/events/submissions") return submitEvent(db, body, ipHash(req.ip, secret));
   if (m === "POST" && path === "/leads") return submitLead(db, body, ipHash(req.ip, secret));
   if (m === "POST" && path === "/contact") return submitContact(db, body, ipHash(req.ip, secret));
   if (m === "POST" && path === "/establishments/register") return submitEstablishment(db, body, ipHash(req.ip, secret));

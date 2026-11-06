@@ -464,3 +464,23 @@ describe("eventos", () => {
     expect((await call("GET", "/public/events/borrador")).status).toBe(404);
   });
 });
+
+describe("formularios protegidos y eventos del público", () => {
+  it("descarta el campo trampa, rechaza otros orígenes y deja el evento en borrador", async () => {
+    const ev = { title: "Festival del Merengue", start_date: "2099-07-20", location: "Malecón, Santo Domingo", description: "Tres noches de merengue en vivo frente al mar.", organizer_name: "Ana", organizer_email: "ana@x.do" };
+    expect((await call("POST", "/events/submissions", { ...ev, hp_website: "spam" })).status).toBe(201);
+    expect((await call("POST", "/contact", { name: "A", email: "a@x.do", message: "Hola, esto es spam" }, { origin: "https://malo.com", host: "descubre.do" })).status).toBe(403);
+    expect((await call("POST", "/events/submissions", ev)).status).toBe(201);
+    const admin = bearer(await login("admin@x.do", "clave-segura-123"));
+    const rows = data<{ status: string; submitter_email: string | null }[]>(await call("GET", "/admin/events", undefined, admin)).filter((r) => r.submitter_email);
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({ status: "draft", submitter_email: "ana@x.do" });
+  });
+
+  it("un evento terminado deja de salir en lo público", async () => {
+    const auth = bearer(await login("admin@x.do", "clave-segura-123"));
+    await call("POST", "/admin/events", { slug: "pasado", name: "Pasado", start_date: "2020-01-01", end_date: "2020-01-02", end_time: "18:00", status: "published" }, auth);
+    expect((await call("GET", "/public/events/pasado")).status).toBe(404);
+    expect(data<{ slug: string }[]>(await call("GET", "/public/events")).map((e) => e.slug)).not.toContain("pasado");
+  });
+});
