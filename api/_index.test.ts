@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createClient, type Client } from "@libsql/client";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { handle, hashPassword, type ApiRequest } from "./index";
+import { eticketPage, handle, hashPassword, type ApiRequest } from "./index";
 
 const SECRET = "x".repeat(40);
 const dir = mkdtempSync(join(tmpdir(), "staging-api-"));
@@ -389,5 +389,15 @@ describe("boletín", () => {
     expect((await post({ email: "lector@x.do", source: "newsletter", consent: true })).status).toBe(201);
     expect(data(await post({ email: "LECTOR@x.do", source: "newsletter", consent: true }))).toMatchObject({ duplicate: true });
     expect((await post({ email: "sin-nombre@x.do", source: "sorteo_lector", consent: true })).status).toBe(422); // el sorteo sí pide nombre
+  });
+});
+
+describe("guía del e-Ticket", () => {
+  it("saca de public/e-ticket.md las preguntas y los pasos para los datos estructurados", () => {
+    const page = eticketPage(readFileSync(join(__dirname, "..", "public", "e-ticket.md"), "utf8"));
+    const [faq, howTo] = page.jsonLd as { mainEntity?: unknown[]; step?: unknown[] }[];
+    expect(faq.mainEntity).toHaveLength(7);
+    expect(howTo.step).toHaveLength(5);
+    expect(page.body).toContain("¿Tiene algún costo?");
   });
 });

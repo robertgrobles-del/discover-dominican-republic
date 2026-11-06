@@ -623,6 +623,35 @@ const fetchShell: ShellLoader = async (host) => {
   return (shellCache = await res.text());
 };
 
+/** Guía del e-Ticket: metadatos, FAQPage y HowTo sacados de public/e-ticket.md (la misma fuente que leen los agentes). */
+export function eticketPage(md: string): PageMeta {
+  const section = (title: string) => md.split(/^## /m).find((x) => x.startsWith(title)) ?? "";
+  const faqs = [...section("Preguntas frecuentes").matchAll(/^### (.+)\n([^#\n][^\n]*)/gm)].map(([, q, a]) => ({ q: q.trim(), a: a.trim() }));
+  const steps = [...section("Pasos").matchAll(/^\d+\. (.+)$/gm)].map((m) => m[1].trim());
+  const title = "E-Ticket República Dominicana 2026: guía del nuevo portal | Descubre RD";
+  const description = "Cómo hacer gratis el e-Ticket de entrada y salida de República Dominicana en el nuevo portal eticket.gob.do: pasos, novedades, QR, menores y cómo evitar fraudes.";
+  return {
+    title, description, path: "/e-ticket", markdown: "/e-ticket.md",
+    jsonLd: [
+      { "@context": "https://schema.org", "@type": "FAQPage", mainEntity: faqs.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })) },
+      { "@context": "https://schema.org", "@type": "HowTo", name: "Cómo hacer el e-Ticket de República Dominicana", totalTime: "PT15M",
+        estimatedCost: { "@type": "MonetaryAmount", currency: "USD", value: 0 },
+        step: steps.map((t, i) => ({ "@type": "HowToStep", position: i + 1, text: t })) },
+      breadcrumb([["Inicio", "/"], ["E-Ticket", "/e-ticket"]]),
+    ],
+    body: `<main><h1>E-Ticket de República Dominicana</h1><p>${esc(description)}</p><ol>${steps.map((t) => `<li>${esc(t)}</li>`).join("")}</ol>`
+      + `<h2>Preguntas frecuentes</h2>${faqs.map((f) => `<h3>${esc(f.q)}</h3><p>${esc(f.a)}</p>`).join("")}</main>`,
+  };
+}
+
+let eticketCache: string | null = null;
+const fetchEticketMd = async (host: string | undefined) => {
+  if (eticketCache) return eticketCache;
+  const res = await fetch(`${host ? `https://${host}` : siteUrl()}/e-ticket.md`);
+  if (!res.ok) throw new Error(`No se pudo leer e-ticket.md (${res.status})`);
+  return (eticketCache = await res.text());
+};
+
 async function seoRoute(db: Client, path: string, host: string | undefined, loadShell: ShellLoader, lang?: Lang): Promise<ApiResponse | null> {
   const enc = (text: string) => new TextEncoder().encode(text);
   if (path === "/sitemap.xml") {
@@ -631,6 +660,7 @@ async function seoRoute(db: Client, path: string, host: string | undefined, load
   if (path === "/rss.xml") {
     return { status: 200, raw: enc(rss(await listNews(db))), headers: { "Content-Type": "application/rss+xml; charset=utf-8", "Cache-Control": HTML_CACHE["Cache-Control"] } };
   }
+  if (path === "/render/e-ticket") return { status: 200, raw: enc(renderShell(await loadShell(host), eticketPage(await fetchEticketMd(host)))), headers: HTML_CACHE };
   if (path === "/render/noticias") return { status: 200, raw: enc(renderShell(await loadShell(host), newsListPage(await listNews(db)))), headers: HTML_CACHE };
   const one = path.match(/^\/render\/noticias\/([^/]+)$/);
   if (one) {
@@ -679,6 +709,7 @@ function llmsTxt(rows: NewsRow[]): string {
     + "Contenido en español de República Dominicana. Cada noticia tiene una versión en Markdown (enlaces de abajo) "
     + `y una página web en ${siteUrl()}/noticias/<slug>. Los datos estructurados de cada página siguen schema.org (NewsArticle).\n\n`
     + `## Noticias\n\n${items || "- Todavía no hay noticias publicadas."}\n\n`
+    + `## Guías\n\n- [E-Ticket de República Dominicana: guía del nuevo portal](${siteUrl()}/e-ticket.md): cómo hacer gratis el formulario de entrada y salida en eticket.gob.do.\n\n`
     + `## Opcional\n\n- [Todas las noticias en un solo archivo](${siteUrl()}/llms-full.txt)\n`
     + `- [Listado de noticias](${siteUrl()}/noticias)\n- [Feed RSS](${siteUrl()}/noticias/rss.xml)\n- [Sitemap](${siteUrl()}/sitemap.xml)\n`;
 }

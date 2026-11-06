@@ -29,6 +29,10 @@
       "destination": "/api?route=md/noticias/:slug"
     },
     {
+      "source": "/e-ticket",
+      "destination": "/api?route=render/e-ticket"
+    },
+    {
       "source": "/noticias",
       "destination": "/api?route=render/noticias"
     },
