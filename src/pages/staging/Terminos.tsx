@@ -36,7 +36,8 @@ export default function Terminos() {
           ),
         },
         {
-          id: "publicidad", title: "Publicidad y contenido patrocinado",
+          // id sin "publicidad": los bloqueadores de anuncios ocultan #publicidad
+          id: "patrocinios", title: "Publicidad y contenido patrocinado",
           body: <p>El sitio incluye espacios publicitarios. Los anuncios y contenidos patrocinados se identifican como tales. Que un negocio aparezca anunciado no implica que lo recomendemos ni que garanticemos sus servicios.</p>,
         },
         {

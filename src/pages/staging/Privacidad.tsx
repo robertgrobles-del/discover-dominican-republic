@@ -55,7 +55,7 @@ export default function Privacidad() {
           id: "donde", title: "Dónde se guardan y quién los trata",
           body: (
             <>
-              <p>Los datos se guardan en una base de datos alojada por <strong>Turso</strong>, y el sitio se sirve desde <strong>Vercel</strong>. Ambos actúan como proveedores técnicos por cuenta nuestra y pueden almacenar los datos fuera de la República Dominicana. No vendemos ni cedemos tus datos a terceros para fines comerciales.</p>
+              <p>Los datos se guardan en servidores de proveedores técnicos que actúan por cuenta nuestra y que pueden estar fuera de la República Dominicana. No vendemos ni cedemos tus datos a terceros para fines comerciales.</p>
               <p>Al navegar, tu navegador también se conecta a otros servicios para cargar recursos: fuentes tipográficas de Google Fonts, fotografías de Unsplash y Wikimedia Commons, y mapas de OpenStreetMap. Las fotos de Unsplash se cargan de forma que no se guarden cookies de ese servicio.</p>
             </>
           ),
