@@ -1,5 +1,5 @@
 // Alta, edición y borrado de una tabla del mini backend de staging (api/index.ts): provincias, noticias y categorías.
-import { useRef, useState, type FormEvent, type ReactNode } from "react";
+import { Fragment, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ImagePlus, Images, Loader2, Pencil, Plus, Trash2 } from "lucide-react";
@@ -40,7 +40,7 @@ export function StagingCrudManager({ resource, title, titleKey, fields, noun, re
   fields: FieldDef[];
   noun: string;               // "provincia", "noticia", "categoría" (femenino: "Nueva …", "guardada")
   /** Editor propio en lugar del formulario genérico (las noticias usan el estilo WordPress). */
-  renderEditor?: (row: Row | "new", close: () => void) => ReactNode;
+  renderEditor?: (row: Row | "new", close: () => void, openNew: () => void) => ReactNode;
   /** Lista propia (las noticias usan la tabla de entradas de WordPress). */
   renderList?: (p: { rows: Row[]; onNew: () => void; onEdit: (r: Row) => void; onDelete: (ids: string[]) => void; busy: boolean }) => ReactNode;
 }) {
@@ -51,6 +51,7 @@ export function StagingCrudManager({ resource, title, titleKey, fields, noun, re
     queryFn: async () => (await fetchApi<{ data: Row[] }>(`/admin/${resource}`)).data,
   });
   const [editing, setEditing] = useState<Row | "new" | null>(null);
+  const [editorKey, setEditorKey] = useState(0);
   const [form, setForm] = useState<Record<string, string>>({});
   const [slugTouched, setSlugTouched] = useState(false);
 
@@ -90,7 +91,11 @@ export function StagingCrudManager({ resource, title, titleKey, fields, noun, re
 
   const submit = (e: FormEvent) => { e.preventDefault(); save.mutate(); };
 
-  if (editing && renderEditor) return <>{renderEditor(editing, () => { setEditing(null); void qc.invalidateQueries({ queryKey }); })}</>;
+  // La clave cambia en cada «nueva» para que el editor empiece vacío aunque ya estuviera en una nueva.
+  if (editing && renderEditor) {
+    return <Fragment key={editorKey}>{renderEditor(editing, () => { setEditing(null); void qc.invalidateQueries({ queryKey }); },
+      () => { setEditing("new"); setEditorKey((k) => k + 1); })}</Fragment>;
+  }
   if (editing) {
     return (
       <form onSubmit={submit} className="max-w-3xl space-y-5 rounded-2xl border border-border bg-card p-6">
@@ -281,7 +286,7 @@ export function StagingNewsManager() {
       titleKey="title"
       noun="noticia"
       fields={[]}
-      renderEditor={(row, close) => <NewsEditor row={row} onClose={close} />}
+      renderEditor={(row, close, openNew) => <NewsEditor row={row} onClose={close} onNew={openNew} />}
       renderList={(p) => <NewsList {...p} />}
     />
   );

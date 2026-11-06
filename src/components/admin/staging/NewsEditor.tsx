@@ -48,7 +48,7 @@ function Box({ title, children }: { title: string; children: ReactNode }) {
   );
 }
 
-export function NewsEditor({ row, onClose }: { row: Row | "new"; onClose: () => void }) {
+export function NewsEditor({ row, onClose, onNew }: { row: Row | "new"; onClose: () => void; onNew: () => void }) {
   const qc = useQueryClient();
   const isNew = row === "new";
   const [id, setId] = useState<string | null>(isNew ? null : row.id);
@@ -117,7 +117,7 @@ export function NewsEditor({ row, onClose }: { row: Row | "new"; onClose: () => 
       setBase((b) => ({ ...b, status, published_at: toLocalInput(saved.published_at) }));
       void qc.invalidateQueries({ queryKey: ["staging", "news"] });
       void qc.invalidateQueries({ queryKey: ["staging", "translations", "news", saved.id] });
-      toast.success(status === "published" ? "Noticia publicada" : "Borrador guardado");
+      toast.success(status === "published" ? "Noticia publicada" : "Borrador guardado", { action: { label: "Nueva noticia", onClick: onNew } });
     },
     onError: (e) => toast.error(apiMessage(e)),
   });
@@ -158,6 +158,7 @@ export function NewsEditor({ row, onClose }: { row: Row | "new"; onClose: () => 
       <div className="flex flex-wrap items-center gap-3">
         <Button variant="ghost" size="sm" onClick={onClose}><ArrowLeft className="mr-1.5 h-4 w-4" />Todas las noticias</Button>
         <h2 className="text-xl font-semibold">{isNew && !id ? "Añadir nueva noticia" : "Editar noticia"}</h2>
+        {id && <Button size="sm" variant="outline" className="border-primary text-primary" onClick={onNew}>Añadir nueva noticia</Button>}
       </div>
 
       <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_300px]">

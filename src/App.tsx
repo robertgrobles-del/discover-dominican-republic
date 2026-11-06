@@ -43,6 +43,22 @@ const isPublishedPath = (path: string) => path === "/" || PUBLISHED.some((p) => 
  * Los externos solo funcionan dentro de una noticia (la fuente original, enlaces del cuerpo).
  * Se intercepta en captura para cubrir también los enlaces de widgets fuera de la página (pie, banners).
  */
+/** Los enlaces a otros sitios se abren en otra pestaña aunque nadie les haya puesto target. */
+function ExternalLinksNewTab() {
+  useEffect(() => {
+    const mark = (e: Event) => {
+      const a = (e.target as Element | null)?.closest?.("a[href]") as HTMLAnchorElement | null;
+      if (!a || a.target || !/^https?:$/.test(a.protocol) || a.origin === window.location.origin) return;
+      a.target = "_blank";
+      a.rel = "noopener noreferrer";
+    };
+    document.addEventListener("click", mark, true);
+    document.addEventListener("auxclick", mark, true);
+    return () => { document.removeEventListener("click", mark, true); document.removeEventListener("auxclick", mark, true); };
+  }, []);
+  return null;
+}
+
 function DisableUnpublishedLinks() {
   const { pathname } = useLocation();
   useEffect(() => {
@@ -156,6 +172,7 @@ const App = () => (
                 <NetworkStatusNotice />
                 <ScrollToTop />
                 <SessionExpiryGuard />
+                <ExternalLinksNewTab />
                 <DisableUnpublishedLinks />
                 <AnimatedRoutes />
                 <Suspense fallback={null}>

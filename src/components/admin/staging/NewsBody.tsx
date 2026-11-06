@@ -9,7 +9,11 @@ const components: Components = {
   ul: ({ children }) => <ul className="my-4 list-disc space-y-1 pl-6">{children}</ul>,
   ol: ({ children }) => <ol className="my-4 list-decimal space-y-1 pl-6">{children}</ol>,
   blockquote: ({ children }) => <blockquote className="my-6 border-l-4 border-primary bg-primary/5 py-2 pl-4 italic text-foreground/80">{children}</blockquote>,
-  a: ({ href, children }) => <a href={href} target="_blank" rel="noopener noreferrer" className="font-medium text-primary underline underline-offset-4">{children}</a>,
+  // Externos en otra pestaña; los del propio sitio, en la misma.
+  a: ({ href, children }) => {
+    const external = /^https?:\/\//.test(href ?? "") && !(href ?? "").includes("descubrerepdom.com");
+    return <a href={href} {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})} className="font-medium text-primary underline underline-offset-4">{children}</a>;
+  },
   strong: ({ children }) => <strong className="font-semibold text-foreground">{children}</strong>,
   hr: () => <hr className="my-8 border-border" />,
   // La imagen con título ("…") lleva pie de foto; el texto alternativo describe la imagen.
