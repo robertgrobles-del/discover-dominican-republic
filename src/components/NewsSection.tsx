@@ -69,15 +69,16 @@ export function NewsSection() {
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              className="lg:col-span-2 group"
+              className="lg:col-span-2 group h-full"
             >
-              <Link to={featuredNews.href} className="block">
-                <div className="relative aspect-[16/9] rounded-2xl overflow-hidden mb-4">
+              <Link to={featuredNews.href} className="block h-full">
+                {/* En escritorio ocupa todo el alto de la columna derecha para que el bloque quede parejo. */}
+                <div className="relative aspect-[16/9] lg:aspect-auto lg:h-full lg:min-h-[420px] rounded-2xl overflow-hidden">
                   <LazyImage
                     src={featuredNews.image}
                     alt={featuredNews.title}
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    containerClassName="w-full h-full"
+                    containerClassName="absolute inset-0"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/30 to-transparent" />
                   <div className="absolute bottom-0 left-0 right-0 p-6">
@@ -105,7 +106,7 @@ export function NewsSection() {
           )}
 
           {/* Right Column - Regular News + Ad */}
-          <div className="space-y-6">
+          <div className="flex flex-col gap-6">
             {regularNews.slice(0, 2).map((article, index) => (
               <motion.article
                 key={article.id}
