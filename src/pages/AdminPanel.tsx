@@ -5,7 +5,6 @@ import { PageTransition } from "@/components/PageTransition";
 import { SEOHead } from "@/components/SEOHead";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { AccessDeniedState } from "@/components/ui/access-denied-state";
 import { useAuth } from "@/hooks/useAuth";
@@ -22,7 +21,7 @@ import { StagingContactMessagesManager, StagingEstablishmentRequestsManager, Sta
 import { MediaLibrary } from "@/components/admin/staging/MediaLibrary";
 import { StagingUsersManager } from "@/components/admin/staging/StagingUsersManager";
 import { StagingDashboard } from "@/components/admin/staging/StagingDashboard";
-import { Shield, Loader2, Search, Menu, X, ChevronRight, ExternalLink, LogOut, MapPin, Newspaper, Users, Tags, Gift, Building2, Moon, Sun, Image as ImageIcon, LayoutDashboard, Mail, CalendarDays } from "lucide-react";
+import { Shield, Loader2, Menu, X, ChevronRight, ExternalLink, LogOut, MapPin, Newspaper, Users, Tags, Gift, Building2, Moon, Sun, Image as ImageIcon, LayoutDashboard, Mail, CalendarDays } from "lucide-react";
 
 type TabCategory = "home" | "erp" | "crm" | "cms" | "system";
 
@@ -139,7 +138,6 @@ export default function AdminPanel() {
   usePanelAdoption("admin");
   const theme = useAdminTheme();
 
-  const [searchQuery, setSearchQuery] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // El modo demo solo aplica cuando NO hay sesión de backend real
@@ -186,20 +184,10 @@ export default function AdminPanel() {
     return visibleTabs.find((t) => t.value === activeTabValue) || visibleTabs[0] || null;
   }, [visibleTabs, activeTabValue]);
 
-  // Filtrado de pestañas por buscador en el sidebar
-  const filteredTabs = useMemo(() => {
-    if (!searchQuery.trim()) return visibleTabs;
-    const q = searchQuery.toLowerCase().trim();
-    return visibleTabs.filter((t) =>
-      t.label.toLowerCase().includes(q) ||
-      CATEGORY_CONFIG[t.category].label.toLowerCase().includes(q)
-    );
-  }, [visibleTabs, searchQuery]);
-
   // Agrupación por categoría
   const groupedTabs = useMemo(() => {
     const groups: Partial<Record<TabCategory, AdminTab[]>> = {};
-    for (const tab of filteredTabs) {
+    for (const tab of visibleTabs) {
       if (!groups[tab.category]) groups[tab.category] = [];
       groups[tab.category]!.push(tab);
     }
@@ -210,7 +198,7 @@ export default function AdminPanel() {
         label: CATEGORY_CONFIG[cat as TabCategory].label,
         tabs: tabs || [],
       }));
-  }, [filteredTabs]);
+  }, [visibleTabs]);
 
   if (authLoading || accessLoading) {
     return (
@@ -261,26 +249,11 @@ export default function AdminPanel() {
         </div>
       </div>
 
-      <div className="shrink-0 p-3">
-        <div className="relative">
-          <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-          <Input placeholder="Buscar módulos, tablas..." aria-label="Buscar sección" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="h-8 pl-8 text-xs bg-muted/40 border-border/60 rounded-lg focus-visible:ring-1 focus-visible:ring-primary" />
-          {searchQuery && (
-            <button type="button" onClick={() => setSearchQuery("")} aria-label="Borrar búsqueda" className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-0.5 text-muted-foreground hover:text-foreground">
-              <X className="h-3 w-3" />
-            </button>
-          )}
-        </div>
-      </div>
-
-      <nav aria-label="Secciones de administración" className="flex-1 space-y-4 overflow-y-auto px-3 pb-4">
+      <nav aria-label="Secciones de administración" className="flex-1 space-y-4 overflow-y-auto px-2 py-3">
         {groupedTabs.map((group) => (
           <div key={group.category} className="space-y-1">
             <div className="flex items-center justify-between px-2 py-1">
               <span className="text-3xs font-bold uppercase tracking-wider text-muted-foreground/80">{group.label}</span>
-              <span className="text-3xs font-mono px-1.5 py-0.5 rounded bg-muted/60 text-muted-foreground font-semibold border border-border/40">
-                {CATEGORY_CONFIG[group.category].badge}
-              </span>
             </div>
             <ul className="space-y-0.5">
               {group.tabs.map((tab) => {
@@ -339,9 +312,9 @@ export default function AdminPanel() {
       <SEOHead title="Consola de administración | Descubre RD" description="Consola empresarial unificada: CMS, ERP, CRM y control de plataforma." />
       <div className="flex min-h-screen bg-muted/20 text-foreground">
         {/* Menú lateral: fijo en escritorio, cajón en móvil */}
-        <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-border/60 bg-background lg:flex">{sidebar}</aside>
+        <aside className="sticky top-0 hidden h-screen w-52 shrink-0 flex-col border-r border-border/60 bg-background lg:flex">{sidebar}</aside>
         {mobileMenuOpen && <div className="fixed inset-0 z-40 bg-black/50 lg:hidden" onClick={() => setMobileMenuOpen(false)} aria-hidden="true" />}
-        <aside className={`fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r border-border/60 bg-background shadow-xl transition-transform duration-200 lg:hidden ${mobileMenuOpen ? "translate-x-0" : "-translate-x-full"}`} aria-hidden={!mobileMenuOpen}>
+        <aside className={`fixed inset-y-0 left-0 z-50 flex w-60 flex-col border-r border-border/60 bg-background shadow-xl transition-transform duration-200 lg:hidden ${mobileMenuOpen ? "translate-x-0" : "-translate-x-full"}`} aria-hidden={!mobileMenuOpen}>
           {sidebar}
         </aside>
 
