@@ -1,4 +1,4 @@
-import { useState, lazy, Suspense } from "react";
+import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -6,13 +6,6 @@ import type { TipoEstablecimiento } from "@/components/forms/RegistroEstablecimi
 import { tipoConfig } from "@/components/forms/registro/RegistroFormHelpers";
 
 export type { TipoEstablecimiento };
-
-// El formulario se descarga sólo cuando la persona lo abre.
-const RegistroEstablecimientoModal = lazy(() =>
-  import("@/components/forms/RegistroEstablecimientoModal").then((m) => ({
-    default: m.RegistroEstablecimientoModal,
-  }))
-);
 
 interface Props {
   /** Tipo con el que se abre el formulario. Con `general`, la persona lo elige dentro. */
@@ -33,7 +26,6 @@ const COPY: Partial<Record<TipoEstablecimiento, { titulo: string; subtitulo: str
 };
 
 export function CTARegistroEstablecimiento({ tipo, titulo, subtitulo, stats }: Props) {
-  const [open, setOpen] = useState(false);
   const config = tipoConfig[tipo];
   const Icon = config.icon;
   const copy = COPY[tipo] ?? { titulo: "Registra tu negocio en Descubre RD", subtitulo: config.descripcion, boton: "Registrar mi negocio", nota: "Gratis · Revisión en 2-3 días hábiles" };
@@ -70,21 +62,19 @@ export function CTARegistroEstablecimiento({ tipo, titulo, subtitulo, stats }: P
           </div>
 
           <div className="flex flex-col gap-3 md:items-end">
-            <Button size="lg" onClick={() => setOpen(true)} className="gap-2 shadow-lg shadow-primary/20 whitespace-nowrap">
-              <Icon className="h-5 w-5" aria-hidden="true" />
-              {copy.boton}
-              <ChevronRight className="h-4 w-4" aria-hidden="true" />
+            {/* El formulario vive en su propia página: se puede enlazar desde correos y redes. */}
+            <Button size="lg" asChild className="gap-2 whitespace-nowrap">
+              <Link to={tipo === "general" ? "/registra-tu-negocio" : `/registra-tu-negocio?tipo=${tipo}`}>
+                <Icon className="h-5 w-5" aria-hidden="true" />
+                {copy.boton}
+                <ChevronRight className="h-4 w-4" aria-hidden="true" />
+              </Link>
             </Button>
             <p className="text-xs text-muted-foreground text-center md:text-right">{copy.nota}</p>
           </div>
         </div>
       </motion.section>
 
-      {open && (
-        <Suspense fallback={null}>
-          <RegistroEstablecimientoModal open={open} onClose={() => setOpen(false)} tipo={tipo} />
-        </Suspense>
-      )}
     </>
   );
 }

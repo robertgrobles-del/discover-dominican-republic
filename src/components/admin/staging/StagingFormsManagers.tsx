@@ -101,6 +101,8 @@ interface Request {
   id: string; type: string; name: string; contact_name: string; email: string; phone: string; address: string | null;
   province: string | null; website: string | null; photo_url: string | null; description: string | null; rnc: string | null;
   schedule: string | null; details: string | null; status: "pending" | "approved" | "rejected"; created_at: string;
+  /** Urls de las fotos (.webp) y el menú (.pdf) subidos, separadas por espacios. */
+  files: string | null;
 }
 const STATUS: Record<Request["status"], { label: string; variant: "secondary" | "default" | "destructive" }> = {
   pending: { label: "Pendiente", variant: "secondary" }, approved: { label: "Aprobada", variant: "default" }, rejected: { label: "Rechazada", variant: "destructive" },
@@ -170,6 +172,15 @@ export function StagingEstablishmentRequestsManager() {
                     ))}
                   </dl>
                   {r.description && <p className="whitespace-pre-line text-muted-foreground">{r.description}</p>}
+                  {r.files && (
+                    <div className="flex flex-wrap items-center gap-2">
+                      {r.files.split(" ").map((u, i) => u.endsWith(".pdf") ? (
+                        <a key={u} href={u} target="_blank" rel="noopener noreferrer" className="rounded-md border border-border px-3 py-2 text-primary hover:underline">Menú (PDF)</a>
+                      ) : (
+                        <a key={u} href={u} target="_blank" rel="noopener noreferrer"><img src={u} alt={`Foto ${i + 1} de ${r.name}`} className="h-20 w-28 rounded-md object-cover" loading="lazy" /></a>
+                      ))}
+                    </div>
+                  )}
                   <div className="flex flex-wrap items-center gap-2">
                     {(["approved", "rejected", "pending"] as const).filter((s) => s !== r.status).map((s) => (
                       <Button key={s} size="sm" variant={s === "rejected" ? "outline" : "default"} disabled={setStatus.isPending}

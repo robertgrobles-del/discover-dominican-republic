@@ -30,7 +30,7 @@ export async function toWebp(file: File): Promise<{ blob: Blob; width: number; h
   throw new Error("La imagen sigue pesando más de 2 MB tras comprimirla; usa una más pequeña");
 }
 
-const toBase64 = (blob: Blob) =>
+export const toBase64 = (blob: Blob) =>
   new Promise<string>((resolve, reject) => {
     const r = new FileReader();
     r.onload = () => resolve(String(r.result).split(",")[1] ?? "");

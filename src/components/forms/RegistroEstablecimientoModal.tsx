@@ -42,6 +42,7 @@ import {
   tieneCamposGenericos,
   camposRequeridosPendientes,
 } from "./registro/CamposEspecificos";
+import { ArchivosNegocio, type Archivo } from "./registro/ArchivosNegocio";
 
 export type { TipoEstablecimiento };
 
@@ -50,15 +51,20 @@ interface Props {
   onClose: () => void;
   /** Tipo con el que se abre el formulario. `general` = sin elegir: la persona lo escoge en el primer paso. */
   tipo: TipoEstablecimiento;
+  /** Se muestra como página (/registra-tu-negocio) en lugar de ventana. */
+  asPage?: boolean;
 }
 
-export function RegistroEstablecimientoModal({ open, onClose, tipo: tipoInicial }: Props) {
+/** Tipos que pueden adjuntar su menú en PDF (las discotecas se registran como bar). */
+const CON_MENU: TipoEstablecimiento[] = ["restaurante", "bar", "cafe"];
+
+export function RegistroEstablecimientoModal({ open, onClose, tipo: tipoInicial, asPage = false }: Props) {
   // Un solo formulario para todo tipo de negocio. Quien llega desde un botón concreto («Registrar mi restaurante»)
   // ya trae el tipo elegido y puede cambiarlo; los campos del paso 2 dependen del tipo.
   const [tipo, setTipoState] = useState<TipoEstablecimiento>(tipoInicial);
   const config = tipoConfig[tipo];
   const Icon = config.icon;
-  const TOTAL_STEPS = 5;
+  const TOTAL_STEPS = 6;
   // Los alojamientos operan 24/7: en lugar de horario piden check-in y check-out.
   const esAlojamiento = tipo === "hotel" || tipo === "airbnb";
 
@@ -76,6 +82,10 @@ export function RegistroEstablecimientoModal({ open, onClose, tipo: tipoInicial 
   // Step 2 - Specific fields
   const [specificData, setSpecificData] = useState<Record<string, string>>({});
 
+  const [fotos, setFotos] = useState<Archivo[]>([]);
+  const [menu, setMenu] = useState<Archivo | null>(null);
+  const conMenu = CON_MENU.includes(tipo);
+
   // Step 3 - Terms
   const [acceptTerms, setAcceptTerms] = useState(false);
 
@@ -86,7 +96,7 @@ export function RegistroEstablecimientoModal({ open, onClose, tipo: tipoInicial 
   const pendientesPaso2 = camposRequeridosPendientes(tipo, specificData);
 
   // Cada paso exige lo suyo antes de seguir: 0 negocio y contacto, 1 ubicación, 2 horario y descripción,
-  // 3 detalles según el tipo, 4 confirmación.
+  // 3 detalles según el tipo, 4 fotos y menú (opcionales), 5 confirmación.
   const stepValid = (n: number): boolean => {
     if (n === 0) return tipo !== "general" && Boolean(basicData.nombre.trim() && basicData.responsable.trim() && basicData.telefono.trim()) && isValidEmail(basicData.email);
     if (n === 1) return Boolean(basicData.direccion.trim() && basicData.provincia);
@@ -130,6 +140,8 @@ export function RegistroEstablecimientoModal({ open, onClose, tipo: tipoInicial 
             rnc: basicData.rnc?.trim() || undefined,
             schedule: horario || undefined,
             details: specificData,
+            photo_ids: fotos.map((f) => f.id),
+            menu_id: conMenu && menu ? menu.id : undefined,
           }),
         });
 
@@ -199,32 +211,33 @@ export function RegistroEstablecimientoModal({ open, onClose, tipo: tipoInicial 
       setBasicData({ nombre: "", responsable: "", email: "", telefono: "", direccion: "", provincia: "", website: "", foto_url: "", descripcion: "", rnc: "", horario: "" });
       setTipoState(tipoInicial);
       setSpecificData({});
+      setFotos([]);
+      setMenu(null);
       setAcceptTerms(false);
     }, 300);
   };
 
-  const stepLabels = ["Negocio y contacto", "Ubicación", "Horario y descripción", "Detalles del negocio", "Confirmación"];
+  const stepLabels = ["Negocio y contacto", "Ubicación", "Horario y descripción", "Detalles del negocio", conMenu ? "Fotos y menú" : "Fotos", "Confirmación"];
 
-  return (
-    <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-4xl max-h-[92vh] overflow-y-auto sm:p-8"><Honeypot />
-        {/* Header */}
-        <DialogHeader className="pb-2">
-          <div className="flex items-center gap-3 mb-1">
-            <div className="p-2 rounded-xl bg-muted">
-              <Icon className={`h-6 w-6 ${config.color}`} />
-            </div>
-            <div>
-              <DialogTitle className="text-xl font-display">
-                Registrar {config.label}
-              </DialogTitle>
-              <DialogDescription className="text-sm">
-                {config.descripcion}
-              </DialogDescription>
-            </div>
-          </div>
-        </DialogHeader>
+  const Titulo = asPage ? "h2" : DialogTitle;
+  const Descripcion = asPage ? "p" : DialogDescription;
+  const header = (
+    <div className="flex items-center gap-3 mb-1">
+      <div className="p-2 rounded-xl bg-muted">
+        <Icon className={`h-6 w-6 ${config.color}`} />
+      </div>
+      <div>
+        <Titulo className="text-xl font-display font-bold">
+          Registrar {tipo === "general" ? "mi negocio" : config.label}
+        </Titulo>
+        <Descripcion className="text-sm text-muted-foreground">
+          {config.descripcion}
+        </Descripcion>
+      </div>
+    </div>
+  );
 
+  const body = (
         <AnimatePresence mode="wait">
           {/* ── SUCCESS ── */}
           {success ? (
@@ -244,7 +257,7 @@ export function RegistroEstablecimientoModal({ open, onClose, tipo: tipoInicial 
               <div className="flex flex-wrap justify-center gap-2 pt-2">
                 <Badge variant="outline" className="gap-1 bg-amber-500/10 text-amber-600 border-amber-300"><Clock className="h-3 w-3" /> Pendiente de revisión</Badge>
               </div>
-              <Button onClick={handleClose} className="mt-4">Cerrar</Button>
+              <Button onClick={handleClose} className="mt-4">{asPage ? "Volver al inicio" : "Cerrar"}</Button>
             </motion.div>
           ) : (
             <motion.div key="form" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
@@ -391,8 +404,15 @@ export function RegistroEstablecimientoModal({ open, onClose, tipo: tipoInicial 
                   </motion.div>
                 )}
 
-                {/* ── PASO 5 ── Confirmación ── */}
+                {/* ── PASO 5 ── Fotos y menú ── */}
                 {step === 4 && (
+                  <motion.div key="step-archivos" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
+                    <ArchivosNegocio fotos={fotos} onFotos={setFotos} menu={menu} onMenu={setMenu} conMenu={conMenu} />
+                  </motion.div>
+                )}
+
+                {/* ── PASO 6 ── Confirmación ── */}
+                {step === 5 && (
                   <motion.div key="step3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-5">
                     {/* Summary Card */}
                     <div className="bg-muted/50 rounded-xl p-4 space-y-3">
@@ -408,6 +428,8 @@ export function RegistroEstablecimientoModal({ open, onClose, tipo: tipoInicial 
                           ["Dirección", basicData.direccion],
                           basicData.website ? ["Web / RRSS", basicData.website] : null,
                           basicData.rnc ? ["RNC", basicData.rnc] : null,
+                          ["Fotos", String(fotos.length)],
+                          conMenu ? ["Menú", menu ? menu.nombre : "Sin menú"] : null,
                         ].filter(Boolean).map(([label, value]) => (
                           <div key={label}>
                             <span className="text-muted-foreground">{label}: </span>
@@ -463,7 +485,7 @@ export function RegistroEstablecimientoModal({ open, onClose, tipo: tipoInicial 
                   className="gap-2"
                 >
                   <ChevronLeft className="h-4 w-4" />
-                  {step === 0 ? "Cancelar" : "Anterior"}
+                  {step === 0 ? (asPage ? "Volver" : "Cancelar") : "Anterior"}
                 </Button>
 
                 <div className="text-xs text-muted-foreground">
@@ -496,6 +518,22 @@ export function RegistroEstablecimientoModal({ open, onClose, tipo: tipoInicial 
             </motion.div>
           )}
         </AnimatePresence>
+  );
+
+  if (asPage) {
+    return (
+      <div className="relative">
+        <Honeypot />
+        <div className="pb-4">{header}</div>
+        {body}
+      </div>
+    );
+  }
+  return (
+    <Dialog open={open} onOpenChange={handleClose}>
+      <DialogContent className="max-w-4xl max-h-[92vh] overflow-y-auto sm:p-8"><Honeypot />
+        <DialogHeader className="pb-2">{header}</DialogHeader>
+        {body}
       </DialogContent>
     </Dialog>
   );

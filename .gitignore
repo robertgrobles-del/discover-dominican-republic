@@ -45,3 +45,4 @@ backend/loadtest-report.json
 # Archivos temporales de SQLite en modo WAL (staging)
 *.sqlite-shm
 *.sqlite-wal
+marketing/
