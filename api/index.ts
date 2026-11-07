@@ -229,6 +229,7 @@ const eventSpec = (b: Fields) => ({
   submitter_phone: () => str(b, "submitter_phone", 30),
   venue_id: () => str(b, "venue_id", 64),
   venue_type: () => oneOf(b, "venue_type", VENUE_CATEGORIES, null),
+  venue_room: () => str(b, "venue_room", 160),
 });
 
 export const VENUE_CATEGORIES = ["estadio", "arena", "teatro", "anfiteatro", "centro_convenciones", "golf", "mall", "discoteca", "parque", "museo", "playa",
@@ -463,7 +464,7 @@ const PUBLIC_CACHE = { "Cache-Control": "public, max-age=0, s-maxage=30, stale-w
 // Un evento deja de salir al llegar su fecha y hora de fin (hora de RD, UTC-4); sin hora de fin, al acabar el día.
 const EVENT_LIVE = "(COALESCE(end_date, start_date) IS NULL OR datetime(COALESCE(end_date, start_date) || ' ' || COALESCE(end_time, '23:59'), '+4 hours') > datetime('now'))";
 // Sin los datos de contacto de quien lo envió ni la huella de IP.
-const EVENT_PUBLIC = "id, slug, name, event_type, short_description, description, image_url, start_date, end_date, start_time, end_time, venue, venue_type, address, province, price_range, ticket_url, organizer, is_featured, updated_at";
+const EVENT_PUBLIC = "id, slug, name, event_type, short_description, description, image_url, start_date, end_date, start_time, end_time, venue, venue_type, venue_room, address, province, price_range, ticket_url, organizer, is_featured, updated_at";
 
 async function publicApi(db: Client, path: string, lang?: Lang): Promise<ApiResponse | null> {
   if (path === "/public/provinces") {

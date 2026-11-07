@@ -522,7 +522,7 @@ describe("recintos", () => {
     expect(JSON.parse(String(data(v).how_to_get))).toEqual({ byCar: "Por la 27" });
     expect((await call("POST", "/admin/events", { slug: "ev-x", name: "Ev", venue_id: "no-existe" }, auth)).status).toBe(422);
     expect((await call("POST", "/admin/events", { slug: "ev-y", name: "Ev", venue_type: "luna" }, auth)).status).toBe(422);
-    expect((await call("POST", "/admin/events", { slug: "ev-playa", name: "Ev", venue: "Playa Macao", venue_type: "playa" }, auth)).status).toBe(201);
+    expect((await call("POST", "/admin/events", { slug: "ev-playa", name: "Ev", venue: "Playa Macao", venue_type: "playa", venue_room: "Zona norte" }, auth)).status).toBe(201);
     const ev = await call("POST", "/admin/events", { slug: "ev-x", name: "Ev", venue_id: data(v).id }, auth);
     expect(ev.status).toBe(201);
     await call("DELETE", `/admin/venues/${data(v).id}`, undefined, auth);
