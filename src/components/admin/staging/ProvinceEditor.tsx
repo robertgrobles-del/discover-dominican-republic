@@ -30,7 +30,7 @@ const parse = <T,>(v: unknown): T[] => { try { const a = JSON.parse(String(v ?? 
 const s = (v: unknown) => (v == null ? "" : String(v));
 
 /** Lista editable: añadir, quitar y reordenar elementos. */
-function Repeater<T>({ items, onChange, empty, add, render }: {
+export function Repeater<T>({ items, onChange, empty, add, render }: {
   items: T[]; onChange: (v: T[]) => void; empty: T; add: string; render: (item: T, set: (patch: Partial<T>) => void) => ReactNode;
 }) {
   const move = (i: number, d: number) => { const a = [...items]; [a[i], a[i + d]] = [a[i + d], a[i]]; onChange(a); };
@@ -52,7 +52,7 @@ function Repeater<T>({ items, onChange, empty, add, render }: {
 }
 
 /** Varias fotos de la biblioteca (portada en slider o galería), con su texto alternativo. */
-function PhotoList({ items, onChange, max }: { items: Photo[]; onChange: (v: Photo[]) => void; max: number }) {
+export function PhotoList({ items, onChange, max }: { items: Photo[]; onChange: (v: Photo[]) => void; max: number }) {
   const [picking, setPicking] = useState(false);
   return (
     <div className="space-y-2">

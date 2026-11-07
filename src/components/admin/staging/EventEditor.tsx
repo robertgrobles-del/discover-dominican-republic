@@ -1,7 +1,7 @@
 // Editor de evento con la disposición del de noticias (estilo WordPress): contenido a la izquierda; cajas de
 // Publicar, Fecha y hora, Imagen, Lugar, Entradas y Contacto a la derecha.
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { fetchApi } from "@/lib/fastifyClient";
@@ -23,7 +23,7 @@ const toSlug = (v: string) => v.normalize("NFD").replace(/[̀-ͯ]/g, "").toLower
 const s = (v: unknown) => (v == null ? "" : String(v));
 
 const FIELDS = ["name", "slug", "event_type", "short_description", "description", "image_url", "start_date", "end_date", "start_time", "end_time",
-  "venue", "address", "province", "price_range", "ticket_url", "organizer", "submitter_email", "submitter_phone", "status"] as const;
+  "venue", "address", "province", "price_range", "ticket_url", "organizer", "submitter_email", "submitter_phone", "status", "venue_id"] as const;
 type Key = (typeof FIELDS)[number];
 
 function Field({ id, label, value, onChange, type = "text", placeholder }: { id: string; label: string; value: string; onChange: (v: string) => void; type?: string; placeholder?: string }) {
@@ -61,6 +61,12 @@ export function EventEditor({ row, onClose, onNew }: { row: Row | "new"; onClose
     onSuccess: () => { toast.success("Evento eliminado"); void qc.invalidateQueries({ queryKey: ["staging", "events"] }); onClose(); },
     onError: (e) => toast.error(apiMessage(e)),
   });
+  const venues = useQuery({ queryKey: ["staging", "venues"], queryFn: async () => (await fetchApi<{ data: Row[] }>("/admin/venues")).data, staleTime: 60_000 });
+  /** Al elegir un recinto se copian su nombre, dirección y provincia (se pueden retocar después). */
+  const pickVenue = (vid: string) => {
+    const v = venues.data?.find((x) => x.id === vid);
+    setF((x) => ({ ...x, venue_id: vid, ...(v ? { venue: s(v.name), address: s(v.address) || s(v.city), province: s(v.province) } : {}) }));
+  };
   const busy = save.isPending || trash.isPending;
   const ended = eventEnded({ id: "", ...f });
   const canSave = Boolean(f.name && f.slug);
@@ -137,6 +143,14 @@ export function EventEditor({ row, onClose, onNew }: { row: Row | "new"; onClose
           </Box>
 
           <Box title="Lugar">
+            <div className="space-y-1">
+              <Label htmlFor="ev-venue-id">Recinto</Label>
+              <select id="ev-venue-id" value={f.venue_id} onChange={(e) => pickVenue(e.target.value)} className="flex h-9 w-full rounded-md border border-input bg-background px-2 text-sm">
+                <option value="">— Sin recinto del catálogo —</option>
+                {(venues.data ?? []).map((v) => <option key={v.id} value={v.id}>{s(v.name)}{v.city ? ` · ${s(v.city)}` : ""}</option>)}
+              </select>
+              <p className="text-xs text-muted-foreground">Los recintos se gestionan en la sección Recintos.</p>
+            </div>
             <Field id="ev-venue" label="Recinto" value={f.venue} onChange={(v) => set("venue", v)} placeholder="Estadio Olímpico" />
             <Field id="ev-addr" label="Dirección o ciudad" value={f.address} onChange={(v) => set("address", v)} />
             <Field id="ev-prov" label="Provincia" value={f.province} onChange={(v) => set("province", v)} />

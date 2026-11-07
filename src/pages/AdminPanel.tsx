@@ -16,12 +16,12 @@ import { MockDataNotice } from "@/components/MockDataNotice";
 import { Navigate, Link, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { adminDashboardApi } from "@/lib/adminDashboardApi";
-import { StagingEventsManager, StagingNewsCategoriesManager, StagingNewsManager, StagingProvincesManager } from "@/components/admin/staging/StagingCrudManager";
+import { StagingEventsManager, StagingVenuesManager, StagingNewsCategoriesManager, StagingNewsManager, StagingProvincesManager } from "@/components/admin/staging/StagingCrudManager";
 import { StagingContactMessagesManager, StagingEstablishmentRequestsManager, StagingLeadsManager } from "@/components/admin/staging/StagingFormsManagers";
 import { MediaLibrary } from "@/components/admin/staging/MediaLibrary";
 import { StagingUsersManager } from "@/components/admin/staging/StagingUsersManager";
 import { StagingDashboard } from "@/components/admin/staging/StagingDashboard";
-import { Shield, Loader2, Menu, X, ChevronRight, ExternalLink, LogOut, MapPin, Newspaper, Users, Tags, Gift, Building2, Moon, Sun, Image as ImageIcon, LayoutDashboard, Mail, CalendarDays } from "lucide-react";
+import { Shield, Loader2, Menu, X, ChevronRight, ExternalLink, LogOut, MapPin, Newspaper, Users, Tags, Gift, Building2, Moon, Sun, Image as ImageIcon, LayoutDashboard, Mail, CalendarDays, Landmark } from "lucide-react";
 
 type TabCategory = "home" | "erp" | "crm" | "cms" | "system";
 
@@ -101,6 +101,7 @@ const ADMIN_TABS: AdminTab[] = [
   { value: "medios", label: "Biblioteca de medios", category: "cms", capability: "staging.panel", allowRoles: ["admin", "editor", "autor", "colaborador"], icon: ImageIcon, iconClass: "text-cyan-500", render: () => <MediaLibrary /> },
   { value: "categorias-noticias", label: "Categorías de noticias", category: "cms", capability: "staging.panel", allowRoles: ["admin", "editor"], icon: Tags, iconClass: "text-amber-500", render: () => <StagingNewsCategoriesManager /> },
   { value: "eventos", label: "Eventos", category: "cms", capability: "staging.panel", allowRoles: ["admin", "editor"], icon: CalendarDays, iconClass: "text-rose-500", render: () => <StagingEventsManager /> },
+  { value: "recintos", label: "Recintos", category: "cms", capability: "staging.panel", allowRoles: ["admin", "editor"], icon: Landmark, iconClass: "text-indigo-500", render: () => <StagingVenuesManager /> },
   { value: "sorteo", label: "Sorteo y boletín", category: "crm", capability: "staging.panel", allowRoles: ["admin"], icon: Gift, iconClass: "text-pink-500", render: () => <StagingLeadsManager /> },
   { value: "solicitudes-negocios", label: "Solicitudes de negocios", category: "crm", capability: "staging.panel", allowRoles: ["admin"], icon: Building2, iconClass: "text-orange-500", render: () => <StagingEstablishmentRequestsManager /> },
   { value: "mensajes", label: "Mensajes de contacto", category: "crm", capability: "staging.panel", allowRoles: ["admin"], icon: Mail, iconClass: "text-violet-500", render: () => <StagingContactMessagesManager /> },

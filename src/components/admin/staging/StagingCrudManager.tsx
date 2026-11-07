@@ -18,6 +18,8 @@ import { ProvinceEditor } from "./ProvinceEditor";
 import { ProvinceList } from "./ProvinceList";
 import { EventEditor } from "./EventEditor";
 import { EventList } from "./EventList";
+import { VenueEditor } from "./VenueEditor";
+import { VenueList } from "./VenueList";
 import { MediaPicker } from "./MediaLibrary";
 
 export type FieldDef = {
@@ -38,7 +40,7 @@ const toSlug = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLower
 const apiMessage = (e: unknown) => (e instanceof HttpError ? (e.details as { error?: { message?: string } } | null)?.error?.message : null) ?? (e instanceof Error ? e.message : "Error");
 
 export function StagingCrudManager({ resource, title, titleKey, fields, noun, renderEditor, renderList }: {
-  resource: "provinces" | "news" | "news-categories" | "events";
+  resource: "provinces" | "news" | "news-categories" | "events" | "venues";
   title: string;
   titleKey: string;           // campo que se muestra en la lista y del que sale el slug
   fields: FieldDef[];
@@ -316,6 +318,20 @@ export function StagingEventsManager() {
       fields={[]}
       renderEditor={(row, close, openNew) => <EventEditor row={row} onClose={close} onNew={openNew} />}
       renderList={(p) => <EventList {...p} />}
+    />
+  );
+}
+
+export function StagingVenuesManager() {
+  return (
+    <StagingCrudManager
+      resource="venues"
+      title="Recintos"
+      titleKey="name"
+      noun="recinto"
+      fields={[]}
+      renderEditor={(row, close, openNew) => <VenueEditor row={row} onClose={close} onNew={openNew} />}
+      renderList={(p) => <VenueList {...p} />}
     />
   );
 }

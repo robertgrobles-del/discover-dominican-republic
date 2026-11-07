@@ -227,6 +227,54 @@ const eventSpec = (b: Fields) => ({
   status: () => oneOf(b, "status", STATUSES, "draft"),
   submitter_email: () => str(b, "submitter_email", 254),
   submitter_phone: () => str(b, "submitter_phone", 30),
+  venue_id: () => str(b, "venue_id", 64),
+});
+
+export const VENUE_CATEGORIES = ["estadio", "arena", "teatro", "anfiteatro", "centro_convenciones", "golf", "mall", "discoteca", "parque", "museo", "playa", "otro"];
+
+/** Objeto JSON pequeño con solo textos (p. ej. «cómo llegar»: byCar, byBus…). */
+function jsonTexts(o: Fields, key: string, keys: string[]): string | null | Error {
+  let v = o[key];
+  if (v === undefined || v === null || v === "") return null;
+  if (typeof v === "string") { try { v = JSON.parse(v); } catch { return new Error(`${key} no es JSON válido`); } }
+  if (typeof v !== "object" || Array.isArray(v)) return new Error(`${key} debe ser un objeto`);
+  const out: Record<string, string> = {};
+  for (const k of keys) {
+    const t = (v as Fields)[k];
+    if (typeof t === "string" && t.trim()) out[k] = t.trim().slice(0, 1000);
+  }
+  return Object.keys(out).length ? JSON.stringify(out) : null;
+}
+
+const venueSpec = (b: Fields) => ({
+  slug: slugOf(b, 120),
+  name: () => str(b, "name", 200, true),
+  category: () => oneOf(b, "category", VENUE_CATEGORIES, "otro"),
+  category_label: () => str(b, "category_label", 80),
+  short_description: () => str(b, "short_description", 300),
+  description: () => str(b, "description", 20000),
+  image_url: () => url(b, "image_url"),
+  image_alt: () => str(b, "image_alt", 300),
+  gallery: () => jsonList(b, "gallery", 60),
+  address: () => str(b, "address", 300),
+  city: () => str(b, "city", 120),
+  province: () => str(b, "province", 120),
+  latitude: () => num(b, "latitude", -90, 90),
+  longitude: () => num(b, "longitude", -180, 180),
+  map_url: () => url(b, "map_url"),
+  capacity: () => { const n = num(b, "capacity", 0, 1_000_000); return n instanceof Error || n === null || Number.isInteger(n) ? n : new Error("capacity debe ser un número entero"); },
+  year_built: () => { const n = num(b, "year_built", 1492, 2100); return n instanceof Error || n === null || Number.isInteger(n) ? n : new Error("year_built debe ser un año"); },
+  amenities: () => jsonList(b, "amenities", 40),
+  features: () => jsonList(b, "features", 40),
+  how_to_get: () => jsonTexts(b, "how_to_get", ["byCar", "byBus", "byMetro", "parking", "taxi"]),
+  accessibility: () => str(b, "accessibility", 1000),
+  schedule: () => str(b, "schedule", 300),
+  phone: () => { const ph = str(b, "phone", 30); return ph instanceof Error || ph === null || /^[+\d\s().-]{7,30}$/.test(ph) ? ph : new Error("Teléfono no válido"); },
+  email: () => { const e = str(b, "email", 254); return e instanceof Error || e === null || EMAIL.test(e) ? e : new Error("Correo no válido"); },
+  website: () => url(b, "website"),
+  seo_title: () => str(b, "seo_title", 90),
+  seo_description: () => str(b, "seo_description", 200),
+  status: () => oneOf(b, "status", STATUSES, "draft"),
 });
 
 // ---------- usuarios ----------
@@ -257,7 +305,8 @@ const TABLES = {
   provinces: { spec: provinceSpec, order: "name COLLATE NOCASE", refs: {} },
   news: { spec: newsSpec, order: "created_at DESC", refs: { province_id: ["provinces", "La provincia indicada no existe"], category_id: ["news_categories", "La categoría indicada no existe"] } },
   news_categories: { spec: categorySpec, order: "sort_order, name COLLATE NOCASE", refs: {} },
-  events: { spec: eventSpec, order: "start_date DESC, name COLLATE NOCASE", refs: {} },
+  events: { spec: eventSpec, order: "start_date DESC, name COLLATE NOCASE", refs: { venue_id: ["venues", "El recinto indicado no existe"] } },
+  venues: { spec: venueSpec, order: "name COLLATE NOCASE", refs: {} },
 } as const satisfies Record<string, { spec: (b: Fields) => Record<string, () => unknown>; order: string; refs: Record<string, readonly [string, string]> }>;
 
 async function crud(db: Client, table: keyof typeof TABLES, method: string, id: string | undefined, body: Fields, userId: string): Promise<ApiResponse> {
@@ -273,6 +322,7 @@ async function crud(db: Client, table: keyof typeof TABLES, method: string, id: 
       if (n) return err(409, `No se puede eliminar: ${n} noticia${n === 1 ? " usa" : "s usan"} esta categoría`);
     }
     if (table === "provinces") await db.execute({ sql: "UPDATE news SET province_id = NULL WHERE province_id = ?", args: [id] });
+    if (table === "venues") await db.execute({ sql: "UPDATE events SET venue_id = NULL WHERE venue_id = ?", args: [id] });
     await db.execute({ sql: "DELETE FROM content_translations WHERE entity = ? AND entity_id = ?", args: [table, id] });
     const r = await db.execute({ sql: `DELETE FROM ${table} WHERE id = ?`, args: [id] });
     return r.rowsAffected ? { status: 204 } : err(404, "No encontrado");
@@ -877,7 +927,7 @@ async function submitContact(db: Client, body: Fields, hash: string | null): Pro
   return { status: 201, body: { data: { received: true } } };
 }
 
-const FORM_POSTS = new Set(["/leads", "/contact", "/establishments/register", "/events/submissions"]);
+const FORM_POSTS = new Set(["/leads", "/contact", "/establishments/register", "/establishments/files", "/events/submissions"]);
 
 /**
  * Barrera común de los formularios públicos: el campo trampa (un bot lo rellena; se le responde como si
@@ -922,9 +972,65 @@ async function submitEvent(db: Client, body: Fields, hash: string | null): Promi
   return { status: 201, body: { data: { id, status: "pending" } } };
 }
 
+// ---------- archivos del registro de negocios: fotos (WebP) y menú (PDF) ----------
+// Se suben uno a uno antes de enviar la solicitud (una función de Vercel no acepta cuerpos de más de 4,5 MB).
+// shortcut: los archivos de un registro abandonado quedan sin request_id; si crecen, borrarlos con más de un día.
+const MAX_MENU_BYTES = 2.5 * 1024 * 1024; // en base64 cabe en el límite de 4 MB de readBody
+const MAX_FILES_PER_HOUR = 30;
+const MAX_PHOTOS = 8;
+const isPdf = (b: Uint8Array) => b.length > 5 && String.fromCharCode(...b.subarray(0, 5)) === "%PDF-";
+const fileUrl = (id: string, kind: string) => `/api/v1/establishment-files/${id}.${kind === "menu" ? "pdf" : "webp"}`;
+
+async function uploadEstablishmentFile(db: Client, body: Fields, hash: string | null): Promise<ApiResponse> {
+  const kind = body.kind === "photo" || body.kind === "menu" ? body.kind : null;
+  if (!kind) return err(422, "kind debe ser photo o menu");
+  const max = kind === "menu" ? MAX_MENU_BYTES : MAX_IMAGE_BYTES;
+  const tooBig = kind === "menu" ? "El menú supera los 2,5 MB" : "La foto supera los 2 MB";
+  if (typeof body.data !== "string" || body.data.length > Math.ceil(max / 3) * 4 + 4) return err(413, tooBig);
+  const bytes = new Uint8Array(Buffer.from(body.data, "base64"));
+  if (kind === "photo" ? !isWebp(bytes) : !isPdf(bytes)) return err(415, kind === "photo" ? "Solo se aceptan fotos WebP" : "El menú debe ser un PDF");
+  if (bytes.length > max) return err(413, tooBig);
+  if (hash) {
+    const since = new Date(Date.now() - 3_600_000).toISOString();
+    const n = Number((await db.execute({ sql: "SELECT COUNT(*) AS n FROM establishment_files WHERE ip_hash = ? AND created_at > ?", args: [hash, since] })).rows[0]?.n ?? 0);
+    if (n >= MAX_FILES_PER_HOUR) return err(429, "Demasiados archivos. Inténtalo más tarde.");
+  }
+  const id = randomUUID();
+  await db.execute({
+    sql: "INSERT INTO establishment_files (id, kind, mime, bytes, size, ip_hash) VALUES (?, ?, ?, ?, ?, ?)",
+    args: [id, kind, kind === "menu" ? "application/pdf" : "image/webp", bytes, bytes.length, hash],
+  });
+  return { status: 201, body: { data: { id, url: fileUrl(id, kind), size: bytes.length } } };
+}
+
+async function serveEstablishmentFile(db: Client, id: string, ext: string): Promise<ApiResponse> {
+  if (!MEDIA_ID.test(id)) return err(404, "No encontrado");
+  const row = (await db.execute({ sql: "SELECT mime, bytes FROM establishment_files WHERE id = ?", args: [id] })).rows[0];
+  if (!row || (ext === "pdf") !== (row.mime === "application/pdf")) return err(404, "No encontrado");
+  const headers: Record<string, string> = { "Content-Type": String(row.mime), "Cache-Control": "public, max-age=31536000, immutable", "X-Content-Type-Options": "nosniff" };
+  if (ext === "pdf") headers["Content-Security-Policy"] = "sandbox"; // un PDF subido por cualquiera no ejecuta nada en el sitio
+  return { status: 200, raw: new Uint8Array(row.bytes as ArrayBuffer), headers };
+}
+
+/** Ids de archivos que trae la solicitud: deben existir, ser del tipo esperado y no estar ya ligados a otra. */
+async function pendingFiles(db: Client, body: Fields): Promise<{ photos: string[]; menu: string | null } | Error> {
+  const photos = Array.isArray(body.photo_ids) ? body.photo_ids : [];
+  const menu = typeof body.menu_id === "string" && body.menu_id ? body.menu_id : null;
+  if (photos.length > MAX_PHOTOS) return new Error(`Máximo ${MAX_PHOTOS} fotos`);
+  const ids = [...photos, ...(menu ? [menu] : [])];
+  if (ids.some((x) => typeof x !== "string" || !MEDIA_ID.test(x)) || new Set(ids).size !== ids.length) return new Error("Archivos no válidos");
+  if (!ids.length) return { photos: [], menu: null };
+  const rows = (await db.execute({ sql: `SELECT id, kind FROM establishment_files WHERE request_id IS NULL AND id IN (${ids.map(() => "?").join(", ")})`, args: ids })).rows;
+  const kindOf = new Map(rows.map((r) => [String(r.id), String(r.kind)]));
+  if (photos.some((p) => kindOf.get(p as string) !== "photo") || (menu && kindOf.get(menu) !== "menu")) return new Error("Archivos no válidos o ya usados; vuelve a subirlos");
+  return { photos: photos as string[], menu };
+}
+
 async function submitEstablishment(db: Client, body: Fields, hash: string | null): Promise<ApiResponse> {
   const email = emailOf(body);
   if (email instanceof Error) return err(422, email.message);
+  const files = await pendingFiles(db, body);
+  if (files instanceof Error) return err(422, files.message);
   const values = collect({
     type: () => { const t = str(body, "type", 40, true); return t instanceof Error || /^[a-z0-9_-]+$/.test(t!) ? t : new Error("Tipo de negocio no válido"); },
     name: () => str(body, "name", 160, true),
@@ -939,15 +1045,20 @@ async function submitEstablishment(db: Client, body: Fields, hash: string | null
     schedule: () => str(body, "schedule", 200),
   });
   if (values instanceof Error) return err(422, values.message);
+  if (!values.photo_url && files.photos.length) values.photo_url = fileUrl(files.photos[0], "photo"); // la primera foto es la portada
   const details = body.details && typeof body.details === "object" ? JSON.stringify(body.details) : null;
   if (details && details.length > 20_000) return err(422, "Los detalles del negocio son demasiado extensos");
   if (await tooManySubmissions(db, hash)) return err(429, "Demasiados envíos. Inténtalo más tarde.");
   const id = randomUUID();
   const cols = Object.keys(values);
-  await db.execute({
-    sql: `INSERT INTO establishment_requests (id, email, details, ip_hash, ${cols.join(", ")}) VALUES (?, ?, ?, ?, ${cols.map(() => "?").join(", ")})`,
-    args: [id, email, details, hash, ...Object.values(values)],
-  });
+  const linked = [...files.photos, ...(files.menu ? [files.menu] : [])];
+  await db.batch([
+    {
+      sql: `INSERT INTO establishment_requests (id, email, details, ip_hash, ${cols.join(", ")}) VALUES (?, ?, ?, ?, ${cols.map(() => "?").join(", ")})`,
+      args: [id, email, details, hash, ...Object.values(values)],
+    },
+    ...(linked.length ? [{ sql: `UPDATE establishment_files SET request_id = ? WHERE request_id IS NULL AND id IN (${linked.map(() => "?").join(", ")})`, args: [id, ...linked] }] : []),
+  ], "write");
   return { status: 201, body: { data: { id, status: "pending" } } };
 }
 
@@ -958,10 +1069,15 @@ async function formsAdmin(db: Client, resource: FormResource, method: string, id
   const cols = resource === "leads"
     ? "id, name, email, interest, message, source, created_at"
     : resource === "contact-messages" ? "id, name, email, subject, message, created_at"
-    : "id, type, name, contact_name, email, phone, address, province, website, photo_url, description, rnc, schedule, details, status, created_at, updated_at";
+    // files: urls de las fotos y el menú subidos, separadas por espacios
+    : `id, type, name, contact_name, email, phone, address, province, website, photo_url, description, rnc, schedule, details, status, created_at, updated_at,
+       (SELECT group_concat('/api/v1/establishment-files/' || f.id || CASE f.kind WHEN 'menu' THEN '.pdf' ELSE '.webp' END, ' ')
+          FROM establishment_files f WHERE f.request_id = establishment_requests.id) AS files`;
   if (method === "GET" && !id) return { status: 200, body: { data: (await db.execute(`SELECT ${cols} FROM ${table} ORDER BY created_at DESC LIMIT 2000`)).rows } };
   if (!id) return err(405, "Método no permitido");
   if (method === "DELETE") {
+    // SQLite no aplica ON DELETE CASCADE si foreign_keys está apagado: se borran a mano.
+    if (table === "establishment_requests") await db.execute({ sql: "DELETE FROM establishment_files WHERE request_id = ?", args: [id] });
     const r = await db.execute({ sql: `DELETE FROM ${table} WHERE id = ?`, args: [id] });
     return r.rowsAffected ? { status: 204 } : err(404, "No encontrado");
   }
@@ -1172,6 +1288,8 @@ export async function handle(req: ApiRequest, db: Client, secret: string, secure
   if (m === "GET" && path.startsWith("/public/")) return (await publicApi(db, path, lang)) ?? err(404, "Ruta no encontrada");
   const media = m === "GET" && path.match(/^\/media\/([^/]+)\.webp$/); // el id se valida en serveMedia
   if (media) return serveMedia(db, media[1]);
+  const estFile = m === "GET" && path.match(/^\/establishment-files\/([^/]+)\.(webp|pdf)$/);
+  if (estFile) return serveEstablishmentFile(db, estFile[1], estFile[2]);
   if (m === "GET") {
     const seo = (await seoRoute(db, path, req.headers["x-forwarded-host"] ?? req.headers.host, loadShell, lang)) ?? (await llmRoute(db, path));
     if (seo) return seo;
@@ -1187,6 +1305,7 @@ export async function handle(req: ApiRequest, db: Client, secret: string, secure
   if (m === "POST" && path === "/leads") return submitLead(db, body, ipHash(req.ip, secret));
   if (m === "POST" && path === "/contact") return submitContact(db, body, ipHash(req.ip, secret));
   if (m === "POST" && path === "/establishments/register") return submitEstablishment(db, body, ipHash(req.ip, secret));
+  if (m === "POST" && path === "/establishments/files") return uploadEstablishmentFile(db, body, ipHash(req.ip, secret));
 
   if (path === "/auth/login" && m === "POST") {
     const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
@@ -1246,9 +1365,9 @@ export async function handle(req: ApiRequest, db: Client, secret: string, secure
     return formsAdmin(db, forms[1] as FormResource, m, forms[2], body);
   }
 
-  const match = path.match(/^\/admin\/(provinces|news|news-categories|events)(?:\/([A-Za-z0-9-]+))?$/);
+  const match = path.match(/^\/admin\/(provinces|news|news-categories|events|venues)(?:\/([A-Za-z0-9-]+))?$/);
   if (match && m !== "GET" && !manager) {
-    if (match[1] !== "news") return err(403, "Solo un editor o administrador modifica provincias, categorías y eventos");
+    if (match[1] !== "news") return err(403, "Solo un editor o administrador modifica provincias, categorías, eventos y recintos");
     const denied = await ownNewsGuard(db, m, match[2], body, user.id, roles.includes("autor"));
     if (denied) return denied;
   }

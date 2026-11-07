@@ -299,6 +299,29 @@ describe("formularios públicos", () => {
     const editor = bearer(await login("ed-forms@x.do", "clave-editor-123"));
     expect((await call("GET", "/admin/leads", undefined, editor)).status).toBe(403);
   });
+
+  it("sube fotos WebP y un menú PDF, los liga a la solicitud y no deja reutilizarlos", async () => {
+    const webp = Buffer.concat([Buffer.from("RIFF\0\0\0\0WEBPVP8 "), Buffer.alloc(20)]).toString("base64");
+    const pdf = Buffer.from("%PDF-1.4\n%%EOF").toString("base64");
+    const photo = data<{ id: string; url: string }>(await post("/establishments/files", { kind: "photo", data: webp }, "3.3.3.3"));
+    const menu = data<{ id: string; url: string }>(await post("/establishments/files", { kind: "menu", data: pdf }, "3.3.3.3"));
+    expect(menu.url).toMatch(/\.pdf$/);
+    expect((await post("/establishments/files", { kind: "menu", data: webp }, "3.3.3.3")).status).toBe(415);
+    expect((await post("/establishments/files", { kind: "photo", data: pdf }, "3.3.3.3")).status).toBe(415);
+    // Un menú no vale como foto.
+    expect((await post("/establishments/register", { ...negocio, photo_ids: [menu.id] }, "3.3.3.3")).status).toBe(422);
+    expect((await post("/establishments/register", { ...negocio, photo_ids: [photo.id], menu_id: menu.id }, "3.3.3.3")).status).toBe(201);
+    expect((await post("/establishments/register", { ...negocio, photo_ids: [photo.id] }, "3.3.3.3")).status).toBe(422);
+
+    const served = await handle({ method: "GET", path: `${menu.url}`, headers: {} } as ApiRequest, db, SECRET, false);
+    expect(served.headers?.["Content-Type"]).toBe("application/pdf");
+    const admin = bearer(await login("admin@x.do", "clave-segura-123"));
+    const req = data<{ id: string; photo_url: string; files: string }[]>(await call("GET", "/admin/establishment-requests", undefined, admin))[0];
+    expect(req.photo_url).toBe(photo.url);
+    expect(req.files.split(" ").sort()).toEqual([menu.url, photo.url].sort());
+    expect((await call("DELETE", `/admin/establishment-requests/${req.id}`, undefined, admin)).status).toBe(204);
+    expect((await handle({ method: "GET", path: photo.url, headers: {} } as ApiRequest, db, SECRET, false)).status).toBe(404);
+  });
 });
 
 describe("fecha de publicación", () => {
@@ -482,5 +505,25 @@ describe("formularios protegidos y eventos del público", () => {
     await call("POST", "/admin/events", { slug: "pasado", name: "Pasado", start_date: "2020-01-01", end_date: "2020-01-02", end_time: "18:00", status: "published" }, auth);
     expect((await call("GET", "/public/events/pasado")).status).toBe(404);
     expect(data<{ slug: string }[]>(await call("GET", "/public/events")).map((e) => e.slug)).not.toContain("pasado");
+  });
+});
+
+describe("recintos", () => {
+  it("trae los del código como borrador, valida campos y se enlaza con eventos", async () => {
+    const auth = bearer(await login("admin@x.do", "clave-segura-123"));
+    const seeded = data<{ slug: string; status: string; amenities: string | null }[]>(await call("GET", "/admin/venues", undefined, auth));
+    expect(seeded.length).toBeGreaterThanOrEqual(14);
+    expect(seeded.every((v) => v.status === "draft")).toBe(true);
+    expect(JSON.parse(String(seeded.find((v) => v.slug === "estadio-quisqueya")?.amenities)).length).toBeGreaterThan(0);
+    expect((await call("POST", "/admin/venues", { slug: "malo", name: "M", category: "nave" }, auth)).status).toBe(422);
+    const v = await call("POST", "/admin/venues", { slug: "sala-x", name: "Sala X", category: "teatro", latitude: 18.47, longitude: -69.9, capacity: 800,
+      how_to_get: { byCar: "Por la 27", otro: "se ignora" } }, auth);
+    expect(v.status).toBe(201);
+    expect(JSON.parse(String(data(v).how_to_get))).toEqual({ byCar: "Por la 27" });
+    expect((await call("POST", "/admin/events", { slug: "ev-x", name: "Ev", venue_id: "no-existe" }, auth)).status).toBe(422);
+    const ev = await call("POST", "/admin/events", { slug: "ev-x", name: "Ev", venue_id: data(v).id }, auth);
+    expect(ev.status).toBe(201);
+    await call("DELETE", `/admin/venues/${data(v).id}`, undefined, auth);
+    expect(data(await call("GET", `/admin/events/${data(ev).id}`, undefined, auth)).venue_id).toBeNull();
   });
 });
