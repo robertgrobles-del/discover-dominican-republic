@@ -14,6 +14,7 @@ import { ClassicEditor } from "./ClassicEditor";
 import { ImageField } from "./StagingCrudManager";
 import { Box } from "./NewsEditor";
 import { eventEnded } from "./EventList";
+import { VENUE_CATEGORY } from "./VenueList";
 
 type Row = Record<string, unknown> & { id: string };
 const EVENT_TYPES = ["Cultural", "Música", "Feria", "Regional", "Exposición", "Deporte", "Gastronomía", "Evento"];
@@ -23,7 +24,7 @@ const toSlug = (v: string) => v.normalize("NFD").replace(/[̀-ͯ]/g, "").toLower
 const s = (v: unknown) => (v == null ? "" : String(v));
 
 const FIELDS = ["name", "slug", "event_type", "short_description", "description", "image_url", "start_date", "end_date", "start_time", "end_time",
-  "venue", "address", "province", "price_range", "ticket_url", "organizer", "submitter_email", "submitter_phone", "status", "venue_id"] as const;
+  "venue", "address", "province", "price_range", "ticket_url", "organizer", "submitter_email", "submitter_phone", "status", "venue_id", "venue_type"] as const;
 type Key = (typeof FIELDS)[number];
 
 function Field({ id, label, value, onChange, type = "text", placeholder }: { id: string; label: string; value: string; onChange: (v: string) => void; type?: string; placeholder?: string }) {
@@ -65,8 +66,10 @@ export function EventEditor({ row, onClose, onNew }: { row: Row | "new"; onClose
   /** Al elegir un recinto se copian su nombre, dirección y provincia (se pueden retocar después). */
   const pickVenue = (vid: string) => {
     const v = venues.data?.find((x) => x.id === vid);
-    setF((x) => ({ ...x, venue_id: vid, ...(v ? { venue: s(v.name), address: s(v.address) || s(v.city), province: s(v.province) } : {}) }));
+    setF((x) => ({ ...x, venue_id: vid, ...(v ? { venue: s(v.name), address: s(v.address) || s(v.city), province: s(v.province), venue_type: s(v.category) } : {}) }));
   };
+  const [manual, setManual] = useState(() => !s(r.venue_id));
+  const catalog = (venues.data ?? []).filter((v) => !f.venue_type || v.category === f.venue_type);
   const busy = save.isPending || trash.isPending;
   const ended = eventEnded({ id: "", ...f });
   const canSave = Boolean(f.name && f.slug);
@@ -144,14 +147,28 @@ export function EventEditor({ row, onClose, onNew }: { row: Row | "new"; onClose
 
           <Box title="Lugar">
             <div className="space-y-1">
-              <Label htmlFor="ev-venue-id">Recinto</Label>
-              <select id="ev-venue-id" value={f.venue_id} onChange={(e) => pickVenue(e.target.value)} className="flex h-9 w-full rounded-md border border-input bg-background px-2 text-sm">
-                <option value="">— Sin recinto del catálogo —</option>
-                {(venues.data ?? []).map((v) => <option key={v.id} value={v.id}>{s(v.name)}{v.city ? ` · ${s(v.city)}` : ""}</option>)}
+              <Label htmlFor="ev-venue-type">Tipo de lugar</Label>
+              <select id="ev-venue-type" value={f.venue_type} onChange={(e) => set("venue_type", e.target.value)} className="flex h-9 w-full rounded-md border border-input bg-background px-2 text-sm">
+                <option value="">— Sin indicar —</option>
+                {Object.entries(VENUE_CATEGORY).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
               </select>
-              <p className="text-xs text-muted-foreground">Los recintos se gestionan en la sección Recintos.</p>
             </div>
-            <Field id="ev-venue" label="Recinto" value={f.venue} onChange={(v) => set("venue", v)} placeholder="Estadio Olímpico" />
+            <fieldset className="flex gap-4 text-sm">
+              <legend className="sr-only">Cómo indicar el lugar</legend>
+              <label className="flex items-center gap-1.5"><input type="radio" name="ev-place" checked={!manual} onChange={() => setManual(false)} />Del catálogo</label>
+              <label className="flex items-center gap-1.5"><input type="radio" name="ev-place" checked={manual} onChange={() => { setManual(true); setF((x) => ({ ...x, venue_id: "" })); }} />Escribirlo a mano</label>
+            </fieldset>
+            {!manual && (
+              <div className="space-y-1">
+                <Label htmlFor="ev-venue-id">Recinto</Label>
+                <select id="ev-venue-id" value={f.venue_id} onChange={(e) => pickVenue(e.target.value)} className="flex h-9 w-full rounded-md border border-input bg-background px-2 text-sm">
+                  <option value="">— Elige un recinto —</option>
+                  {catalog.map((v) => <option key={v.id} value={v.id}>{s(v.name)}{v.city ? ` · ${s(v.city)}` : ""}</option>)}
+                </select>
+                <p className="text-xs text-muted-foreground">{catalog.length ? "Se gestionan en la sección Recintos." : "No hay recintos de ese tipo; créalo en Recintos o escríbelo a mano."}</p>
+              </div>
+            )}
+            <Field id="ev-venue" label={manual ? "Nombre del lugar" : "Nombre visible"} value={f.venue} onChange={(v) => set("venue", v)} placeholder={manual ? "Playa Macao, Carretera Jarabacoa–Constanza…" : ""} />
             <Field id="ev-addr" label="Dirección o ciudad" value={f.address} onChange={(v) => set("address", v)} />
             <Field id="ev-prov" label="Provincia" value={f.province} onChange={(v) => set("province", v)} />
           </Box>

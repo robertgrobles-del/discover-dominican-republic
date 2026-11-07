@@ -9,7 +9,8 @@ const s = (v: unknown) => (v == null ? "" : String(v));
 export const VENUE_CATEGORY: Record<string, string> = {
   estadio: "Estadio", arena: "Arena / coliseo", teatro: "Teatro", anfiteatro: "Anfiteatro", centro_convenciones: "Centro de convenciones",
   golf: "Campo de golf", mall: "Centro comercial", discoteca: "Discoteca / club", parque: "Parque / explanada", museo: "Museo",
-  playa: "Playa", otro: "Otro",
+  playa: "Playa", plaza: "Plaza o calle", carretera: "Carretera o ruta", montana: "Montaña o sendero", rio: "Río, lago o cascada",
+  hotel: "Hotel o resort", restaurante: "Restaurante", otro: "Otro",
 };
 
 export function VenueList({ rows, onNew, onEdit, onDelete, busy }: {
