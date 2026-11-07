@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { fetchApi } from "@/lib/fastifyClient";
+import { NewsBody } from "@/components/admin/staging/NewsBody";
 import { RegistroEventoModal } from "@/components/forms/RegistroEventoModal";
 import { FreeTicketModal } from "@/components/events/FreeTicketModal";
 import { DetailPageSidebarAd, MobileStickyFooterAd } from "@/components/promo";
@@ -236,9 +237,7 @@ export default function EventoDetalle() {
               {/* Event Description Card */}
               <div className="p-6 md:p-8 rounded-3xl bg-card border border-border space-y-4 shadow-sm">
                 <h2 className="font-display font-bold text-xl text-foreground">{pc.tx("h2.1", "Sobre el Evento")}</h2>
-                <div className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line space-y-3">
-                  {event.description}
-                </div>
+                <NewsBody markdown={event.description ?? ""} />
               </div>
 
               {/* Photo Gallery if present */}

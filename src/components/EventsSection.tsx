@@ -6,7 +6,7 @@ import { Link } from "react-router-dom";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { LazyImage } from "@/components/ui/lazy-image";
 import { HOME_SECTION_FRAME, SectionWithSideAds } from "@/components/SectionWithSideAds";
-import { supabase } from "@/integrations/supabase/client";
+import { fetchApi } from "@/lib/fastifyClient";
 import { useTranslation } from "@/hooks/useI18n";
 import carnivalImg from "@/assets/carnival.jpg";
 import jazzImg from "@/assets/jazz-festival.jpg";
@@ -61,22 +61,18 @@ export function EventsSection() {
 
   useEffect(() => {
     async function fetchEvents() {
-      const { data } = await supabase
-        .from("events")
-        .select("*")
-        .eq("is_active", true)
-        .order("start_date", { ascending: true })
-        .limit(6);
+      // Eventos publicados en el panel (Turso), ya sin los terminados; delante de los del código.
+      const data = await fetchApi<{ data: Record<string, string | null>[] }>("/public/events").then((r) => r.data).catch(() => null);
 
       if (data && data.length > 0) {
         const staticSlugs = new Set(staticEvents.map(e => e.id));
         const dbEvents: DisplayEvent[] = data
           .filter(e => !staticSlugs.has(e.slug || ""))
           .map((e, i) => {
-            const startDate = e.start_date ? new Date(e.start_date) : new Date();
+            const startDate = e.start_date ? new Date(`${e.start_date}T12:00:00`) : new Date();
             return {
               id: e.slug || e.id,
-              title: e.name,
+              title: e.name ?? "",
               category: e.event_type || "Evento",
               location: e.address || "RD",
               date: {
@@ -87,7 +83,7 @@ export function EventsSection() {
               color: EVENT_COLORS[(staticEvents.length + i) % EVENT_COLORS.length],
             };
           });
-        setEvents([...staticEvents, ...dbEvents].slice(0, 6));
+        setEvents([...dbEvents, ...staticEvents].slice(0, 6));
       }
     }
     fetchEvents();

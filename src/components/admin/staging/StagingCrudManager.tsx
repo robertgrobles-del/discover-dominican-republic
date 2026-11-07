@@ -16,6 +16,8 @@ import { NewsEditor } from "./NewsEditor";
 import { NewsList } from "./NewsList";
 import { ProvinceEditor } from "./ProvinceEditor";
 import { ProvinceList } from "./ProvinceList";
+import { EventEditor } from "./EventEditor";
+import { EventList } from "./EventList";
 import { MediaPicker } from "./MediaLibrary";
 
 export type FieldDef = {
@@ -304,8 +306,6 @@ export function StagingNewsCategoriesManager() {
   );
 }
 
-const EVENT_TYPES = ["Cultural", "Música", "Feria", "Regional", "Exposición", "Deporte", "Gastronomía", "Evento"];
-
 export function StagingEventsManager() {
   return (
     <StagingCrudManager
@@ -313,28 +313,9 @@ export function StagingEventsManager() {
       title="Eventos"
       titleKey="name"
       noun="evento"
-      fields={[
-        { key: "name", label: "Nombre", required: true },
-        { key: "slug", label: "Slug (URL)", required: true, hint: "Se genera del nombre: /evento/<slug>." },
-        { key: "status", label: "Estado", type: "select", options: [{ value: "draft", label: "Borrador" }, { value: "published", label: "Publicado" }] },
-        { key: "event_type", label: "Tipo", type: "select", options: EVENT_TYPES.map((t) => ({ value: t, label: t })) },
-        { key: "image_url", label: "Imagen", type: "image" },
-        { key: "short_description", label: "Resumen", type: "textarea", recommended: 160, hint: "Sale en la tarjeta del calendario." },
-        { key: "description", label: "Descripción", type: "markdown" },
-        { key: "start_date", label: "Fecha de inicio", type: "date" },
-        { key: "end_date", label: "Fecha de fin", type: "date" },
-        { key: "start_time", label: "Hora de inicio", type: "time" },
-        { key: "end_time", label: "Hora de fin", type: "time" },
-        { key: "venue", label: "Lugar" },
-        { key: "address", label: "Dirección o ciudad" },
-        { key: "province", label: "Provincia" },
-        { key: "price_range", label: "Precio", placeholder: "Gratis, RD$500 – RD$1,500…" },
-        { key: "ticket_url", label: "Enlace de entradas", type: "url" },
-        { key: "organizer", label: "Organizador" },
-        { key: "submitter_email", label: "Correo de contacto", hint: "Solo lo ve el equipo; no sale en la web." },
-        { key: "submitter_phone", label: "Teléfono de contacto", hint: "Solo lo ve el equipo." },
-        { key: "is_featured", label: "Evento destacado", type: "checkbox" },
-      ]}
+      fields={[]}
+      renderEditor={(row, close, openNew) => <EventEditor row={row} onClose={close} onNew={openNew} />}
+      renderList={(p) => <EventList {...p} />}
     />
   );
 }
