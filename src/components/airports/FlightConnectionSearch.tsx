@@ -4,13 +4,14 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
 const DOMINICAN_AIRPORTS = [
-  { code: "PUJ", city: "Punta Cana", name: "Aeropuerto Int. de Punta Cana" },
-  { code: "SDQ", city: "Santo Domingo", name: "Aeropuerto Int. Las Américas" },
-  { code: "STI", city: "Santiago", name: "Aeropuerto Int. del Cibao" },
-  { code: "POP", city: "Puerto Plata", name: "Aeropuerto Int. Gregorio Luperón" },
-  { code: "LRM", city: "La Romana", name: "Aeropuerto Int. de La Romana" },
-  { code: "AZS", city: "Samaná", name: "Aeropuerto Int. Presidente Juan Bosch" },
-  { code: "CBJ", city: "Pedernales", name: "Aeropuerto Int. Cabo Rojo" }
+  { code: "PUJ", city: "Punta Cana", name: "Aeropuerto Internacional de Punta Cana", slug: "aeropuerto-internacional-de-punta-cana" },
+  { code: "SDQ", city: "Santo Domingo", name: "Aeropuerto Internacional Las Américas", slug: "aeropuerto-internacional-las-americas" },
+  { code: "STI", city: "Santiago", name: "Aeropuerto Internacional del Cibao", slug: "aeropuerto-internacional-del-cibao" },
+  { code: "POP", city: "Puerto Plata", name: "Aeropuerto Internacional Gregorio Luperón", slug: "aeropuerto-internacional-gregorio-luperon" },
+  { code: "LRM", city: "La Romana", name: "Aeropuerto Internacional de La Romana", slug: "aeropuerto-internacional-de-la-romana" },
+  { code: "JBQ", city: "Santo Domingo Norte", name: "Aeropuerto Internacional Dr. Joaquín Balaguer", slug: "aeropuerto-internacional-dr-joaquin-balaguer" },
+  { code: "AZS", city: "Samaná", name: "Aeropuerto Internacional Presidente Juan Bosch", slug: "aeropuerto-internacional-presidente-juan-bosch" },
+  { code: "BRX", city: "Barahona", name: "Aeropuerto Internacional María Montez", slug: "aeropuerto-internacional-maria-montez" }
 ];
 
 const POPULAR_ORIGINS = [
