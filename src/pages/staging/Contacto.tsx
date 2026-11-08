@@ -43,7 +43,17 @@ export default function Contacto() {
 
   return (
     <>
-      <SEOHead title="Contacto | Descubre RD" description={`Escríbenos para publicidad, registrar tu negocio, prensa o correcciones. Correo: ${LEGAL.email}.`} url="/contacto" breadcrumbs={[]} />
+      <SEOHead
+        title="Contacto | Descubre RD"
+        description={`Escríbenos para publicidad, registrar tu negocio, prensa o correcciones sobre turismo en República Dominicana. Correo: ${LEGAL.email}.`}
+        url="/contacto"
+        keywords="contacto descubre rd, turismo republica dominicana contacto, prensa turismo rd, publicidad turismo"
+        geo={{ placename: "Santo Domingo, República Dominicana", region: "DO" }}
+        breadcrumbs={[
+          { name: "Inicio", url: "/" },
+          { name: "Contacto", url: "/contacto" },
+        ]}
+      />
       <Header />
       <main className="container mx-auto px-4 pb-20 pt-24 lg:px-8 lg:pt-28">
         <nav aria-label="Migas de pan" className="mb-6 text-sm text-muted-foreground">

@@ -2,6 +2,13 @@ import { useEffect } from "react";
 import { autoBreadcrumbs } from "@/lib/breadcrumbs";
 import { recordRecentlyViewed } from "@/lib/recentlyViewed";
 
+export interface GeoTagProps {
+  latitude?: number;
+  longitude?: number;
+  placename?: string;
+  region?: string;
+}
+
 interface SEOHeadProps {
   title: string;
   description: string;
@@ -14,6 +21,7 @@ interface SEOHeadProps {
    * del slug). Si no se pasa, se generan solas a partir de la URL — salvo en las rutas de `HIDDEN_PREFIXES`
    * (`src/lib/breadcrumbs.ts`), donde nunca se muestran. Pasar `breadcrumbs={[]}` fuerza a ocultarlas también. */
   breadcrumbs?: { name: string; url: string }[];
+  geo?: GeoTagProps;
 }
 
 export function SEOHead({
@@ -25,6 +33,7 @@ export function SEOHead({
   type = "website",
   jsonLd,
   breadcrumbs,
+  geo,
 }: SEOHeadProps) {
   const fullTitle = title.includes("Descubre RD") ? title : `${title} | Descubre República Dominicana`;
   // Canonical URLs must not inherit tracking, filter, or fragment parameters.
@@ -94,6 +103,20 @@ export function SEOHead({
     updateMeta("twitter:image", imageUrl);
     updateMeta("twitter:image:alt", description.slice(0, 100));
 
+    // SEO Local (Geotags & ICBM para posicionamiento geográfico)
+    const geoRegion = geo?.region || "DO";
+    const geoPlacename = geo?.placename || "República Dominicana";
+    updateMeta("geo.region", geoRegion);
+    updateMeta("geo.placename", geoPlacename);
+    if (geo && typeof geo.latitude === "number" && typeof geo.longitude === "number") {
+      updateMeta("geo.position", `${geo.latitude};${geo.longitude}`);
+      updateMeta("ICBM", `${geo.latitude}, ${geo.longitude}`);
+    } else {
+      // Coordenadas oficiales de República Dominicana
+      updateMeta("geo.position", "18.7357;-70.1627");
+      updateMeta("ICBM", "18.7357, -70.1627");
+    }
+
     // Update or create canonical link
     let canonical = document.querySelector('link[rel="canonical"]') as HTMLLinkElement;
     if (!canonical) {
@@ -152,7 +175,7 @@ export function SEOHead({
       const bcScript = document.querySelector('script[data-seo-breadcrumb]');
       if (bcScript) bcScript.remove();
     };
-  }, [fullTitle, description, keywords, image, currentUrl, type, jsonLd, breadcrumbs]);
+  }, [fullTitle, description, keywords, image, currentUrl, type, jsonLd, breadcrumbs, geo]);
 
   return null;
 }
@@ -411,3 +434,84 @@ export function generateFAQSchema(faqs: { question: string; answer: string }[]) 
     })),
   };
 }
+
+export function generateAirportSchema(airport: {
+  name: string;
+  code: string;
+  icao?: string;
+  description: string;
+  image: string;
+  url: string;
+  city: string;
+  provinceName: string;
+  coordinates?: { lat: number; lng: number };
+  phone?: string;
+  website?: string;
+  faqs?: { question: string; answer: string }[];
+}) {
+  const schema: Record<string, unknown> = {
+    "@context": "https://schema.org",
+    "@type": "Airport",
+    name: airport.name,
+    iataCode: airport.code,
+    icaoCode: airport.icao,
+    description: airport.description,
+    image: airport.image,
+    url: airport.url,
+    telephone: airport.phone,
+    sameAs: airport.website ? [airport.website] : undefined,
+    address: {
+      "@type": "PostalAddress",
+      addressLocality: airport.city,
+      addressRegion: airport.provinceName,
+      addressCountry: "DO",
+    },
+  };
+  if (airport.coordinates) {
+    schema.geo = {
+      "@type": "GeoCoordinates",
+      latitude: airport.coordinates.lat,
+      longitude: airport.coordinates.lng,
+    };
+  }
+  if (airport.faqs && airport.faqs.length > 0) {
+    return {
+      "@context": "https://schema.org",
+      "@graph": [
+        schema,
+        {
+          "@type": "FAQPage",
+          mainEntity: airport.faqs.map((f) => ({
+            "@type": "Question",
+            name: f.question,
+            acceptedAnswer: {
+              "@type": "Answer",
+              text: f.answer,
+            },
+          })),
+        },
+      ],
+    };
+  }
+  return schema;
+}
+
+export function generateItemListSchema(
+  items: { name: string; url: string; description?: string; image?: string }[],
+  listName = "Lista de Elementos Destacados"
+) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: listName,
+    itemListElement: items.map((item, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: item.name,
+      url: item.url,
+      description: item.description,
+      image: item.image,
+    })),
+  };
+}
+

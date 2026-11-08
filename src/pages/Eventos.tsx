@@ -123,6 +123,14 @@ export default function Eventos() {
         title={t("eventos.seoTitle")}
         description={t("eventos.seoDesc")}
         keywords="eventos República Dominicana, carnaval La Vega, festivales RD, ferias dominicanas, jazz festival, merengue"
+        image={carnival}
+        url="/eventos"
+        geo={{
+          placename: "República Dominicana",
+          region: "DO",
+          latitude: 18.7357,
+          longitude: -70.1627
+        }}
         jsonLd={eventosSchema}
       />
       <div className="min-h-screen flex flex-col bg-background">

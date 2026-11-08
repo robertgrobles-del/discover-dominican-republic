@@ -11,7 +11,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { PageTransition } from "@/components/PageTransition";
-import { SEOHead } from "@/components/SEOHead";
+import { SEOHead, generateFAQSchema } from "@/components/SEOHead";
 
 const OFFICIAL_URL = "https://eticket.gob.do/";
 const OFFICIAL_HOST = "eticket.gob.do";
@@ -103,11 +103,22 @@ export default function ETicket() {
   return (
     <PageTransition>
       <SEOHead
-        title="E-Ticket República Dominicana 2026: guía del nuevo portal | Descubre RD"
-        description="Cómo hacer gratis el e-Ticket de entrada y salida de República Dominicana en el nuevo portal eticket.gob.do: pasos, novedades, QR, menores y cómo evitar fraudes."
-        keywords="e-ticket República Dominicana, eticket.gob.do, e-ticket migración, formulario de entrada, formulario de salida, código QR"
+        title="E-Ticket República Dominicana: Guía Oficial de Migración y Aduanas"
+        description="Cómo llenar gratis el e-Ticket oficial de entrada y salida de República Dominicana en eticket.gob.do: requisitos, pasos, código QR, menores y prevención de fraudes."
+        keywords="e-ticket República Dominicana, eticket.gob.do, e-ticket migración, formulario de entrada, formulario de salida, código QR, aduanas rd"
+        image="https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=1200&h=630&fit=crop"
         url="/e-ticket"
-        breadcrumbs={[]}
+        breadcrumbs={[
+          { name: "Inicio", url: "/" },
+          { name: "E-Ticket Oficial", url: "/e-ticket" }
+        ]}
+        geo={{
+          placename: "República Dominicana",
+          region: "DO",
+          latitude: 18.7357,
+          longitude: -70.1627
+        }}
+        jsonLd={generateFAQSchema(ETICKET_FAQS)}
       />
       <div className="min-h-screen bg-background">
         <Header />

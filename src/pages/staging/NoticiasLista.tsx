@@ -21,10 +21,21 @@ export default function NoticiasLista() {
   return (
     <>
       <SEOHead
-        title="Noticias de turismo en República Dominicana | Descubre RD"
-        description="Actualidad del turismo dominicano: eventos, cultura, gastronomía, naturaleza y avisos para viajeros."
+        title="Noticias de Turismo en República Dominicana | Descubre RD"
+        description="Actualidad del turismo dominicano: eventos, cultura, gastronomía, naturaleza, inversiones y avisos oficiales para viajeros."
+        keywords="noticias turismo republica dominicana, actualidad rd, turismo dominicano, eventos rd, cultura dominicana"
+        image={heroBeachImg}
         url="/noticias"
-        breadcrumbs={[]}
+        breadcrumbs={[
+          { name: "Inicio", url: "/" },
+          { name: "Noticias", url: "/noticias" }
+        ]}
+        geo={{
+          placename: "República Dominicana",
+          region: "DO",
+          latitude: 18.7357,
+          longitude: -70.1627
+        }}
       />
       <Header />
       <main className="container mx-auto px-4 pb-16 pt-28 lg:px-8">

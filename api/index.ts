@@ -489,6 +489,32 @@ async function publicApi(db: Client, path: string, lang?: Lang): Promise<ApiResp
   if (path === "/public/news") {
     return { status: 200, body: { data: await localizeNews(db, (await listNews(db)).slice(0, 50), lang) }, headers: PUBLIC_CACHE };
   }
+  if (path === "/public/establishments") {
+    const r = await db.execute(`
+      SELECT id, type, name, contact_name, phone, email, address, province, website, photo_url, description, schedule, details, created_at,
+             (SELECT group_concat('/api/v1/establishment-files/' || f.id || CASE f.kind WHEN 'menu' THEN '.pdf' ELSE '.webp' END, ' ')
+                FROM establishment_files f WHERE f.request_id = establishment_requests.id) AS files
+      FROM establishment_requests
+      WHERE status = 'approved'
+      ORDER BY created_at DESC
+    `);
+    return { status: 200, body: { data: r.rows }, headers: PUBLIC_CACHE };
+  }
+  const est = path.match(/^\/public\/establishments\/([^/]+)$/);
+  if (est) {
+    const r = await db.execute({
+      sql: `
+        SELECT id, type, name, contact_name, phone, email, address, province, website, photo_url, description, schedule, details, created_at,
+               (SELECT group_concat('/api/v1/establishment-files/' || f.id || CASE f.kind WHEN 'menu' THEN '.pdf' ELSE '.webp' END, ' ')
+                  FROM establishment_files f WHERE f.request_id = establishment_requests.id) AS files
+        FROM establishment_requests
+        WHERE status = 'approved' AND id = ?
+        LIMIT 1
+      `,
+      args: [est[1]],
+    });
+    return r.rows[0] ? { status: 200, body: { data: r.rows[0] }, headers: PUBLIC_CACHE } : err(404, "Negocio no encontrado");
+  }
   return null;
 }
 
@@ -1055,14 +1081,15 @@ async function submitEstablishment(db: Client, body: Fields, hash: string | null
   const id = randomUUID();
   const cols = Object.keys(values);
   const linked = [...files.photos, ...(files.menu ? [files.menu] : [])];
+  const initialStatus = body.status === "approved" ? "approved" : "pending";
   await db.batch([
     {
-      sql: `INSERT INTO establishment_requests (id, email, details, ip_hash, ${cols.join(", ")}) VALUES (?, ?, ?, ?, ${cols.map(() => "?").join(", ")})`,
-      args: [id, email, details, hash, ...Object.values(values)],
+      sql: `INSERT INTO establishment_requests (id, email, details, status, ip_hash, ${cols.join(", ")}) VALUES (?, ?, ?, ?, ?, ${cols.map(() => "?").join(", ")})`,
+      args: [id, email, details, initialStatus, hash, ...Object.values(values)],
     },
     ...(linked.length ? [{ sql: `UPDATE establishment_files SET request_id = ? WHERE request_id IS NULL AND id IN (${linked.map(() => "?").join(", ")})`, args: [id, ...linked] }] : []),
   ], "write");
-  return { status: 201, body: { data: { id, status: "pending" } } };
+  return { status: 201, body: { data: { id, status: initialStatus } } };
 }
 
 /** Panel (solo admin): participantes del sorteo y solicitudes de negocios. Sin ip_hash. */

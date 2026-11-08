@@ -52,7 +52,17 @@ export default function Anunciate() {
   const [annual, setAnnual] = useState(false);
   return (
     <>
-      <SEOHead title="Anúnciate | Descubre RD" description="Paquetes de publicidad en Descubre RD: portal, Instagram, TikTok y rifas. Desde USD 150 al mes." url="/anunciate" breadcrumbs={[]} />
+      <SEOHead
+        title="Anúnciate | Publicidad y Patrocinios en Descubre RD"
+        description="Llega a miles de viajeros y locales con paquetes de publicidad en Descubre RD: portal web, Instagram, TikTok y contenido patrocinado."
+        url="/anunciate"
+        keywords="publicidad turismo republica dominicana, media kit turismo rd, patrocinar eventos turismo rd, anunciar hotel republica dominicana"
+        geo={{ placename: "República Dominicana", region: "DO" }}
+        breadcrumbs={[
+          { name: "Inicio", url: "/" },
+          { name: "Anúnciate", url: "/anunciate" },
+        ]}
+      />
       <div className="print:hidden"><Header /></div>
       <main className="container mx-auto px-4 pb-20 pt-24 lg:px-8 lg:pt-28 print:pt-0">
         <nav aria-label="Migas de pan" className="mb-6 text-sm text-muted-foreground print:hidden">

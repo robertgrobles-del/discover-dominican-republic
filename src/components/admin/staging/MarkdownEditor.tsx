@@ -6,6 +6,7 @@ import { Bold, Heading2, Heading3, ImagePlus, Italic, Link2, List, ListOrdered, 
 import { Textarea } from "@/components/ui/textarea";
 import { IMAGE_ACCEPT, uploadImage } from "@/lib/stagingMedia";
 import { NewsBody } from "./NewsBody";
+import { ContentLinkDialog } from "./ContentLinkDialog";
 
 type Edit = { wrap?: [string, string]; line?: string; insert?: string; placeholder: string };
 
@@ -25,6 +26,11 @@ export function MarkdownEditor({ id, value, onChange }: { id: string; value: str
   const fileRef = useRef<HTMLInputElement>(null);
   const [tab, setTab] = useState<"write" | "preview">("write");
   const [uploading, setUploading] = useState(false);
+  const [linkDialog, setLinkDialog] = useState<{ open: boolean; url: string; text: string }>({
+    open: false,
+    url: "",
+    text: "",
+  });
 
   /** Aplica un formato a la selección (o a un texto de ejemplo) y deja el cursor donde corresponde. */
   const apply = (edit: Edit) => {
@@ -44,12 +50,14 @@ export function MarkdownEditor({ id, value, onChange }: { id: string; value: str
   };
 
   const addLink = () => {
-    const url = window.prompt("Dirección del enlace (https://…):");
-    if (!url) return;
-    if (!/^https?:\/\//i.test(url)) return void toast.error("El enlace debe empezar por http:// o https://");
-    const ta = ref.current!;
-    const label = value.slice(ta.selectionStart, ta.selectionEnd) || "texto del enlace";
-    apply({ insert: `[${label}](${url})`, placeholder: "" });
+    const ta = ref.current;
+    const label = ta ? value.slice(ta.selectionStart, ta.selectionEnd) : "";
+    setLinkDialog({ open: true, url: "", text: label });
+  };
+
+  const handleLinkConfirm = ({ url: targetUrl, text: label }: { url: string; text?: string }) => {
+    const insertText = `[${label || "enlace"}](${targetUrl})`;
+    apply({ insert: insertText, placeholder: "" });
   };
 
   const addImage = async (file: File | undefined) => {
@@ -100,6 +108,13 @@ export function MarkdownEditor({ id, value, onChange }: { id: string; value: str
       ) : (
         <div className="min-h-[20rem] bg-background p-5">{value.trim() ? <NewsBody markdown={value} /> : <p className="text-sm text-muted-foreground">Nada que mostrar todavía.</p>}</div>
       )}
+      <ContentLinkDialog
+        open={linkDialog.open}
+        onClose={() => setLinkDialog((prev) => ({ ...prev, open: false }))}
+        onSelect={handleLinkConfirm}
+        initialUrl={linkDialog.url}
+        initialText={linkDialog.text}
+      />
     </div>
   );
 }

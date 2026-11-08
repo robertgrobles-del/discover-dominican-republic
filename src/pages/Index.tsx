@@ -37,7 +37,10 @@ const Index = () => {
       <SEOHead
         title="Descubre República Dominicana - Portal Oficial de Turismo y Viajes"
         description="Explora las mejores playas, destinos, hoteles, restaurantes y experiencias de República Dominicana. Planifica tu viaje al Caribe con reservas directas y sin comisiones."
-        keywords="República Dominicana, turismo, playas, Punta Cana, Samaná, Santo Domingo, hoteles, viajes Caribe"
+        url="/"
+        image="/og-image.jpg"
+        keywords="República Dominicana, turismo, playas, Punta Cana, Samaná, Santo Domingo, hoteles, viajes Caribe, vuelos republica dominicana"
+        geo={{ placename: "República Dominicana", region: "DO", position: "18.7357;-70.1627" }}
         jsonLd={generateOrganizationSchema()}
       />
       <div className="min-h-screen bg-background" id="main-content">

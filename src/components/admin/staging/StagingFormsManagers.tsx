@@ -1,13 +1,18 @@
 // Datos de los formularios de la landing (solo administradores): participantes del sorteo y solicitudes de negocios.
 import { useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Download, Loader2, Trash2 } from "lucide-react";
+import { Download, Loader2, Trash2, Plus, ExternalLink, Eye, CheckCircle2 } from "lucide-react";
 import { fetchApi } from "@/lib/fastifyClient";
 import { HttpError } from "@/lib/httpClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { RegistroEstablecimientoModal } from "@/components/forms/RegistroEstablecimientoModal";
+import { EstablishmentCard } from "@/components/establishments/EstablishmentCard";
+import type { PublicEstablishment } from "@/lib/stagingContent";
 
 const apiMessage = (e: unknown) => (e instanceof HttpError ? (e.details as { error?: { message?: string } } | null)?.error?.message : null) ?? (e instanceof Error ? e.message : "Error");
 const fecha = (iso: string) => new Date(iso).toLocaleString("es-DO", { dateStyle: "medium", timeStyle: "short" });
@@ -121,10 +126,16 @@ function parseDetails(json: string | null): [string, string][] {
 export function StagingEstablishmentRequestsManager() {
   const { data: rows = [], isLoading, error, remove, refresh } = useResource<Request>("establishment-requests");
   const [filter, setFilter] = useState<Request["status"] | "all">("pending");
+  const [registerModalOpen, setRegisterModalOpen] = useState(false);
+  const [cardPreview, setCardPreview] = useState<Request | null>(null);
+
   const setStatus = useMutation({
     mutationFn: ({ id, status }: { id: string; status: Request["status"] }) =>
       fetchApi(`/admin/establishment-requests/${id}`, { method: "PATCH", body: JSON.stringify({ status }) }),
-    onSuccess: () => { toast.success("Estado actualizado"); refresh(); },
+    onSuccess: (_, vars) => {
+      toast.success(vars.status === "approved" ? "Empresa publicada en el directorio" : "Estado actualizado");
+      refresh();
+    },
     onError: (e) => toast.error(apiMessage(e)),
   });
   const shown = filter === "all" ? rows : rows.filter((r) => r.status === filter);
@@ -133,14 +144,22 @@ export function StagingEstablishmentRequestsManager() {
   return (
     <section className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-lg font-semibold">Solicitudes de negocios</h2>
-        <div role="group" aria-label="Filtrar por estado" className="flex flex-wrap gap-1.5">
-          {(["pending", "approved", "rejected", "all"] as const).map((s) => (
-            <button key={s} type="button" aria-pressed={filter === s} onClick={() => setFilter(s)}
-              className={`rounded-full border px-3 py-1 text-xs font-medium ${filter === s ? "border-primary bg-primary text-primary-foreground" : "border-border hover:border-primary/50"}`}>
-              {s === "all" ? `Todas (${rows.length})` : `${STATUS[s].label} (${count(s)})`}
-            </button>
-          ))}
+        <div>
+          <h2 className="text-lg font-semibold">Solicitudes y Empresas</h2>
+          <p className="text-xs text-muted-foreground">Gestiona registros, publica empresas y verifica su página y card en el directorio.</p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button size="sm" onClick={() => setRegisterModalOpen(true)} className="gap-1.5 rounded-lg bg-primary">
+            <Plus className="h-4 w-4" /> Registrar y Publicar Empresa
+          </Button>
+          <div role="group" aria-label="Filtrar por estado" className="flex flex-wrap gap-1.5">
+            {(["pending", "approved", "rejected", "all"] as const).map((s) => (
+              <button key={s} type="button" aria-pressed={filter === s} onClick={() => setFilter(s)}
+                className={`rounded-full border px-3 py-1 text-xs font-medium ${filter === s ? "border-primary bg-primary text-primary-foreground" : "border-border hover:border-primary/50"}`}>
+                {s === "all" ? `Todas (${rows.length})` : `${STATUS[s].label} (${count(s)})`}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
       {isLoading ? <Loader2 className="h-6 w-6 animate-spin text-primary" /> : error ? (
@@ -181,13 +200,46 @@ export function StagingEstablishmentRequestsManager() {
                       ))}
                     </div>
                   )}
-                  <div className="flex flex-wrap items-center gap-2">
-                    {(["approved", "rejected", "pending"] as const).filter((s) => s !== r.status).map((s) => (
-                      <Button key={s} size="sm" variant={s === "rejected" ? "outline" : "default"} disabled={setStatus.isPending}
-                        onClick={() => setStatus.mutate({ id: r.id, status: s })}>
-                        {s === "approved" ? "Aprobar" : s === "rejected" ? "Rechazar" : "Volver a pendiente"}
-                      </Button>
-                    ))}
+                  <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-border/60">
+                    {r.status === "approved" ? (
+                      <>
+                        <Button size="sm" asChild variant="default" className="gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg">
+                          <Link to={`/negocios/${r.id}`} target="_blank" rel="noopener noreferrer">
+                            <ExternalLink className="h-3.5 w-3.5" /> Ver Página Pública
+                          </Link>
+                        </Button>
+                        <Button size="sm" variant="outline" onClick={() => setCardPreview(r)} className="gap-1.5 rounded-lg">
+                          <Eye className="h-3.5 w-3.5" /> Ver Card
+                        </Button>
+                        <Button size="sm" variant="ghost" disabled={setStatus.isPending} onClick={() => setStatus.mutate({ id: r.id, status: "pending" })}>
+                          Despublicar
+                        </Button>
+                      </>
+                    ) : r.status === "pending" ? (
+                      <>
+                        <Button size="sm" className="gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg" disabled={setStatus.isPending}
+                          onClick={() => setStatus.mutate({ id: r.id, status: "approved" })}>
+                          <CheckCircle2 className="h-3.5 w-3.5" /> Publicar Empresa
+                        </Button>
+                        <Button size="sm" variant="outline" onClick={() => setCardPreview(r)} className="gap-1.5 rounded-lg">
+                          <Eye className="h-3.5 w-3.5" /> Vista Previa Card
+                        </Button>
+                        <Button size="sm" variant="ghost" className="text-destructive" disabled={setStatus.isPending}
+                          onClick={() => setStatus.mutate({ id: r.id, status: "rejected" })}>
+                          Rechazar
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        <Button size="sm" variant="outline" disabled={setStatus.isPending} onClick={() => setStatus.mutate({ id: r.id, status: "pending" })}>
+                          Volver a pendiente
+                        </Button>
+                        <Button size="sm" className="gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg" disabled={setStatus.isPending}
+                          onClick={() => setStatus.mutate({ id: r.id, status: "approved" })}>
+                          <CheckCircle2 className="h-3.5 w-3.5" /> Aprobar y Publicar
+                        </Button>
+                      </>
+                    )}
                     <Button size="sm" variant="ghost" className="ml-auto text-destructive" disabled={remove.isPending}
                       onClick={() => { if (window.confirm(`¿Eliminar la solicitud de «${r.name}»?`)) remove.mutate(r.id); }}>
                       <Trash2 className="mr-1.5 h-4 w-4" />Eliminar
@@ -199,6 +251,51 @@ export function StagingEstablishmentRequestsManager() {
           ))}
         </ul>
       )}
+
+      {/* Registro directo por administrador */}
+      {registerModalOpen && (
+        <RegistroEstablecimientoModal
+          open={registerModalOpen}
+          onClose={() => {
+            setRegisterModalOpen(false);
+            refresh();
+          }}
+          tipo="general"
+          isAdmin={true}
+        />
+      )}
+
+      {/* Previsualización de Card */}
+      <Dialog open={Boolean(cardPreview)} onOpenChange={(open) => !open && setCardPreview(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Vista Previa de la Card</DialogTitle>
+          </DialogHeader>
+          {cardPreview && (
+            <div className="py-2">
+              <EstablishmentCard
+                establishment={{
+                  id: cardPreview.id,
+                  type: cardPreview.type,
+                  name: cardPreview.name,
+                  contact_name: cardPreview.contact_name,
+                  email: cardPreview.email,
+                  phone: cardPreview.phone,
+                  address: cardPreview.address,
+                  province: cardPreview.province,
+                  website: cardPreview.website,
+                  photo_url: cardPreview.photo_url,
+                  description: cardPreview.description,
+                  schedule: cardPreview.schedule,
+                  details: cardPreview.details,
+                  files: cardPreview.files,
+                  created_at: cardPreview.created_at,
+                }}
+              />
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </section>
   );
 }

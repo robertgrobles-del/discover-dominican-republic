@@ -3,7 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
-import { SEOHead } from "@/components/SEOHead";
+import { SEOHead, generateEventSchema } from "@/components/SEOHead";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -189,9 +189,29 @@ export default function EventoDetalle() {
   return (
     <PageTransition>
       <SEOHead
-        title={`${event.name} | Eventos & Festivales RD`}
+        title={`${event.name} | Eventos & Festivales República Dominicana`}
         description={event.short_description || event.description?.substring(0, 160)}
-        keywords={`${event.name}, eventos rd, fiestas patronales rd, festivales dominicanos, ${event.province}`}
+        keywords={`${event.name}, eventos rd, fiestas patronales rd, festivales dominicanos, ${event.province || "República Dominicana"}`}
+        image={event.image_url || "https://images.unsplash.com/photo-1566737236500-c8ac43014a67?w=1200&h=630&fit=crop&q=80"}
+        url={`/evento/${event.slug || event.id}`}
+        type="article"
+        breadcrumbs={[
+          { name: "Inicio", url: "/" },
+          { name: "Eventos", url: "/eventos" },
+          { name: event.name, url: `/evento/${event.slug || event.id}` },
+        ]}
+        geo={{
+          placename: `${event.venue ? event.venue + ", " : ""}${event.province || "República Dominicana"}`,
+          region: "DO"
+        }}
+        jsonLd={generateEventSchema({
+          name: event.name,
+          description: event.short_description || event.description || "",
+          startDate: event.start_date,
+          endDate: event.end_date,
+          location: `${event.venue ? event.venue + ", " : ""}${event.province || "República Dominicana"}`,
+          image: event.image_url,
+        })}
       />
 
       <div className="min-h-screen bg-background flex flex-col pb-16 md:pb-0">

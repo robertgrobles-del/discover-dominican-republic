@@ -47,7 +47,23 @@ export default function NoticiaDetalle() {
 
   return (
     <>
-      <SEOHead title={newsSeoTitle(n)} description={newsSeoDescription(n)} url={`/noticias/${n.slug}`} image={n.cover_url ?? undefined} type="article" breadcrumbs={[]} />
+      <SEOHead
+        title={newsSeoTitle(n)}
+        description={newsSeoDescription(n)}
+        url={`/noticias/${n.slug}`}
+        image={n.cover_url ?? undefined}
+        type="article"
+        keywords={[n.category_name, n.province_name, "noticias republica dominicana", "turismo rd"].filter(Boolean).join(", ")}
+        geo={{
+          placename: n.province_name ? `${n.province_name}, República Dominicana` : "República Dominicana",
+          region: "DO",
+        }}
+        breadcrumbs={[
+          { name: "Inicio", url: "/" },
+          { name: "Noticias", url: "/noticias" },
+          { name: n.title, url: `/noticias/${n.slug}` },
+        ]}
+      />
       <Header />
       <main className="container mx-auto max-w-3xl px-4 pb-16 pt-20 md:pt-24">
         <nav aria-label="Migas de pan" className="mb-4 text-sm text-muted-foreground">

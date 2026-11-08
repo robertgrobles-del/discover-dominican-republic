@@ -251,6 +251,13 @@ export default function RequisitosViaje() {
         description={pc.t("SEOHead.description.1", "Todo lo que necesitas saber para entrar a RD: visas, documentos, aduanas y formularios requeridos por país.")}
         keywords="requisitos viaje republica dominicana, visa republica dominicana, e-ticket, tarjeta de turista, prorroga de estancia, aduanas rd"
         image={heroBeach}
+        url="/requisitos-viaje"
+        geo={{
+          placename: "República Dominicana",
+          region: "DO",
+          latitude: 18.7357,
+          longitude: -70.1627
+        }}
         breadcrumbs={[{ name: "Inicio", url: "/" }, { name: "Planifica", url: "/planifica" }, { name: "Requisitos de viaje", url: "/requisitos-viaje" }]}
         jsonLd={generateFAQSchema(preguntas.map((p) => ({ question: p.q, answer: p.a })))}
       />

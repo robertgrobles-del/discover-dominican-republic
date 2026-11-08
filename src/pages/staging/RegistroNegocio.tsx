@@ -22,7 +22,17 @@ export default function RegistroNegocio() {
 
   return (
     <>
-      <SEOHead title="Registra tu negocio | Descubre RD" description="Registra gratis tu hotel, restaurante, bar, tour o comercio en Descubre RD, con fotos y menú." url="/registra-tu-negocio" breadcrumbs={[]} />
+      <SEOHead
+        title="Registra tu Negocio Turístico Gratis | Descubre RD"
+        description="Registra gratis tu hotel, restaurante, bar, operador de tours o comercio turístico en el directorio oficial de Descubre República Dominicana."
+        url="/registra-tu-negocio"
+        keywords="registrar negocio turistico republica dominicana, directorio turismo rd, agregar hotel republica dominicana, promocionar restaurante rd"
+        geo={{ placename: "República Dominicana", region: "DO" }}
+        breadcrumbs={[
+          { name: "Inicio", url: "/" },
+          { name: "Registra tu negocio", url: "/registra-tu-negocio" },
+        ]}
+      />
       <Header />
       <main className="container mx-auto px-4 pb-20 pt-24 lg:px-8 lg:pt-28">
         <nav aria-label="Migas de pan" className="mb-6 text-sm text-muted-foreground">

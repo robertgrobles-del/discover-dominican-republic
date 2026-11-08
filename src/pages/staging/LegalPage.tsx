@@ -22,7 +22,16 @@ export function LegalPage({ title, description, path, intro, sections }: {
   const updated = new Date(`${LEGAL.updated}T12:00:00`).toLocaleDateString("es-DO", { day: "numeric", month: "long", year: "numeric" });
   return (
     <>
-      <SEOHead title={`${title} | Descubre RD`} description={description} url={path} breadcrumbs={[]} />
+      <SEOHead
+        title={`${title} | Descubre RD`}
+        description={description}
+        url={path}
+        geo={{ placename: "República Dominicana", region: "DO" }}
+        breadcrumbs={[
+          { name: "Inicio", url: "/" },
+          { name: title, url: path },
+        ]}
+      />
       <Header />
       <main className="container mx-auto px-4 pb-16 pt-28 lg:px-8">
         <nav aria-label="Migas de pan" className="mb-4 text-sm text-muted-foreground">

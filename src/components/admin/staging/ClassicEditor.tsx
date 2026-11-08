@@ -12,18 +12,28 @@ import { toast } from "sonner";
 import { Bold, ImagePlus, Italic, Link2, List, ListOrdered, Minus, Quote, Redo2, Undo2, Unlink } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { MediaPicker, type MediaItem } from "./MediaLibrary";
+import { ContentLinkDialog } from "./ContentLinkDialog";
 
 const getMarkdown = (editor: Editor) => (editor.storage as { markdown: { getMarkdown: () => string } }).markdown.getMarkdown();
 
 export function ClassicEditor({ id, value, onChange }: { id: string; value: string; onChange: (markdown: string) => void }) {
   const [mode, setMode] = useState<"visual" | "text">("visual");
   const [library, setLibrary] = useState(false);
+  const [linkDialog, setLinkDialog] = useState<{ open: boolean; url: string; text: string }>({
+    open: false,
+    url: "",
+    text: "",
+  });
   const last = useRef(value); // último Markdown emitido, para no reescribir el editor con su propio cambio
 
   const editor = useEditor({
     extensions: [
       StarterKit.configure({ heading: { levels: [2, 3] }, code: false, codeBlock: false, strike: false }),
-      Link.configure({ openOnClick: false, autolink: true, protocols: ["http", "https", "mailto"] }),
+      Link.configure({
+        openOnClick: false,
+        autolink: true,
+        validate: (href) => Boolean(href && /^(\/|https?:\/\/|mailto:|tel:)/i.test(href)),
+      }),
       Image.configure({ inline: false }),
       Placeholder.configure({ placeholder: "Escribe la noticia…" }),
       Markdown.configure({ html: false, linkify: true, breaks: false, transformPastedText: true }),
@@ -47,13 +57,32 @@ export function ClassicEditor({ id, value, onChange }: { id: string; value: stri
   };
 
   const setLink = () => {
-    if (!editor) return;
-    const prev = editor.getAttributes("link").href as string | undefined;
-    const url = window.prompt("Dirección del enlace (https://…):", prev ?? "https://");
-    if (url === null) return;
-    if (!url.trim() || url === "https://") return void editor.chain().focus().unsetLink().run();
-    if (!/^(https?:\/\/|mailto:)/i.test(url)) return void toast.error("El enlace debe empezar por http://, https:// o mailto:");
-    editor.chain().focus().extendMarkRange("link").setLink({ href: url }).run();
+    if (mode === "visual" && editor) {
+      const prev = (editor.getAttributes("link").href as string) || "";
+      const { from, to } = editor.state.selection;
+      const selected = editor.state.doc.textBetween(from, to, " ") || "";
+      setLinkDialog({ open: true, url: prev, text: selected });
+    } else {
+      setLinkDialog({ open: true, url: "", text: "" });
+    }
+  };
+
+  const handleLinkConfirm = ({ url: targetUrl, text: label, openInNewTab }: { url: string; text?: string; openInNewTab?: boolean }) => {
+    if (mode === "visual" && editor) {
+      const chain = editor.chain().focus();
+      if (label && editor.state.selection.empty) {
+        chain.insertContent(`<a href="${targetUrl}"${openInNewTab ? ' target="_blank" rel="noopener noreferrer"' : ""}>${label}</a>`);
+      } else {
+        chain.extendMarkRange("link").setLink({
+          href: targetUrl,
+          target: openInNewTab ? "_blank" : undefined,
+        });
+      }
+      chain.run();
+    } else {
+      const linkMarkdown = `[${label || "enlace"}](${targetUrl})`;
+      onChange(`${value}\n${linkMarkdown}\n`);
+    }
   };
 
   const block = !editor ? "p" : editor.isActive("heading", { level: 2 }) ? "h2" : editor.isActive("heading", { level: 3 }) ? "h3" : "p";
@@ -86,6 +115,13 @@ export function ClassicEditor({ id, value, onChange }: { id: string; value: stri
           <ImagePlus className="h-4 w-4" />Añadir medios
         </button>
         <MediaPicker open={library} onClose={() => setLibrary(false)} onSelect={insertMedia} title="Añadir medios" />
+        <ContentLinkDialog
+          open={linkDialog.open}
+          onClose={() => setLinkDialog((prev) => ({ ...prev, open: false }))}
+          onSelect={handleLinkConfirm}
+          initialUrl={linkDialog.url}
+          initialText={linkDialog.text}
+        />
         <div role="tablist" aria-label="Modo de edición" className="flex">
           {(["visual", "text"] as const).map((m) => (
             <button key={m} type="button" role="tab" aria-selected={mode === m} onClick={() => setMode(m)}

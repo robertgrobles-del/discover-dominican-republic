@@ -10,10 +10,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Link } from "react-router-dom";
 import {
   ChevronRight, ChevronLeft, Check, Building2,
   MapPin, Phone, Mail, Globe, Clock,
-  User, FileText, Star, Loader2, PartyPopper
+  User, FileText, Star, Loader2, PartyPopper, CheckCircle2, ExternalLink
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -53,12 +54,14 @@ interface Props {
   tipo: TipoEstablecimiento;
   /** Se muestra como página (/registra-tu-negocio) en lugar de ventana. */
   asPage?: boolean;
+  /** Si es admin, permite publicar la empresa directamente sin pasar a revisión */
+  isAdmin?: boolean;
 }
 
 /** Tipos que pueden adjuntar su menú en PDF (las discotecas se registran como bar). */
 const CON_MENU: TipoEstablecimiento[] = ["restaurante", "bar", "cafe"];
 
-export function RegistroEstablecimientoModal({ open, onClose, tipo: tipoInicial, asPage = false }: Props) {
+export function RegistroEstablecimientoModal({ open, onClose, tipo: tipoInicial, asPage = false, isAdmin = false }: Props) {
   // Un solo formulario para todo tipo de negocio. Quien llega desde un botón concreto («Registrar mi restaurante»)
   // ya trae el tipo elegido y puede cambiarlo; los campos del paso 2 dependen del tipo.
   const [tipo, setTipoState] = useState<TipoEstablecimiento>(tipoInicial);
@@ -71,6 +74,9 @@ export function RegistroEstablecimientoModal({ open, onClose, tipo: tipoInicial,
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [publishImmediately, setPublishImmediately] = useState(isAdmin);
+  const [createdId, setCreatedId] = useState<string | null>(null);
+  const [createdStatus, setCreatedStatus] = useState<string>("pending");
 
   // Step 1 - Basic info
   const [basicData, setBasicData] = useState({
@@ -124,7 +130,8 @@ export function RegistroEstablecimientoModal({ open, onClose, tipo: tipoInicial,
     if (HAS_BACKEND_SESSION) {
       try {
         const backendType = tipo;
-        await fetchApi("/establishments/register", {
+        const statusToSend = isAdmin && publishImmediately ? "approved" : "pending";
+        const res = await fetchApi<{ data: { id: string; status: string } }>("/establishments/register", {
           method: "POST",
           body: JSON.stringify({
             type: backendType,
@@ -142,11 +149,16 @@ export function RegistroEstablecimientoModal({ open, onClose, tipo: tipoInicial,
             details: specificData,
             photo_ids: fotos.map((f) => f.id),
             menu_id: conMenu && menu ? menu.id : undefined,
+            status: statusToSend,
           }),
         });
 
+        if (res?.data?.id) {
+          setCreatedId(res.data.id);
+          setCreatedStatus(res.data.status || statusToSend);
+        }
         setSuccess(true);
-        toast.success("¡Solicitud de registro enviada con éxito!");
+        toast.success(statusToSend === "approved" ? "¡Empresa registrada y publicada en la web!" : "¡Solicitud de registro enviada con éxito!");
       } catch (err) {
         console.error("Error al registrar establecimiento en backend:", err);
         toast.error((err instanceof Error && err.message) || "No se pudo registrar el establecimiento. Revisa los datos e intenta de nuevo.");
@@ -248,16 +260,52 @@ export function RegistroEstablecimientoModal({ open, onClose, tipo: tipoInicial,
               className="text-center py-10 space-y-4"
             >
               <div className="w-20 h-20 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto">
-                <PartyPopper className="h-10 w-10 text-emerald-500" />
+                {createdStatus === "approved" ? (
+                  <CheckCircle2 className="h-10 w-10 text-emerald-500" />
+                ) : (
+                  <PartyPopper className="h-10 w-10 text-emerald-500" />
+                )}
               </div>
-              <h3 className="font-display text-2xl font-bold text-foreground">¡Solicitud recibida!</h3>
-              <p className="text-muted-foreground max-w-sm mx-auto">
-                Recibimos la solicitud de <strong>{basicData.nombre}</strong>. Nuestro equipo la revisará en 2 o 3 días hábiles y te escribirá a <strong>{basicData.email}</strong> con el resultado y los siguientes pasos.
+              <h3 className="font-display text-2xl font-bold text-foreground">
+                {createdStatus === "approved" ? "¡Empresa Publicada con Éxito!" : "¡Solicitud recibida!"}
+              </h3>
+              <p className="text-muted-foreground max-w-md mx-auto">
+                {createdStatus === "approved" ? (
+                  <>
+                    La empresa <strong>{basicData.nombre}</strong> ya está activa. Puedes ver su página oficial y su card en el directorio turístico.
+                  </>
+                ) : (
+                  <>
+                    Recibimos la solicitud de <strong>{basicData.nombre}</strong>. Nuestro equipo la revisará en 2 o 3 días hábiles y te escribirá a <strong>{basicData.email}</strong> con el resultado y los siguientes pasos.
+                  </>
+                )}
               </p>
-              <div className="flex flex-wrap justify-center gap-2 pt-2">
-                <Badge variant="outline" className="gap-1 bg-amber-500/10 text-amber-600 border-amber-300"><Clock className="h-3 w-3" /> Pendiente de revisión</Badge>
+              <div className="flex flex-wrap justify-center gap-2 pt-1">
+                {createdStatus === "approved" ? (
+                  <Badge variant="outline" className="gap-1 bg-emerald-500/10 text-emerald-600 border-emerald-300">
+                    <CheckCircle2 className="h-3 w-3" /> Publicada y Activa
+                  </Badge>
+                ) : (
+                  <Badge variant="outline" className="gap-1 bg-amber-500/10 text-amber-600 border-amber-300">
+                    <Clock className="h-3 w-3" /> Pendiente de revisión
+                  </Badge>
+                )}
               </div>
-              <Button onClick={handleClose} className="mt-4">{asPage ? "Volver al inicio" : "Cerrar"}</Button>
+              <div className="flex flex-wrap justify-center gap-3 pt-3">
+                {createdId && (
+                  <Button asChild className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white">
+                    <Link to={`/negocios/${createdId}`}>
+                      <ExternalLink className="h-4 w-4" /> Ver página pública
+                    </Link>
+                  </Button>
+                )}
+                <Button asChild variant="outline">
+                  <Link to="/negocios">Ver directorio de empresas</Link>
+                </Button>
+                <Button onClick={handleClose} variant="ghost">
+                  {asPage ? "Volver al inicio" : "Cerrar"}
+                </Button>
+              </div>
             </motion.div>
           ) : (
             <motion.div key="form" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
@@ -459,6 +507,23 @@ export function RegistroEstablecimientoModal({ open, onClose, tipo: tipoInicial,
                         </div>
                       ))}
                     </div>
+
+                    {/* Admin Publication Option */}
+                    {isAdmin && (
+                      <div className="rounded-xl border border-primary/40 bg-primary/5 p-4 space-y-2">
+                        <div className="flex items-center justify-between gap-3">
+                          <div>
+                            <p className="font-semibold text-sm text-foreground">Modo Administrador: Publicar Empresa</p>
+                            <p className="text-xs text-muted-foreground">Aprobar y publicar de inmediato con su página y card en el directorio.</p>
+                          </div>
+                          <Checkbox
+                            id="publish-immediately"
+                            checked={publishImmediately}
+                            onCheckedChange={(v) => setPublishImmediately(Boolean(v))}
+                          />
+                        </div>
+                      </div>
+                    )}
 
                     {/* Terms */}
                     <div className="flex items-start gap-3 p-4 bg-card border border-border rounded-xl">

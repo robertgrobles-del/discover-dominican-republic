@@ -20,7 +20,7 @@ import {
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
-import { SEOHead } from "@/components/SEOHead";
+import { SEOHead, generateAirportSchema } from "@/components/SEOHead";
 import { useTranslation } from "@/i18n";
 import { getAirportBySlug, airports } from "@/data/airports";
 import { usePageContent } from "@/lib/pageContent";
@@ -70,6 +70,34 @@ export default function AeropuertoDetalle() {
       <SEOHead
         title={`${airport.name} (${airport.code}) | Terminal, Vuelos, VIP y Parqueo`}
         description={airport.shortDescription}
+        keywords={`${airport.name}, ${airport.code}, ${airport.icao}, vuelos ${airport.city}, terminal ${airport.code}, aerolineas ${airport.code}, salas vip ${airport.code}, parqueo ${airport.code}, transporte aeropuerto ${airport.city}`}
+        image={airport.imageUrl}
+        url={`/aeropuerto/${airport.slug}`}
+        breadcrumbs={[
+          { name: "Inicio", url: "/" },
+          { name: "Aeropuertos", url: "/aeropuerto" },
+          { name: airport.code, url: `/aeropuerto/${airport.slug}` }
+        ]}
+        geo={{
+          latitude: airport.coordinates.lat,
+          longitude: airport.coordinates.lng,
+          placename: `${airport.city}, ${airport.provinceName}`,
+          region: "DO"
+        }}
+        jsonLd={generateAirportSchema({
+          name: airport.name,
+          code: airport.code,
+          icao: airport.icao,
+          description: airport.description,
+          image: airport.imageUrl,
+          url: `https://descubrerd.com/aeropuerto/${airport.slug}`,
+          city: airport.city,
+          provinceName: airport.provinceName,
+          coordinates: airport.coordinates,
+          phone: airport.phone,
+          website: airport.website,
+          faqs: airport.parkingInfo?.faqs
+        })}
       />
       <div className="min-h-screen bg-background">
         <Header />

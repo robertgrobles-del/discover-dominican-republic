@@ -11,7 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { SEOHead } from "@/components/SEOHead";
+import { SEOHead, generateItemListSchema } from "@/components/SEOHead";
 import { FlightConnectionSearch } from "@/components/airports/FlightConnectionSearch";
 import { DigitalBoardingPassCard } from "@/components/airports/DigitalBoardingPassCard";
 import { LiveFlightStatusBoard } from "@/components/airports/LiveFlightStatusBoard";
@@ -132,8 +132,26 @@ export default function Aeropuerto() {
   return (
     <div className="min-h-screen bg-background">
       <SEOHead
-        title={pc.t("SEOHead.title.1", "Aeropuertos y Conectividad Aérea de República Dominicana - Vuelos en Vivo")}
-        description={pc.t("SEOHead.description.1", "Consulta vuelos en tiempo real, itinerarios, terminales, el formulario oficial de E-Ticket y conexiones hacia todos los aeropuertos internacionales de República Dominicana.")}
+        title={pc.t("SEOHead.title.1", "Aeropuertos de República Dominicana | Vuelos, FIDS y Terminales en Vivo")}
+        description={pc.t("SEOHead.description.1", "Guía oficial de los 8 aeropuertos internacionales de República Dominicana: llegadas y salidas en tiempo real, terminales, salas VIP, estacionamiento y trámite de E-Ticket migratorio gratuito.")}
+        keywords="aeropuertos republica dominicana, vuelos santo domingo, vuelos punta cana, sdq, puj, fids vuelos en vivo rd, salas vip aeropuertos rd, e-ticket rd, aeropuertos internacionales dominicanos"
+        image="https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1200&h=630&fit=crop"
+        url="/aeropuerto"
+        geo={{
+          latitude: 18.4297,
+          longitude: -69.6689,
+          placename: "República Dominicana",
+          region: "DO"
+        }}
+        jsonLd={generateItemListSchema(
+          airportsList.map((a) => ({
+            name: a.name,
+            url: `https://descubrerd.com/aeropuerto/${a.slug}`,
+            description: `${a.code} - ${a.city}, ${a.province}. Pista: ${a.runway}. Tráfico: ${a.passengers}. Operado por ${a.operator}`,
+            image: a.image,
+          })),
+          "Aeropuertos Internacionales de República Dominicana"
+        )}
       />
       <Header />
 

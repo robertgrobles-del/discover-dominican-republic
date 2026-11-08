@@ -63,3 +63,44 @@ export const newsSeoDescription = (n: PublicNews) => (n.seo_description || n.exc
 export const readMinutes = (md: string | null) => (md ? Math.max(1, Math.round(md.split(/\s+/).length / 200)) : null);
 export const formatNewsDate = (iso: string | null | undefined) =>
   iso ? new Date(iso).toLocaleDateString("es-DO", { day: "numeric", month: "long", year: "numeric" }) : "";
+
+export interface PublicEstablishment {
+  id: string;
+  type: string;
+  name: string;
+  contact_name: string;
+  email: string;
+  phone: string;
+  address: string | null;
+  province: string | null;
+  website: string | null;
+  photo_url: string | null;
+  description: string | null;
+  schedule: string | null;
+  details: string | null;
+  files: string | null;
+  created_at: string;
+}
+
+export function usePublicEstablishments() {
+  return useQuery({
+    queryKey: ["staging-public", "establishments"],
+    queryFn: () => load<PublicEstablishment>("/public/establishments"),
+    staleTime: 60_000,
+  });
+}
+
+export function usePublicEstablishment(id: string | undefined) {
+  return useQuery({
+    queryKey: ["staging-public", "establishment", id],
+    enabled: Boolean(id),
+    staleTime: 60_000,
+    queryFn: async () => {
+      try {
+        return (await fetchApi<{ data: PublicEstablishment }>(`/public/establishments/${encodeURIComponent(id!)}`)).data;
+      } catch {
+        return null;
+      }
+    },
+  });
+}
