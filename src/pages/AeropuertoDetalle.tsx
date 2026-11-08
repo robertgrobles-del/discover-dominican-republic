@@ -29,7 +29,7 @@ export default function AeropuertoDetalle() {
             <Plane className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
             <h1 className="text-3xl font-bold mb-4">{t("common.noResults") || "Aeropuerto no encontrado"}</h1>
             <p className="text-muted-foreground mb-8">{pc.tx("p.1", "El aeropuerto que buscas no existe o está en actualización.")}</p>
-            <Link to="/como-llegar"><Button>{t("common.viewAll") || "Ver cómo llegar"}</Button></Link>
+            <Link to="/aeropuerto"><Button>{t("common.viewAll") || "Ver todos los aeropuertos"}</Button></Link>
           </div>
           <Footer />
         </div>
@@ -55,7 +55,7 @@ export default function AeropuertoDetalle() {
               <nav className="flex items-center gap-2 text-sm text-white/70 mb-4">
                 <Link to="/" className="hover:text-white">{t("common.back") || "Inicio"}</Link>
                 <ChevronRight className="h-4 w-4" />
-                <Link to="/como-llegar" className="hover:text-white">{t("logistica.title") || "Cómo Llegar"}</Link>
+                <Link to="/aeropuerto" className="hover:text-white">Aeropuertos</Link>
                 <ChevronRight className="h-4 w-4" />
                 <span className="text-white">{airport.code}</span>
               </nav>

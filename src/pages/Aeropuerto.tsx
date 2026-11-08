@@ -19,16 +19,6 @@ import { usePageContent } from "@/lib/pageContent";
 
 const ALL_AIRPORTS = [
   {
-    name: "Aeropuerto Internacional de Punta Cana",
-    code: "PUJ",
-    city: "Punta Cana / Bávaro",
-    province: "La Altagracia",
-    image: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=800&fit=crop",
-    flightsDay: 160,
-    tags: ["Mayor tráfico", "Terminal Ecológica"],
-    slug: "punta-cana-puj"
-  },
-  {
     name: "Aeropuerto Internacional Las Américas",
     code: "SDQ",
     city: "Santo Domingo",
@@ -36,7 +26,17 @@ const ALL_AIRPORTS = [
     image: "https://images.unsplash.com/photo-1569154941061-e231b4725ef1?w=800&fit=crop",
     flightsDay: 130,
     tags: ["Hub de la Capital", "Zona de Carga"],
-    slug: "las-americas-sdq"
+    slug: "aeropuerto-internacional-las-americas"
+  },
+  {
+    name: "Aeropuerto Internacional de Punta Cana",
+    code: "PUJ",
+    city: "Punta Cana / Bávaro",
+    province: "La Altagracia",
+    image: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=800&fit=crop",
+    flightsDay: 160,
+    tags: ["Mayor tráfico", "Terminal Ecológica"],
+    slug: "aeropuerto-internacional-de-punta-cana"
   },
   {
     name: "Aeropuerto Internacional del Cibao",
@@ -46,7 +46,7 @@ const ALL_AIRPORTS = [
     image: "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=800&fit=crop",
     flightsDay: 55,
     tags: ["Conexión Norte", "Comunidad Diáspora"],
-    slug: "cibao-sti"
+    slug: "aeropuerto-internacional-del-cibao"
   },
   {
     name: "Aeropuerto Internacional Gregorio Luperón",
@@ -56,17 +56,7 @@ const ALL_AIRPORTS = [
     image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&fit=crop",
     flightsDay: 30,
     tags: ["Costa Norte", "Vuelos Chárter"],
-    slug: "gregorio-luperon-pop"
-  },
-  {
-    name: "Aeropuerto Internacional Presidente Juan Bosch",
-    code: "AZS",
-    city: "El Catey / Las Terrenas",
-    province: "Samaná",
-    image: "https://images.unsplash.com/photo-1512353087810-25dfcd100962?w=800&fit=crop",
-    flightsDay: 12,
-    tags: ["Península Verde", "Ballenas Jorobadas"],
-    slug: "juan-bosch-azs"
+    slug: "aeropuerto-internacional-gregorio-luperon"
   },
   {
     name: "Aeropuerto Internacional de La Romana",
@@ -76,17 +66,37 @@ const ALL_AIRPORTS = [
     image: "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&fit=crop",
     flightsDay: 15,
     tags: ["Casa de Campo", "Cruceros"],
-    slug: "la-romana-lrm"
+    slug: "aeropuerto-internacional-de-la-romana"
   },
   {
-    name: "Aeropuerto Internacional Cabo Rojo",
-    code: "CBJ",
-    city: "Pedernales",
-    province: "Pedernales",
-    image: "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=800&fit=crop",
-    flightsDay: 6,
-    tags: ["Nuevo Polo", "Bahía de las Águilas"],
-    slug: "cabo-rojo-cbj"
+    name: "Aeropuerto Internacional Dr. Joaquín Balaguer",
+    code: "JBQ",
+    city: "Santo Domingo Norte (La Isabela)",
+    province: "Santo Domingo",
+    image: "https://images.unsplash.com/photo-1759430710977-a557a49897ff?w=800&fit=crop",
+    flightsDay: 20,
+    tags: ["Aviación Ejecutiva", "Vuelos Regionales"],
+    slug: "aeropuerto-internacional-dr-joaquin-balaguer"
+  },
+  {
+    name: "Aeropuerto Internacional Presidente Juan Bosch",
+    code: "AZS",
+    city: "El Catey / Las Terrenas",
+    province: "Samaná",
+    image: "https://images.unsplash.com/photo-1512353087810-25dfcd100962?w=800&fit=crop",
+    flightsDay: 12,
+    tags: ["Península Verde", "Ballenas Jorobadas"],
+    slug: "aeropuerto-internacional-presidente-juan-bosch"
+  },
+  {
+    name: "Aeropuerto Internacional María Montez",
+    code: "BRX",
+    city: "Barahona",
+    province: "Barahona",
+    image: "https://images.unsplash.com/photo-1774887809938-c7d4663fc525?w=800&fit=crop",
+    flightsDay: 8,
+    tags: ["Perla del Sur", "Puerta a Bahía de las Águilas"],
+    slug: "aeropuerto-internacional-maria-montez"
   }
 ];
 

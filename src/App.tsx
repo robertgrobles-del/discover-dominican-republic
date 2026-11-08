@@ -31,14 +31,16 @@ const Eventos = lazy(() => import("./pages/Eventos"));
 const EventoDetalle = lazy(() => import("./pages/EventoDetalle"));
 const RequisitosViaje = lazy(() => import("./pages/RequisitosViaje"));
 const ETicket = lazy(() => import("./pages/ETicket"));
+const Aeropuerto = lazy(() => import("./pages/Aeropuerto"));
+const AeropuertoDetalle = lazy(() => import("./pages/AeropuertoDetalle"));
 const Contacto = lazy(() => import("./pages/staging/Contacto"));
 const Privacidad = lazy(() => import("./pages/staging/Privacidad"));
 const Terminos = lazy(() => import("./pages/staging/Terminos"));
 const Anunciate = lazy(() => import("./pages/staging/Anunciate"));
 const RegistroNegocio = lazy(() => import("./pages/staging/RegistroNegocio"));
 
-/** Páginas públicas que existen en staging: la landing, noticias, eventos y requisitos de viaje. */
-const PUBLISHED = ["/noticias", "/eventos", "/evento", "/requisitos-viaje", "/e-ticket", "/privacidad", "/terminos", "/contacto", "/anunciate", "/registra-tu-negocio"];
+/** Páginas públicas que existen en staging: la landing, noticias, eventos, requisitos de viaje y aeropuertos. */
+const PUBLISHED = ["/noticias", "/eventos", "/evento", "/requisitos-viaje", "/e-ticket", "/privacidad", "/terminos", "/contacto", "/anunciate", "/registra-tu-negocio", "/aeropuerto", "/aeropuertos"];
 const isPublishedPath = (path: string) => path === "/" || PUBLISHED.some((p) => path === p || path.startsWith(`${p}/`));
 
 /**
@@ -145,6 +147,9 @@ function AnimatedRoutes() {
             <Route path="/evento/:slug" element={<EventoDetalle />} />
             <Route path="/requisitos-viaje" element={<RequisitosViaje />} />
             <Route path="/e-ticket" element={<ETicket />} />
+            <Route path="/aeropuerto" element={<Aeropuerto />} />
+            <Route path="/aeropuerto/:slug" element={<AeropuertoDetalle />} />
+            <Route path="/aeropuertos" element={<Navigate to="/aeropuerto" replace />} />
             <Route path="/contacto" element={<Contacto />} />
             <Route path="/privacidad" element={<Privacidad />} />
             <Route path="/terminos" element={<Terminos />} />

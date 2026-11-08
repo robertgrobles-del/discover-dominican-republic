@@ -3,6 +3,7 @@
 export interface Airport {
   id: string;
   slug: string;
+  aliases?: string[];
   name: string;
   code: string; // IATA
   icao: string;
@@ -32,7 +33,8 @@ export interface Airport {
 export const airports: Airport[] = [
   {
     id: 'puj',
-    slug: 'punta-cana',
+    slug: 'aeropuerto-internacional-de-punta-cana',
+    aliases: ['punta-cana', 'punta-cana-puj', 'puj', 'aeropuerto-punta-cana'],
     name: 'Aeropuerto Internacional de Punta Cana',
     code: 'PUJ',
     icao: 'MDPC',
@@ -77,7 +79,8 @@ export const airports: Airport[] = [
   },
   {
     id: 'sdq',
-    slug: 'las-americas',
+    slug: 'aeropuerto-internacional-las-americas',
+    aliases: ['las-americas', 'las-americas-sdq', 'sdq', 'aeropuerto-las-americas'],
     name: 'Aeropuerto Internacional Las Américas',
     code: 'SDQ',
     icao: 'MDSD',
@@ -122,7 +125,8 @@ export const airports: Airport[] = [
   },
   {
     id: 'sti',
-    slug: 'cibao',
+    slug: 'aeropuerto-internacional-del-cibao',
+    aliases: ['cibao', 'cibao-sti', 'sti', 'aeropuerto-cibao', 'santiago'],
     name: 'Aeropuerto Internacional del Cibao',
     code: 'STI',
     icao: 'MDST',
@@ -162,7 +166,8 @@ export const airports: Airport[] = [
   },
   {
     id: 'pop',
-    slug: 'gregorio-luperon',
+    slug: 'aeropuerto-internacional-gregorio-luperon',
+    aliases: ['gregorio-luperon', 'gregorio-luperon-pop', 'pop', 'aeropuerto-gregorio-luperon', 'puerto-plata'],
     name: 'Aeropuerto Internacional Gregorio Luperón',
     code: 'POP',
     icao: 'MDPP',
@@ -202,7 +207,8 @@ export const airports: Airport[] = [
   },
   {
     id: 'lrm',
-    slug: 'la-romana',
+    slug: 'aeropuerto-internacional-de-la-romana',
+    aliases: ['la-romana', 'la-romana-lrm', 'lrm', 'aeropuerto-la-romana', 'casa-de-campo'],
     name: 'Aeropuerto Internacional de La Romana',
     code: 'LRM',
     icao: 'MDLR',
@@ -240,8 +246,9 @@ export const airports: Airport[] = [
   },
   {
     id: 'azs',
-    slug: 'el-catey',
-    name: 'Aeropuerto Internacional El Catey',
+    slug: 'aeropuerto-internacional-presidente-juan-bosch',
+    aliases: ['el-catey', 'azs', 'juan-bosch', 'juan-bosch-azs', 'samana-el-catey', 'samana'],
+    name: 'Aeropuerto Internacional Presidente Juan Bosch',
     code: 'AZS',
     icao: 'MDCY',
     city: 'Samaná',
@@ -249,7 +256,7 @@ export const airports: Airport[] = [
     provinceName: 'Samaná',
     type: 'internacional',
     shortDescription: 'Aeropuerto de Samaná, puerta a las ballenas jorobadas y playas vírgenes.',
-    description: 'El Aeropuerto Internacional El Catey (AZS), también conocido como Aeropuerto Juan Bosch, es la puerta de entrada a la Península de Samaná. Desde aquí se accede a las playas vírgenes de Las Terrenas, Las Galeras y al avistamiento de ballenas jorobadas entre enero y marzo. El aeropuerto ha crecido significativamente con vuelos directos desde Europa y Canadá.',
+    description: 'El Aeropuerto Internacional Presidente Juan Bosch (AZS), popularmente conocido como El Catey, es la puerta de entrada a la Península de Samaná. Desde aquí se accede a las playas vírgenes de Las Terrenas, Las Galeras y al avistamiento de ballenas jorobadas entre enero y marzo. El aeropuerto ha crecido significativamente con vuelos directos desde Europa y Canadá.',
     imageUrl: 'https://images.unsplash.com/photo-1684778014130-92eac779d4a1?w=1200&h=800&fit=crop&q=80',
     gallery: ['https://images.unsplash.com/photo-1684778014130-92eac779d4a1?w=1200&h=800&fit=crop&q=80', 'https://images.unsplash.com/photo-1684778014130-92eac779d4a1?w=1200&h=800&fit=crop&q=80'],
     coordinates: { lat: 19.2670, lng: -69.7420 },
@@ -279,7 +286,8 @@ export const airports: Airport[] = [
   },
   {
     id: 'brx',
-    slug: 'maria-montez',
+    slug: 'aeropuerto-internacional-maria-montez',
+    aliases: ['maria-montez', 'maria-montez-brx', 'brx', 'barahona', 'aeropuerto-maria-montez'],
     name: 'Aeropuerto Internacional María Montez',
     code: 'BRX',
     icao: 'MDBH',
@@ -316,22 +324,23 @@ export const airports: Airport[] = [
   },
   {
     id: 'jbq',
-    slug: 'la-isabela',
-    name: 'Aeropuerto La Isabela Dr. Joaquín Balaguer',
+    slug: 'aeropuerto-internacional-dr-joaquin-balaguer',
+    aliases: ['la-isabela', 'jbq', 'el-higuero', 'joaquin-balaguer', 'dr-joaquin-balaguer', 'aeropuerto-joaquin-balaguer'],
+    name: 'Aeropuerto Internacional Dr. Joaquín Balaguer',
     code: 'JBQ',
     icao: 'MDJB',
     city: 'Santo Domingo Norte',
     provinceId: 'santo-domingo',
     provinceName: 'Santo Domingo',
-    type: 'domestico',
-    shortDescription: 'Aeropuerto doméstico de Santo Domingo para vuelos internos y privados.',
-    description: 'El Aeropuerto La Isabela Dr. Joaquín Balaguer (JBQ) es el aeropuerto doméstico principal de la zona metropolitana de Santo Domingo. Ubicado al norte de la capital, sirve como hub para vuelos domésticos a Samaná, Puerto Plata y otros destinos internos, así como aviación privada y charter.',
+    type: 'internacional',
+    shortDescription: 'Aeropuerto internacional de Santo Domingo Norte (La Isabela / El Higüero) para vuelos ejecutivos, charter y conexiones regionales.',
+    description: 'El Aeropuerto Internacional Dr. Joaquín Balaguer (JBQ), comúnmente llamado La Isabela o El Higüero, sirve a la zona metropolitana de Santo Domingo. Dispone de instalaciones de aduanas y migración para vuelos internacionales, aviación ejecutiva, charter privado y enlaces turísticos hacia el Caribe y destinos locales.',
     imageUrl: 'https://images.unsplash.com/photo-1759430710977-a557a49897ff?w=1200&h=800&fit=crop&q=80',
     gallery: ['https://images.unsplash.com/photo-1759430710977-a557a49897ff?w=1200&h=800&fit=crop&q=80', 'https://images.unsplash.com/photo-1759430710977-a557a49897ff?w=1200&h=800&fit=crop&q=80'],
     coordinates: { lat: 18.5725, lng: -69.9856 },
-    terminals: ['Terminal Doméstica', 'FBO Aviación Privada'],
+    terminals: ['Terminal Principal', 'FBO Aviación Privada'],
     airlines: ['Air Century', 'Sky Cana', 'Aviación privada'],
-    destinations: ['Puerto Plata', 'Samaná', 'Barahona', 'La Romana'],
+    destinations: ['Puerto Plata', 'Samaná', 'Barahona', 'La Romana', 'San Juan', 'Puerto Príncipe'],
     services: [
       { name: 'FBO', description: 'Servicios de aviación ejecutiva y privada.' },
       { name: 'Estacionamiento', description: 'Parking disponible.' },
@@ -354,9 +363,34 @@ export const airports: Airport[] = [
 ];
 
 export function getAirportBySlug(slug: string): Airport | undefined {
-  return airports.find(a => a.slug === slug);
+  if (!slug) return undefined;
+  const clean = slug
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim();
+
+  return airports.find(a => {
+    const aSlug = a.slug
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
+    if (aSlug === clean) return true;
+    if (a.code.toLowerCase() === clean) return true;
+    if (a.id.toLowerCase() === clean) return true;
+    if (a.aliases?.some(alias => {
+      const aliasClean = alias
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '');
+      return aliasClean === clean;
+    })) return true;
+    return false;
+  });
 }
 
 export function getAirportByCode(code: string): Airport | undefined {
-  return airports.find(a => a.code === code);
+  if (!code) return undefined;
+  const clean = code.toLowerCase().trim();
+  return airports.find(a => a.code.toLowerCase() === clean || a.id.toLowerCase() === clean);
 }
