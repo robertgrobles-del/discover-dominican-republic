@@ -1,6 +1,6 @@
 import { execFileSync } from "node:child_process";
-import { createHash } from "node:crypto";
-import { createReadStream, openAsBlob, statSync } from "node:fs";
+import { createCipheriv, createDecipheriv, createHash, pbkdf2Sync, randomBytes } from "node:crypto";
+import { createReadStream, openAsBlob, readFileSync, statSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { signV4 } from "../modules/media/storage-s3.js";
 
@@ -24,6 +24,29 @@ const PBKDF2_ITERATIONS = "200000";
 /** Nombre de la variable de entorno con la clave: `openssl` la lee de ahí, así nunca aparece en la lista de procesos. */
 export const KEY_ENV = "BACKUP_ENCRYPTION_KEY";
 
+const OPENSSL_MAGIC = Buffer.from("Salted__");
+
+function nodeEncryptFile(source: string, target: string, key: string): void {
+  const content = readFileSync(source);
+  const salt = randomBytes(8);
+  const derived = pbkdf2Sync(key, salt, Number(PBKDF2_ITERATIONS), 48, "sha256");
+  const cipher = createCipheriv("aes-256-cbc", derived.subarray(0, 32), derived.subarray(32, 48));
+  const encrypted = Buffer.concat([cipher.update(content), cipher.final()]);
+  writeFileSync(target, Buffer.concat([OPENSSL_MAGIC, salt, encrypted]));
+}
+
+function nodeDecryptFile(source: string, target: string, key: string): void {
+  const buffer = readFileSync(source);
+  if (buffer.length < 16 || !buffer.subarray(0, 8).equals(OPENSSL_MAGIC)) {
+    throw new Error("bad magic number: no es un archivo cifrado openssl");
+  }
+  const salt = buffer.subarray(8, 16);
+  const derived = pbkdf2Sync(key, salt, Number(PBKDF2_ITERATIONS), 48, "sha256");
+  const decipher = createDecipheriv("aes-256-cbc", derived.subarray(0, 32), derived.subarray(32, 48));
+  const decrypted = Buffer.concat([decipher.update(buffer.subarray(16)), decipher.final()]);
+  writeFileSync(target, decrypted);
+}
+
 /** Configuración de la copia externa a partir del entorno; `null` si no está configurada. Lanza si está a medias. */
 export function offsiteConfigFromEnv(env: NodeJS.ProcessEnv = process.env): OffsiteConfig | null {
   const bucket = env.BACKUP_S3_BUCKET?.trim();
@@ -44,11 +67,31 @@ const openssl = (args: string[], env: NodeJS.ProcessEnv) => { execFileSync("open
 
 /** Cifra `source` en `target` con la clave de `BACKUP_ENCRYPTION_KEY`. */
 export function encryptFile(source: string, target: string, env: NodeJS.ProcessEnv = process.env): void {
-  openssl(["enc", "-aes-256-cbc", "-pbkdf2", "-iter", PBKDF2_ITERATIONS, "-salt", "-in", source, "-out", target, "-pass", `env:${KEY_ENV}`], env);
+  try {
+    openssl(["enc", "-aes-256-cbc", "-pbkdf2", "-iter", PBKDF2_ITERATIONS, "-salt", "-in", source, "-out", target, "-pass", `env:${KEY_ENV}`], env);
+  } catch (err: any) {
+    if (err?.code === "ENOENT") {
+      const key = env[KEY_ENV];
+      if (!key) throw new Error(`${KEY_ENV} es obligatorio`);
+      nodeEncryptFile(source, target, key);
+      return;
+    }
+    throw err;
+  }
 }
 /** Inversa de `encryptFile`. Con la clave equivocada `openssl` falla y no deja un archivo a medias que parezca bueno. */
 export function decryptFile(source: string, target: string, env: NodeJS.ProcessEnv = process.env): void {
-  openssl(["enc", "-d", "-aes-256-cbc", "-pbkdf2", "-iter", PBKDF2_ITERATIONS, "-in", source, "-out", target, "-pass", `env:${KEY_ENV}`], env);
+  try {
+    openssl(["enc", "-d", "-aes-256-cbc", "-pbkdf2", "-iter", PBKDF2_ITERATIONS, "-in", source, "-out", target, "-pass", `env:${KEY_ENV}`], env);
+  } catch (err: any) {
+    if (err?.code === "ENOENT") {
+      const key = env[KEY_ENV];
+      if (!key) throw new Error(`${KEY_ENV} es obligatorio`);
+      nodeDecryptFile(source, target, key);
+      return;
+    }
+    throw err;
+  }
 }
 
 export function sha256File(file: string): Promise<string> {
