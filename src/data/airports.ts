@@ -71,8 +71,8 @@ export interface Airport {
   imageUrl: string;
   gallery: string[];
   coordinates: { lat: number; lng: number };
-  terminals: string[];
-  airlines: string[];
+  terminals?: string[];
+  airlines?: string[];
   airlinesDetailed?: AirlineContact[];
   destinations: string[];
   destinationsByContinent?: DestinationGroup[];
@@ -516,6 +516,7 @@ export const airports: Airport[] = [
       { name: 'Wi-Fi Gratuito', description: 'Internet ilimitado en todas las salas de espera de la terminal.' },
       { name: 'Mostrador Oficial MITUR', description: 'Centro de información turística y asistencia de POLITUR 24/7.' },
       { name: 'Cambio de Divisas & ATM', description: 'Casas de cambio y cajeros de la red local e internacional.' },
+      { name: 'Café & Gastronomía Típica', description: 'Restaurantes con especialidades locales de pescado, café tostado y jugos tropicales.' },
     ],
     transportation: [
       { name: 'Taxi Oficial Turístico', detail: 'Tarifas fijas a Sosúa, Cabarete y Playa Dorada', price: 'US$ 25-40' },
@@ -562,15 +563,31 @@ export const airports: Airport[] = [
     coordinates: { lat: 18.4507, lng: -68.9118 },
     terminals: ['Terminal Comercial Internacional', 'Terminal de Aviación Privada / FBO Premier'],
     airlines: ['American Airlines', 'Neos', 'Air Transat', 'World2Fly', 'TUI', 'Chárters Privados Corporativos'],
-    destinations: ['Miami', 'Milán (MXP)', 'Roma (FCO)', 'Montreal', 'Toronto', 'Madrid'],
+    airlinesDetailed: [
+      { name: 'American Airlines', code: 'AAL', website: 'https://www.aa.com/', terminal: 'Terminal Comercial' },
+      { name: 'Neos', code: 'NOS', website: 'https://www.neosair.it/', terminal: 'Vuelos Italia / Europa' },
+      { name: 'Air Transat', code: 'TSC', website: 'https://www.airtransat.com/', terminal: 'Vuelos Canadá' },
+      { name: 'World2Fly', code: 'WFL', website: 'https://www.w2fly.es/', terminal: 'Vuelos España / Madrid' },
+      { name: 'Condor', code: 'CFG', website: 'https://www.condor.com/', terminal: 'Vuelos Alemania' },
+      { name: 'Sunwing Airlines', code: 'SWG', website: 'https://www.sunwing.ca/', terminal: 'Chárter Caribe' },
+      { name: 'FBO Casa de Campo', code: 'FBO', website: 'https://aeropuertolaromana.com/', terminal: 'Aviación Ejecutiva & Jets Privados' }
+    ],
+    destinations: ['Miami (MIA)', 'Milán (MXP)', 'Roma (FCO)', 'Montreal (YUL)', 'Toronto (YYZ)', 'Madrid (MAD)', 'Frankfurt (FRA)'],
+    destinationsByContinent: [
+      { region: 'Norteamérica', destinations: ['Miami (MIA)', 'Montreal (YUL)', 'Toronto (YYZ)', 'Quebec City (YQB)'] },
+      { region: 'Europa', destinations: ['Milán Malpensa (MXP)', 'Roma Fiumicino (FCO)', 'Madrid Barajas (MAD)', 'Frankfurt (FRA)'] },
+      { region: 'Caribe', destinations: ['San Juan (SJU)', 'Santo Domingo (JBQ)'] }
+    ],
     vipLounges: [
       { name: 'Premier Lounge Casa de Campo', location: 'Terminal Comercial & FBO', access: 'Huéspedes VIP Casa de Campo, Priority Pass, First/Business Class', highlight: 'Servicio de concierge personalizado, traslados en carritos de golf VIP y barra libre de alta gama.' }
     ],
     services: [
-      { name: 'Premier VIP Service', description: 'Recepción exclusiva con asistencia de equipaje rápida y traslados privados.' },
+      { name: 'Premier VIP Lounge Casa de Campo', description: 'Recepción exclusiva con asistencia de equipaje rápida, traslados y bar premium.' },
       { name: 'Duty Free Central Romana', description: 'Selección de puros dominicanos hechos a mano, chocolates orgánicos y moda.' },
       { name: 'FBO Aviación Ejecutiva 24/7', description: 'Servicios de hangares, combustible y migración express para aeronaves privadas.' },
+      { name: 'Wi-Fi de Alta Velocidad', description: 'Conexión a internet gratuita en salas de abordaje y salón VIP.' },
       { name: 'Solárium al Aire Libre', description: 'Terraza ajardinada tropical para disfrutar del sol caribeño antes del vuelo.' },
+      { name: 'Bancos & Cambio Oficial', description: 'Cajeros automáticos y punto de cambio certificado para viajeros internacionales.' }
     ],
     transportation: [
       { name: 'Traslado Oficial Casa de Campo', detail: 'Servicio privado exclusivo directo a las villas del resort', price: 'Incluido en paquetes' },
@@ -681,24 +698,39 @@ export const airports: Airport[] = [
     imageUrl: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1200&h=800&fit=crop&q=80',
     gallery: [
       'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1200&h=800&fit=crop&q=80',
-      'https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=1200&h=800&fit=crop&q=80'
+      'https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=1200&h=800&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1200&h=800&fit=crop&q=80'
     ],
     coordinates: { lat: 18.2515, lng: -71.1204 },
-    terminals: ['Terminal Principal María Montez'],
-    airlines: ['Air Century', 'Chárters Privados', 'Vuelos de Ecoturismo'],
-    destinations: ['Santo Domingo (JBQ)', 'Pedernales', 'Vuelos Chárter Caribeños'],
+    terminals: ['Terminal Principal María Montez', 'Plataforma FBO Aviación General'],
+    airlines: ['Air Century', 'Sky Cana', 'Helidosa Aviation', 'Chárters Privados', 'Vuelos de Ecoturismo'],
+    airlinesDetailed: [
+      { name: 'Air Century', code: 'CEY', website: 'https://aircentury.com/', terminal: 'Terminal de Pasajeros' },
+      { name: 'Sky Cana', code: 'SNA', website: 'https://skycana.com/', terminal: 'Chárters Ecoturísticos' },
+      { name: 'Helidosa Aviation Group', code: 'HDA', website: 'https://helidosa.com/', terminal: 'Helipuerto & Vuelos Privados' },
+      { name: 'Aviación General Aerodom', code: 'GEN', website: 'https://aerodom.com/', terminal: 'FBO Regional & Escuelas' }
+    ],
+    destinations: ['Santo Domingo (JBQ)', 'Pedernales (Cabo Rojo)', 'Punta Cana (PUJ)', 'Puerto Príncipe (PAP)', 'San Juan (SJU)'],
+    destinationsByContinent: [
+      { region: 'Nacional y Caribe', destinations: ['Santo Domingo (JBQ)', 'Pedernales (Cabo Rojo)', 'Punta Cana (PUJ)', 'Puerto Príncipe (PAP)'] },
+      { region: 'Rutas Chárter', destinations: ['San Juan (SJU)', 'Curazao (CUR)'] }
+    ],
     vipLounges: [
       { name: 'Sala Protocolar Turística Suroeste', location: 'Terminal Principal', access: 'Vuelos especiales y comitivas oficiales', highlight: 'Atención protocolar y coordinación directa de tours ecológicos.' }
     ],
     services: [
-      { name: 'Mostrador Ecoturístico', description: 'Punto de información y contacto con guías locales certificados del Sur.' },
-      { name: 'Estacionamiento Gratuito', description: 'Zona de parking amplia con vigilancia continua.' },
-      { name: 'Café & Bebidas', description: 'Área de descanso y venta de café orgánico de las montañas de Barahona.' },
+      { name: 'Sala Protocolar Turística Suroeste', description: 'Recepción protocolar para comitivas, tripulaciones y viajeros ecoturísticos.' },
+      { name: 'Mostrador Ecoturístico MITUR', description: 'Punto de información y contacto con guías locales certificados del Sur.' },
+      { name: 'Café Orgánico de Barahona', description: 'Área de descanso y degustación del café arábica cultivado en las montañas de Polo.' },
+      { name: 'Wi-Fi en Terminal Aerodom', description: 'Conexión a internet gratuita en áreas de espera y vestíbulo central.' },
+      { name: 'Estacionamiento Gratuito Vigilado', description: 'Zona de parking amplia con vigilancia continua 24 horas.' },
+      { name: 'Asistencia Médica & POLITUR', description: 'Presencia permanente de la Policía de Turismo y primeros auxilios.' }
     ],
     transportation: [
       { name: 'Taxi Oficial a Barahona', detail: 'Traslado rápido a los hoteles del malecón y la costa', price: 'US$ 15-20' },
       { name: 'Transporte a Pedernales / Bahía de las Águilas', detail: 'Servicio de transfer 4x4 por la costa panorámica', price: 'US$ 60-90' },
-      { name: 'Vehículos de Aventura', detail: 'Alquiler de jeeps y camionetas para explorar el Sur profundo' },
+      { name: 'Vehículos de Aventura 4x4', detail: 'Alquiler de jeeps y camionetas para explorar el Sur profundo' },
+      { name: 'Transporte Público Interurbano', detail: 'Parada en cruce Barahona con microbuses hacia la capital', price: 'RD$ 75-100' },
     ],
     nearbyDestinations: [
       { name: 'Barahona Malecón & Hoteles', distance: '10 min', slug: 'barahona' },
@@ -733,25 +765,41 @@ export const airports: Airport[] = [
     imageUrl: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=1200&h=800&fit=crop&q=80',
     gallery: [
       'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=1200&h=800&fit=crop&q=80',
-      'https://images.unsplash.com/photo-1759430710977-a557a49897ff?w=1200&h=800&fit=crop&q=80'
+      'https://images.unsplash.com/photo-1569154941061-e231b4725ef1?w=1200&h=800&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1200&h=800&fit=crop&q=80'
     ],
     coordinates: { lat: 18.5725, lng: -69.9856 },
     terminals: ['Terminal Internacional de Pasajeros', 'FBO Ejecutivo Aerodom (Aviación Privada)', 'Hangares Corporativos'],
-    airlines: ['Air Century', 'Sky Cana', 'Sunrise Airways', 'Aviación Corporativa & Privada'],
-    destinations: ['Puerto Príncipe', 'La Habana', 'San Juan', 'Santiago', 'Punta Cana', 'Barahona'],
+    airlines: ['Air Century', 'Sunrise Airways', 'Sky Cana', 'Aerolíneas Mas', 'Helidosa Aviation Group', 'Aviación Corporativa & Privada'],
+    airlinesDetailed: [
+      { name: 'Air Century', code: 'CEY', website: 'https://aircentury.com/', terminal: 'Terminal Principal (Hub Comercial)', isHub: true },
+      { name: 'Sunrise Airways', code: 'KSZ', website: 'https://www.sunriseairways.net/', terminal: 'Terminal Internacional' },
+      { name: 'Sky Cana', code: 'SNA', website: 'https://skycana.com/', terminal: 'Hangar Corporativo' },
+      { name: 'Aerolíneas Mas', code: 'MAS', website: 'https://aerodom.com/', terminal: 'Aviación Regional' },
+      { name: 'Helidosa Aviation Group', code: 'HDA', website: 'https://helidosa.com/', terminal: 'Base Helipuerto' },
+      { name: 'FBO Ejecutivo Aerodom', code: 'FBO', website: 'https://aerodom.com/', terminal: 'Terminal Ejecutiva & Jets Privados' }
+    ],
+    destinations: ['Puerto Príncipe (PAP)', 'Cap-Haïtien (CAP)', 'San Juan (SJU)', 'La Habana (HAV)', 'Santiago de Cuba (SCU)', 'Aruba (AUA)', 'Curazao (CUR)', 'Sint Maarten (SXM)', 'Barahona (BRX)', 'Punta Cana (PUJ)'],
+    destinationsByContinent: [
+      { region: 'Caribe & Antillas', destinations: ['Puerto Príncipe (PAP)', 'Cap-Haïtien (CAP)', 'San Juan (SJU)', 'La Habana (HAV)', 'Santiago de Cuba (SCU)', 'Aruba (AUA)', 'Curazao (CUR)', 'Sint Maarten (SXM)'] },
+      { region: 'Destinos Nacionales', destinations: ['Barahona (BRX)', 'Punta Cana (PUJ)', 'Santiago (STI)', 'Montecristi (MTC)'] }
+    ],
     vipLounges: [
       { name: 'Executive FBO Suite & VIP Club', location: 'Edificio FBO Aerodom', access: 'Pilotos y pasajeros de aviación corporativa y privada', highlight: 'Salas de reuniones ejecutivas, despacho migratorio privado y catering exclusivo.' }
     ],
     services: [
-      { name: 'FBO Ejecutivo 24/7', description: 'Servicios de handling, combustible Jet-A1/AvGas y atención preferencial.' },
-      { name: 'Migración & Aduana Express', description: 'Trámite migratorio ágil e individualizado para vuelos corporativos.' },
-      { name: 'Estacionamiento Seguro', description: 'Parqueo vigilado para usuarios de aviación privada y ejecutiva.' },
-      { name: 'Café & Lounge de Espera', description: 'Área climatizada con bebidas, aperitivos y conectividad Wi-Fi.' },
+      { name: 'Executive FBO Suite & VIP Club', description: 'Atención personalizada para aviación privada, pilotos y tripulaciones.' },
+      { name: 'Migración & Aduana Express 24/7', description: 'Trámite aduanal y migratorio ágil e individualizado para vuelos corporativos.' },
+      { name: 'Helipuerto Corporativo & Hangares', description: 'Base moderna con servicios integrales de combustible Jet-A1/AvGas y mantenimiento.' },
+      { name: 'Wi-Fi de Alta Velocidad Aerodom', description: 'Internet simétrico gratuito para operaciones aéreas y pasajeros ejecutivos.' },
+      { name: 'Café Ejecutivo & Lounge de Espera', description: 'Área climatizada con bebidas, aperitivos finos y sala de descanso.' },
+      { name: 'Estacionamiento Privado Vigilado', description: 'Parqueo vigilado y controlado para usuarios de aviación privada y ejecutiva.' }
     ],
     transportation: [
       { name: 'Taxi Ejecutivo a Santo Domingo', detail: 'Conexión rápida con la zona norte, Arroyo Hondo y Polígono Central', price: 'US$ 20-30' },
-      { name: 'Uber / DiDi Disponible', detail: 'Recogida rápida por app móvil en la puerta de la terminal' },
-      { name: 'Servicio de Helitransporte', detail: 'Conexión por helicóptero privado hacia resorts del este o norte' },
+      { name: 'Uber / DiDi Inmediato', detail: 'Recogida rápida por app móvil directamente en la puerta de la terminal', price: 'RD$ 600-900' },
+      { name: 'Servicio de Helitransporte Privado', detail: 'Conexión punto a punto en helicóptero hacia resorts del este o norte' },
+      { name: 'Renta de Autos Ejecutiva', detail: 'Vehículos blindados y ejecutivos con chofer previa reservación' },
     ],
     nearbyDestinations: [
       { name: 'Polígono Central (Piantini / Naco)', distance: '22 min', slug: 'santo-domingo' },
@@ -763,7 +811,7 @@ export const airports: Airport[] = [
     rating: 4.4,
     reviewCount: 1100,
     isPopular: false
-  },
+  }
 ];
 
 export function getAirportBySlug(slug: string): Airport | undefined {

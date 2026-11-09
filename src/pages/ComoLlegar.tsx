@@ -163,7 +163,7 @@ export default function ComoLlegar() {
                           </div>
                           <div className="flex items-center gap-1 text-xs text-muted-foreground">
                             <Globe className="h-3 w-3" />
-                            <span>{airport.airlines.length}{" "}{pc.tx("span.1", "aerolíneas")}</span>
+                            <span>{airport.airlinesDetailed?.length ?? airport.airlines?.length ?? 0}{" "}{pc.tx("span.1", "aerolíneas")}</span>
                           </div>
                         </div>
                       </Link>

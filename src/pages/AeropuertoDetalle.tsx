@@ -15,6 +15,98 @@ import { SEOHead, generateAirportSchema } from "@/components/SEOHead";
 import { useTranslation } from "@/i18n";
 import { getAirportBySlug, airports, type AirlineContact } from "@/data/airports";
 
+interface AirportStory {
+  title: string;
+  p1: string;
+  p2: string;
+  stat1: { label: string; desc: string };
+  stat2: { label: string; desc: string };
+  stat3: { label: string; desc: string };
+}
+
+const airportNarratives: Record<string, AirportStory> = {
+  SDQ: {
+    title: "El Gran Centro de Conectividad de la Capital",
+    p1: "Inaugurado originalmente en 1959 en Punta Caucedo, el Aeropuerto Las Américas fue rebautizado en honor al Dr. José Francisco Peña Gómez. Con su pista de 3,354 metros apta para aeronaves de fuselaje ancho como Boeing 777 y Airbus A350, representa el punto neurálgico del comercio aéreo y turismo internacional dominicano.",
+    p2: "Con la moderna concesión de AERODOM operada por VINCI Airports, el aeropuerto ha completado la ampliación de la Terminal Pública Central con una inversión superior a US$ 250 millones, fortaleciendo a Santo Domingo como el gran Hub Continental de bajo costo de la región.",
+    stat1: { label: "Hub Arajet", desc: "Base estratégica del Caribe" },
+    stat2: { label: "Terminal Carga #1", desc: "111,000+ tons/año" },
+    stat3: { label: "Autovía del Este", desc: "Acceso a playas en 10 min" }
+  },
+  PUJ: {
+    title: "El Aeropuerto Privado más Concurrido del Caribe",
+    p1: "Pionero mundial en turismo sostenible y diseño arquitectónico bioclimático, el Aeropuerto Internacional de Punta Cana recibe a más del 56% de los turistas que ingresan a la República Dominicana. Sus emblemáticas terminales con techos de cana de palma y piedra coralina autóctona combinan la hospitalidad caribeña con tecnología de navegación de última generación.",
+    p2: "Con la reciente inauguración de la expansión de la Terminal B con una inversión de US$ 90 millones, dispone de puentes de abordaje de alta capacidad y una exclusiva terraza VIP con piscina panorámica frente a la pista activa, conectando sin escalas con más de 64 ciudades del mundo.",
+    stat1: { label: "Piscina VIP en Terraza", desc: "Vista panorámica a la pista" },
+    stat2: { label: "> 9.5M Pasajeros", desc: "56% del tráfico aéreo nacional" },
+    stat3: { label: "Boulevard Turístico", desc: "10 min a Cap Cana y Bávaro" }
+  },
+  STI: {
+    title: "El Motor Aéreo y Comercial de la Región del Cibao",
+    p1: "Inaugurado en 2002 gracias a la visión de la clase empresarial santiaguera, el Aeropuerto Internacional del Cibao es el principal vínculo entre la región norte y la diáspora dominicana radicada en Estados Unidos. Es el tercer aeropuerto con mayor afluencia de pasajeros de todo el territorio dominicano.",
+    p2: "Actualmente ejecuta un plan maestro de expansión que incluye la ampliación de su pista a 3,000 metros y la duplicación de su terminal de pasajeros para acoger vuelos directos transatlánticos desde Europa, además de su terminal de exportación de productos agrícolas y textiles del Cibao.",
+    stat1: { label: "Hub de la Diáspora", desc: "Vuelos diarios JFK, BOS, MIA" },
+    stat2: { label: "Pista en Expansión", desc: "Ampliación a 3,000 metros" },
+    stat3: { label: "Autopista Duarte", desc: "15 min a Santiago Centro" }
+  },
+  POP: {
+    title: "La Puerta Oficial a la Costa del Ámbar y Atlántico",
+    p1: "Nombrado en honor al prócer restaurador General Gregorio Luperón, este aeropuerto inauguró la era moderna del turismo internacional en la República Dominicana en los años 70 y 80. Su pista de 3,081 metros está diseñada para acoger sin restricciones vuelos chárter transatlánticos procedentes de Europa y Canadá.",
+    p2: "Administrado por AERODOM y VINCI Airports, es el portal estratégico hacia las mecas mundiales del ecoturismo y deportes acuáticos como Cabarete y Sosúa, los resorts de Playa Dorada y los concurridos puertos de cruceros Amber Cove y Taíno Bay.",
+    stat1: { label: "Costa del Ámbar", desc: "Acceso inmediato a Cabarete" },
+    stat2: { label: "Pista de 3,081 m", desc: "Apta para Boeing 777 y A350" },
+    stat3: { label: "Carretera Costera", desc: "15 min a resorts y cruceros" }
+  },
+  LRM: {
+    title: "Ingenio Azucarero y Lujo en Casa de Campo",
+    p1: "Inaugurado en diciembre del año 2000 por Central Romana Corporation, el Aeropuerto Internacional de La Romana destaca por su icónica arquitectura inspirada en un ingenio azucarero dominicano tradicional, con acabados en madera noble y chimenea industrial estilizada.",
+    p2: "Es la terminal preferida por celebridades mundiales, golfistas y ejecutivos que visitan Casa de Campo Resort & Villas y el célebre campo Teeth of the Dog, además de funcionar como enlace aéreo logístico para las grandes navieras que atracan en el Puerto de Cruceros de La Romana y Bayahíbe.",
+    stat1: { label: "Terminal Casa de Campo", desc: "A 10 min del resort y golf" },
+    stat2: { label: "Pista de 2,949 m", desc: "FBO Premier para jets privados" },
+    stat3: { label: "Autovía del Coral", desc: "Acceso express a Bayahíbe" }
+  },
+  AZS: {
+    title: "El Portal Aéreo a la Península Virgen de Samaná",
+    p1: "Inaugurado a finales de 2006 en la comunidad de El Catey, el Aeropuerto Internacional Presidente Juan Bosch brinda acceso rápido y seguro a una de las regiones con mayor biodiversidad y belleza virgen de todo el Caribe insular.",
+    p2: "Su moderna pista de 3,000 metros recibe vuelos transatlánticos directos durante la temporada de avistamiento de ballenas jorobadas en la Bahía de Samaná, así como viajeros europeos y norteamericanos que disfrutan de las paradisíacas playas de Las Terrenas, Las Galeras y Playa Rincón.",
+    stat1: { label: "Santuario de Ballenas", desc: "Temporada enero a marzo" },
+    stat2: { label: "Pista de 3,000 m", desc: "Fuselaje ancho transatlántico" },
+    stat3: { label: "Boulevard del Atlántico", desc: "30 min a Las Terrenas" }
+  },
+  BRX: {
+    title: "Infraestructura Estratégica del Suroeste y Cabo Rojo",
+    p1: "Bautizado en homenaje a la insigne actriz dominicana María Montez, este aeropuerto representa la mayor infraestructura aérea de toda la región Enriquillo. Cuenta con una pista transcontinental de 3,000 metros de longitud apta para aviones intercontinentales de fuselaje ancho.",
+    p2: "Con el desarrollo del nuevo polo turístico de Pedernales, Cabo Rojo y la Reserva de la Biosfera Jaragua-Bahoruco-Enriquillo, el aeropuerto María Montez opera como nodo clave para comitivas de inversión, vuelos comerciales ecológicos y conexión regional directa con Santo Domingo.",
+    stat1: { label: "Pista Transcontinental", desc: "3,000 m de alta resistencia" },
+    stat2: { label: "Bahía de las Águilas", desc: "Portal al turismo del Sur" },
+    stat3: { label: "Carretera Costera", desc: "10 min al malecón Barahona" }
+  },
+  JBQ: {
+    title: "Centro Neurálgico de la Aviación Corporativa y FBO",
+    p1: "El Aeropuerto Internacional Dr. Joaquín Balaguer (La Isabela / El Higüero) fue construido para sustituir al antiguo aeródromo de Herrera y centralizar la aviación ejecutiva, gubernamental y privada de la capital dominicana.",
+    p2: "Sede principal de las escuelas de aviación civil de la República Dominicana y hub de Air Century para rutas regionales hacia Haití y las Antillas, cuenta con un moderno FBO operado por AERODOM/VINCI Airports con despacho migratorio y aduanero preferencial disponible las 24 horas.",
+    stat1: { label: "Epicentro FBO y Jets", desc: "Aviación corporativa 24/7" },
+    stat2: { label: "Pista de 1,650 m", desc: "Apta para turbohélices y jets" },
+    stat3: { label: "Acceso Capital Norte", desc: "20 min a Piantini y Naco" }
+  }
+};
+
+const serviceCardStyles = [
+  { icon: Crown, bg: "bg-amber-50 text-amber-600", tag: "Salón VIP Exclusivo", tagColor: "text-[#005ea6]" },
+  { icon: ShoppingBag, bg: "bg-rose-50 text-rose-600", tag: "Comercios & Duty Free", tagColor: "text-slate-600" },
+  { icon: Wifi, bg: "bg-cyan-50 text-[#0284c7]", tag: "Conectividad Gratuita", tagColor: "text-emerald-600" },
+  { icon: Banknote, bg: "bg-emerald-50 text-emerald-600", tag: "Bancos & Cambio Oficial", tagColor: "text-slate-600" },
+  { icon: Utensils, bg: "bg-amber-50 text-amber-600", tag: "Gastronomía & Cafeterías", tagColor: "text-slate-600" },
+  { icon: Cross, bg: "bg-red-50 text-red-600", tag: "Asistencia & Seguridad 24/7", tagColor: "text-red-600" },
+];
+
+const transportCardStyles = [
+  { icon: Car, bg: "bg-amber-100 text-amber-800", badge: "Oficial y Seguro", badgeClass: "bg-emerald-100 text-emerald-800" },
+  { icon: Smartphone, bg: "bg-slate-900 text-white", badge: "Bahía Autorizada / App", badgeClass: "bg-blue-100 text-[#005ea6]" },
+  { icon: Key, bg: "bg-blue-100 text-[#005ea6]", badge: "Renta de Autos / Flota", badgeClass: "bg-slate-100 text-slate-700" },
+  { icon: Bus, bg: "bg-emerald-100 text-emerald-800", badge: "Económico / Shuttle", badgeClass: "bg-slate-100 text-slate-600" }
+];
+
 export default function AeropuertoDetalle() {
   const { t } = useTranslation();
   const { slug } = useParams<{ slug: string }>();
@@ -28,7 +120,7 @@ export default function AeropuertoDetalle() {
     if (!airport) return [];
     const list: AirlineContact[] = airport.airlinesDetailed && airport.airlinesDetailed.length > 0 
       ? airport.airlinesDetailed 
-      : airport.airlines.map(name => ({ name, website: "https://www.google.com/search?q=" + encodeURIComponent(name) }));
+      : (airport.airlines ?? []).map(name => ({ name, website: "https://www.google.com/search?q=" + encodeURIComponent(name) }));
     
     if (!airlineSearch.trim()) return list;
     const q = airlineSearch.toLowerCase();
@@ -88,6 +180,14 @@ export default function AeropuertoDetalle() {
   }
 
   const isSDQ = airport.code === "SDQ";
+  const narrative = airportNarratives[airport.code] || {
+    title: `Infraestructura Oficial de ${airport.name}`,
+    p1: airport.description,
+    p2: "La terminal aeroportuaria dispone de sistemas de radionavegación satelital y certificación internacional OACI para operaciones nocturnas e intercontinentales continuas.",
+    stat1: { label: airport.highlights?.[0] || "Terminal Aérea", desc: "Operaciones regulares" },
+    stat2: { label: airport.runwayLength?.split("·")[0]?.trim() || "Pista Certificada", desc: "Apta para fuselaje ancho" },
+    stat3: { label: "Conexión Vial", desc: "Acceso a polos turísticos" }
+  };
 
   return (
     <PageTransition>
@@ -127,88 +227,28 @@ export default function AeropuertoDetalle() {
 
       <div className="min-h-screen bg-[#f8fafc] text-slate-800 antialiased selection:bg-[#005ea6] selection:text-white">
         
-        {/* BEGIN: TopBar Oficial */}
-        <div className="bg-[#0b1d3a] text-slate-300 text-xs py-2 px-4 border-b border-slate-700/60" data-purpose="official-topbar">
-          <div className="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-2">
-            <div className="flex items-center space-x-3">
-              <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-red-600/20 text-red-300 font-semibold text-[10px] tracking-wide border border-red-500/30">
-                <span className="w-1.5 h-1.5 rounded-full bg-red-500 mr-1.5 animate-pulse" />
-                PORTAL OFICIAL
-              </span>
-              <span className="text-slate-200 font-medium hidden sm:inline">República Dominicana</span>
-              <span className="text-slate-400 hidden sm:inline">•</span>
-              <span className="text-[#00a3e0] font-normal hidden md:inline">El mejor destino del Caribe</span>
-            </div>
-
-            <div className="flex items-center space-x-4 ml-auto text-[11px]">
-              <div className="flex items-center space-x-1.5 text-slate-300">
-                <Sun className="w-3.5 h-3.5 text-amber-400" />
-                <span>{airport.code} / {airport.city}: <strong>28°C</strong> Soleado</span>
-              </div>
-              <div className="h-3 w-px bg-slate-700 hidden sm:block" />
-              <div className="flex items-center space-x-1 cursor-pointer hover:text-white">
-                <Globe className="w-3.5 h-3.5" />
-                <span className="font-medium">ES</span>
-              </div>
-              <div className="h-3 w-px bg-slate-700 hidden sm:block" />
-              <a className="flex items-center space-x-1 text-slate-300 hover:text-white transition-colors" href="tel:+18092003500">
-                <Phone className="w-3.5 h-3.5 text-emerald-400" />
-                <span className="hidden md:inline">Línea Turista POLITUR 24/7</span>
-              </a>
-            </div>
-          </div>
-        </div>
-        {/* END: TopBar Oficial */}
-
         {/* Global Site Header */}
         <Header />
 
-        {/* BEGIN: Breadcrumb */}
-        <section className="bg-white border-b border-slate-200 py-3 px-4 sm:px-6 lg:px-8" data-purpose="breadcrumbs">
-          <div className="max-w-7xl mx-auto flex items-center space-x-2 text-xs font-medium text-slate-500 overflow-x-auto whitespace-nowrap">
-            <Link to="/" className="hover:text-[#005ea6] flex items-center">
-              Inicio
-            </Link>
-            <ChevronRight className="w-3.5 h-3.5 text-slate-300 shrink-0" />
-            <Link to="/aeropuerto" className="hover:text-[#005ea6]">
-              Red Aeroportuaria Nacional
-            </Link>
-            <ChevronRight className="w-3.5 h-3.5 text-slate-300 shrink-0" />
-            <span className="text-slate-500">{airport.provinceName || airport.city}</span>
-            <ChevronRight className="w-3.5 h-3.5 text-slate-300 shrink-0" />
-            <span className="text-slate-900 font-semibold">{airport.name} ({airport.code})</span>
-          </div>
-        </section>
-        {/* END: Breadcrumb */}
-
         {/* BEGIN: HeroSection */}
         <section className="relative bg-[#0b1d3a] text-white overflow-hidden py-14 lg:py-20" data-purpose="airport-hero">
-          {/* Background Image with Overlay */}
+          {/* Background Image with Lighter/Clearer Overlay */}
           <div className="absolute inset-0 z-0">
             <img 
               alt={airport.name} 
-              className="w-full h-full object-cover object-center opacity-30 mix-blend-luminosity filter contrast-125 scale-105" 
+              className="w-full h-full object-cover object-center opacity-70 scale-105 transition-transform duration-700" 
               src={airport.imageUrl} 
             />
-            <div className="absolute inset-0 bg-gradient-to-r from-[#0b1d3a] via-[#0b1d3a]/90 to-[#0b1d3a]/60" />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#0b1d3a] via-transparent to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-r from-[#0b1d3a]/80 via-[#0b1d3a]/55 to-[#0b1d3a]/30" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0b1d3a]/90 via-transparent to-black/20" />
           </div>
 
           <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            {/* Top badges */}
-            <div className="flex flex-wrap items-center gap-2.5 mb-4">
-              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-[#0284c7]/20 text-cyan-300 border border-[#0284c7]/40 backdrop-blur-md">
-                <MapPin className="w-3.5 h-3.5 mr-1.5 text-[#0284c7]" />
-                {isSDQ ? "Punta Caucedo, Santo Domingo" : `${airport.city}, ${airport.provinceName}`}
+            {/* Single Informative Antetítulo (Sin icono y sin color de fondo) */}
+            <div className="mb-3">
+              <span className="text-xs sm:text-sm font-semibold tracking-wider uppercase text-cyan-300 block font-sans">
+                Portal Aeroportuario Oficial • {airport.city}, {airport.provinceName} • República Dominicana
               </span>
-              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                <PlaneTakeoff className="w-3.5 h-3.5 mr-1.5 text-emerald-400" />
-                {isSDQ ? "Hub Principal de Arajet" : (airport.highlights?.[0] || "Terminal Internacional")}
-              </span>
-              <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                <Star className="w-3.5 h-3.5 mr-1 fill-amber-400 text-amber-400" />
-                {airport.rating.toFixed(1)} <span className="text-amber-200/80 ml-1 font-normal">({airport.reviewCount.toLocaleString()}+ reseñas verificadas)</span>
-              </div>
             </div>
 
             {/* Main Headline & Subtitle */}
@@ -216,58 +256,74 @@ export default function AeropuertoDetalle() {
               <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white mb-3 font-display">
                 {airport.name}
               </h1>
-              <p className="text-lg sm:text-xl font-medium text-[#00a3e0] mb-4">
-                {isSDQ ? "Doctor José Francisco Peña Gómez" : airport.city} (IATA: <strong className="text-white">{airport.code}</strong> • ICAO: <strong className="text-white">{airport.icao}</strong>)
+              <p className="text-lg sm:text-xl font-medium text-[#00a3e0] mb-3">
+                {airport.provinceName} • {airport.city} (IATA: <strong className="text-white">{airport.code}</strong> • ICAO: <strong className="text-white">{airport.icao}</strong>)
               </p>
-              <p className="text-slate-300 text-sm sm:text-base leading-relaxed max-w-3xl">
-                {airport.description}
+              <p className="text-slate-200 text-sm sm:text-base leading-relaxed max-w-2xl font-normal drop-shadow-sm">
+                {airport.shortDescription}
               </p>
+
+              {/* Hero Action CTA Buttons */}
+              <div className="mt-6 flex flex-wrap items-center gap-3">
+                <a 
+                  href="#eticket-section" 
+                  className="inline-flex items-center justify-center px-6 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-sm shadow-lg shadow-emerald-950/20 transition-all active:scale-95"
+                >
+                  <FileCheck2 className="w-4 h-4 mr-2" />
+                  <span>Completar E-Ticket Oficial</span>
+                  <ChevronRight className="w-4 h-4 ml-1" />
+                </a>
+                <a 
+                  href="#servicios" 
+                  className="inline-flex items-center justify-center px-5 py-3 rounded-xl bg-white/15 hover:bg-white/25 text-white font-semibold text-sm backdrop-blur-md border border-white/20 transition-all"
+                >
+                  <span>Servicios en Terminal</span>
+                  <ChevronRight className="w-4 h-4 ml-1" />
+                </a>
+              </div>
             </div>
 
             {/* Quick Airport Metric Cards (Horizontal Ribbon) */}
-            <div className="mt-8 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 pt-6 border-t border-slate-700/60">
-              <div className="bg-slate-800/60 backdrop-blur-sm rounded-xl p-3 border border-slate-700/60 hover:border-[#0284c7]/40 transition">
-                <span className="text-[11px] uppercase tracking-wider text-slate-400 block font-semibold">Código IATA / ICAO</span>
+            <div className="mt-8 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 pt-6 border-t border-white/15">
+              <div className="bg-slate-900/60 backdrop-blur-md rounded-xl p-3 border border-white/10">
+                <span className="text-[11px] uppercase tracking-wider text-slate-300 block font-semibold">IATA / ICAO</span>
                 <span className="text-base font-bold text-white flex items-center mt-1">
                   {airport.code} / {airport.icao}
                 </span>
               </div>
 
-              <div className="bg-slate-800/60 backdrop-blur-sm rounded-xl p-3 border border-slate-700/60 hover:border-[#0284c7]/40 transition">
-                <span className="text-[11px] uppercase tracking-wider text-slate-400 block font-semibold">Tráfico Anual</span>
+              <div className="bg-slate-900/60 backdrop-blur-md rounded-xl p-3 border border-white/10">
+                <span className="text-[11px] uppercase tracking-wider text-slate-300 block font-semibold">Tráfico Anual</span>
+                <span className="text-xs sm:text-sm font-bold text-white mt-1 block truncate">
+                  {airport.passengersAnnual?.split("(")[0]?.trim() || "Vuelos Comerciales"}
+                </span>
+              </div>
+
+              <div className="bg-slate-900/60 backdrop-blur-md rounded-xl p-3 border border-white/10">
+                <span className="text-[11px] uppercase tracking-wider text-slate-300 block font-semibold">Pista Principal</span>
+                <span className="text-xs sm:text-sm font-bold text-white mt-1 block truncate">
+                  {airport.runwayLength?.split("·")[0]?.trim() || "Pista Asfaltada OACI"}
+                </span>
+              </div>
+
+              <div className="bg-slate-900/60 backdrop-blur-md rounded-xl p-3 border border-white/10">
+                <span className="text-[11px] uppercase tracking-wider text-slate-300 block font-semibold">Elevación</span>
                 <span className="text-base font-bold text-white mt-1 block">
-                  {airport.passengersAnnual || "> 5.81M pax/año"}
+                  {airport.elevation || "18 m MSL"}
                 </span>
               </div>
 
-              <div className="bg-slate-800/60 backdrop-blur-sm rounded-xl p-3 border border-slate-700/60 hover:border-[#0284c7]/40 transition">
-                <span className="text-[11px] uppercase tracking-wider text-slate-400 block font-semibold">Pista Principal</span>
-                <span className="text-xs font-bold text-white mt-1 block leading-tight">
-                  {airport.runwayLength || "3,354 m (11,004 ft)"}
-                  {isSDQ && <span className="text-[10px] text-[#00a3e0] block font-normal">Más extensa del país</span>}
+              <div className="bg-slate-900/60 backdrop-blur-md rounded-xl p-3 border border-white/10">
+                <span className="text-[11px] uppercase tracking-wider text-slate-300 block font-semibold">Terminales</span>
+                <span className="text-xs sm:text-sm font-bold text-white mt-1 block truncate">
+                  {(airport.terminals ?? []).slice(0, 2).map(t => t.split("(")[0].trim()).join(" • ")}
                 </span>
               </div>
 
-              <div className="bg-slate-800/60 backdrop-blur-sm rounded-xl p-3 border border-slate-700/60 hover:border-[#0284c7]/40 transition">
-                <span className="text-[11px] uppercase tracking-wider text-slate-400 block font-semibold">Elevación</span>
-                <span className="text-base font-bold text-white mt-1 block">
-                  {airport.elevation || "18 m (59 ft) MSL"}
-                </span>
-              </div>
-
-              <div className="bg-slate-800/60 backdrop-blur-sm rounded-xl p-3 border border-slate-700/60 hover:border-[#0284c7]/40 transition">
-                <span className="text-[11px] uppercase tracking-wider text-slate-400 block font-semibold">Terminales</span>
-                <span className="text-xs font-bold text-white mt-1 block leading-tight">
-                  {airport.terminals.slice(0, 2).join(" y ")}
-                  <span className="text-[10px] text-slate-400 block font-normal">+ Terminal Carga Int.</span>
-                </span>
-              </div>
-
-              <div className="bg-slate-800/60 backdrop-blur-sm rounded-xl p-3 border border-slate-700/60 hover:border-[#0284c7]/40 transition">
-                <span className="text-[11px] uppercase tracking-wider text-slate-400 block font-semibold">Operador Oficial</span>
-                <span className="text-xs font-bold text-white mt-1 block leading-tight">
+              <div className="bg-slate-900/60 backdrop-blur-md rounded-xl p-3 border border-white/10">
+                <span className="text-[11px] uppercase tracking-wider text-slate-300 block font-semibold">Operador Oficial</span>
+                <span className="text-xs font-bold text-white mt-1 block truncate">
                   {airport.operator?.split("(")[0]?.trim() || "AERODOM"}
-                  <span className="text-[10px] text-emerald-400 block font-semibold">VINCI Airports</span>
                 </span>
               </div>
             </div>
@@ -456,7 +512,7 @@ export default function AeropuertoDetalle() {
 
                 {/* Footer notice of remaining airlines */}
                 <div className="mt-4 p-3 bg-slate-100/80 rounded-xl text-center text-xs text-slate-600">
-                  Otras aerolíneas regulares y estacionales: <span className="font-medium text-slate-800">Sky High Aviation, Air Antilles, Condor, Laser, Rutaca, Turpial, Sunrise Airways, World2Fly y GlobalX</span>.
+                  Operaciones y frecuencias en {airport.name} ({airport.code}): <span className="font-medium text-slate-800">Vuelos regulares y chárter certificados por la Junta de Aviación Civil (JAC) y el IDAC.</span>
                 </div>
               </section>
 
@@ -525,89 +581,31 @@ export default function AeropuertoDetalle() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Service 1: VIP Lounges */}
-                  <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:shadow transition">
-                    <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center mb-3">
-                      <Crown className="w-5 h-5" />
-                    </div>
-                    <h3 className="font-bold text-slate-900 text-base">Salones VIP Before Boarding &amp; Copa Club</h3>
-                    <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">
-                      5 salas VIP premium con Wi-Fi dedicado, barra de cócteles caribeños, buffet gourmet, duchas privadas, salas de descanso y gestión expedita de seguridad y migración.
-                    </p>
-                    <div className="mt-3 flex items-center text-xs font-semibold text-[#005ea6]">
-                      <span>Acceso con Priority Pass &amp; Tarjetas Platino</span>
-                    </div>
-                  </div>
-
-                  {/* Service 2: Duty Free */}
-                  <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:shadow transition">
-                    <div className="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center mb-3">
-                      <ShoppingBag className="w-5 h-5" />
-                    </div>
-                    <h3 className="font-bold text-slate-900 text-base">Zona Comercial Duty Free Dufrý</h3>
-                    <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">
-                      Paseo comercial de más de 3,000 m² libre de impuestos con reconocidas marcas de perfumes, cosméticos, licores internacionales y tiendas exclusivas de ron dominicano, cigarros y café.
-                    </p>
-                    <div className="mt-3 flex items-center text-xs font-semibold text-slate-600">
-                      <span>Ubicado en Terminal A y Terminal B</span>
-                    </div>
-                  </div>
-
-                  {/* Service 3: Wi-Fi */}
-                  <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:shadow transition">
-                    <div className="w-10 h-10 rounded-xl bg-cyan-50 text-[#0284c7] flex items-center justify-center mb-3">
-                      <Wifi className="w-5 h-5" />
-                    </div>
-                    <h3 className="font-bold text-slate-900 text-base">Wi-Fi Gratuito Ilimitado Aerodom</h3>
-                    <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">
-                      Conexión a internet gratuita en todos los niveles del aeropuerto, zonas de check-in, salas de embarque y pasillos de reclamo de equipaje. Red oficial <code className="bg-slate-100 px-1 py-0.5 rounded text-[11px]">VINCI-Airports_WiFi</code>.
-                    </p>
-                    <div className="mt-3 flex items-center text-xs font-semibold text-emerald-600">
-                      <Check className="w-3.5 h-3.5 mr-1" /> Alta velocidad sin registro previo complejo
-                    </div>
-                  </div>
-
-                  {/* Service 4: Banking & Exchange */}
-                  <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:shadow transition">
-                    <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-3">
-                      <Banknote className="w-5 h-5" />
-                    </div>
-                    <h3 className="font-bold text-slate-900 text-base">Bancos &amp; Cambio Oficial</h3>
-                    <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">
-                      Sucursales del Banco de Reservas (Banreservas), Banco Popular y cajeros automáticos multimoneda (DOP, USD, EUR) 24/7 en el área pública y de llegadas internacionales.
-                    </p>
-                    <div className="mt-3 flex items-center text-xs font-semibold text-slate-600">
-                      <span>Casas de cambio certificadas por Banco Central</span>
-                    </div>
-                  </div>
-
-                  {/* Service 5: Dining & Gastronomy */}
-                  <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:shadow transition">
-                    <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center mb-3">
-                      <Utensils className="w-5 h-5" />
-                    </div>
-                    <h3 className="font-bold text-slate-900 text-base">Food Court &amp; Sabores Dominicanos</h3>
-                    <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">
-                      Cafeterías y restaurantes con franquicias internacionales y degustaciones de gastronomía criolla (mangú tradicional, sancocho, pescado frito caribeño y café local recién tostado).
-                    </p>
-                    <div className="mt-3 flex items-center text-xs font-semibold text-slate-600">
-                      <span>Opciones 24 horas en pre y post-seguridad</span>
-                    </div>
-                  </div>
-
-                  {/* Service 6: Health & Pharmacy */}
-                  <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:shadow transition">
-                    <div className="w-10 h-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center mb-3">
-                      <Cross className="w-5 h-5" />
-                    </div>
-                    <h3 className="font-bold text-slate-900 text-base">Farmacia 24 Horas &amp; Sanidad Médica</h3>
-                    <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">
-                      Dispensario médico y farmacia continua en el nivel de llegadas. Atención de primeros auxilios y orientación de sanidad fronteriza para pasajeros y tripulaciones.
-                    </p>
-                    <div className="mt-3 flex items-center text-xs font-semibold text-red-600">
-                      <Phone className="w-3.5 h-3.5 mr-1" /> Asistencia de Emergencia interna Ext. 2222
-                    </div>
-                  </div>
+                  {(airport.services && airport.services.length > 0 ? airport.services.slice(0, 6) : [
+                    { name: "Salones VIP & Executive Lounge", description: "Atención preferencial, Wi-Fi, bar y descanso privado." },
+                    { name: "Tiendas Duty Free & Souvenirs", description: "Marcas internacionales, puros artesanales y ron dominicano libre de impuestos." },
+                    { name: "Wi-Fi Gratuito de Alta Velocidad", description: "Conexión a internet ilimitada en salas de preembarque y llegadas." },
+                    { name: "Cajeros ATM & Cambio Oficial", description: "Bancos comerciales y cajeros automáticos multimoneda (DOP, USD, EUR)." },
+                    { name: "Gastronomía & Cafeterías", description: "Restaurantes con sabor caribeño, bocadillos frescos y café local tostado." },
+                    { name: "Asistencia Médica & POLITUR", description: "Seguridad turística 24/7 y dispensario de primeros auxilios." }
+                  ]).map((service, idx) => {
+                    const style = serviceCardStyles[idx % serviceCardStyles.length];
+                    const IconComponent = style.icon;
+                    return (
+                      <div key={idx} className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:shadow transition">
+                        <div className={`w-10 h-10 rounded-xl ${style.bg} flex items-center justify-center mb-3`}>
+                          <IconComponent className="w-5 h-5" />
+                        </div>
+                        <h3 className="font-bold text-slate-900 text-base">{service.name}</h3>
+                        <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">
+                          {service.description}
+                        </p>
+                        <div className={`mt-3 flex items-center text-xs font-semibold ${style.tagColor}`}>
+                          <span>{style.tag}</span>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </section>
 
@@ -621,99 +619,48 @@ export default function AeropuertoDetalle() {
 
                 {/* Transport Cards Stack */}
                 <div className="space-y-3.5">
-                  {/* Taxi Oficial SICHOPROA */}
-                  <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-[#005ea6]/60 transition shadow-xs">
-                    <div className="flex items-start space-x-3.5">
-                      <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center shrink-0">
-                        <Car className="w-5 h-5" />
-                      </div>
-                      <div>
-                        <div className="flex items-center space-x-2">
-                          <h3 className="font-bold text-slate-900 text-sm sm:text-base">Taxi Oficial {airport.code} (SICHOPROA)</h3>
-                          <span className="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded">Oficial y Seguro</span>
+                  {(airport.transportation && airport.transportation.length > 0 ? airport.transportation.slice(0, 4) : [
+                    { name: `Taxi Oficial ${airport.code}`, detail: `Servicio con tarifa fija por zona con ticket en mostrador oficial`, price: "US$ 25 - 40" },
+                    { name: "Uber / DiDi Ridesharing", detail: "Puntos de encuentro autorizados frente a la salida exterior", price: "Tarifa en app" },
+                    { name: "Renta de Autos Multimarca", detail: "Agencias líderes con mostradores en vestíbulo y entrega de vehículos", price: "Desde US$ 35/día" },
+                    { name: "Autobús & Transfers Turísticos", detail: "Minibuses hacia el centro de la ciudad y hoteles turísticos", price: "Económico" }
+                  ]).map((trans, idx) => {
+                    const style = transportCardStyles[idx % transportCardStyles.length];
+                    const IconComponent = style.icon;
+                    return (
+                      <div key={idx} className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-[#005ea6]/60 transition shadow-xs">
+                        <div className="flex items-start space-x-3.5">
+                          <div className={`w-10 h-10 rounded-xl ${style.bg} flex items-center justify-center shrink-0`}>
+                            <IconComponent className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <div className="flex items-center space-x-2">
+                              <h3 className="font-bold text-slate-900 text-sm sm:text-base">{trans.name}</h3>
+                              <span className={`${style.badgeClass} text-[10px] font-bold px-2 py-0.5 rounded`}>{style.badge}</span>
+                            </div>
+                            <p className="text-xs text-slate-500 mt-1 max-w-md">
+                              {trans.detail}
+                            </p>
+                          </div>
                         </div>
-                        <p className="text-xs text-slate-500 mt-1 max-w-md">
-                          Sindicato de Choferes de Las Américas con tarifa fija por zona. Mostrador de prepago disponible directamente a la salida de la sala de aduanas.
-                        </p>
-                      </div>
-                    </div>
-                    <div className="sm:text-right shrink-0">
-                      <span className="text-[10px] uppercase text-slate-400 font-semibold block">Tarifa a Sto. Dgo.</span>
-                      <span className="text-base sm:text-lg font-black text-slate-900">US$ 30 - 40</span>
-                      <span className="text-[11px] text-slate-500 block">o ~RD$ 1,800 - 2,400</span>
-                    </div>
-                  </div>
-
-                  {/* Ridesharing: Uber / DiDi */}
-                  <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-[#005ea6]/60 transition shadow-xs">
-                    <div className="flex items-start space-x-3.5">
-                      <div className="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center shrink-0">
-                        <Smartphone className="w-5 h-5" />
-                      </div>
-                      <div>
-                        <div className="flex items-center space-x-2">
-                          <h3 className="font-bold text-slate-900 text-sm sm:text-base">Uber / DiDi Ridesharing</h3>
-                          <span className="bg-blue-100 text-[#005ea6] text-[10px] font-bold px-2 py-0.5 rounded">Bahía Autorizada</span>
+                        <div className="sm:text-right shrink-0">
+                          {trans.price ? (
+                            <>
+                              <span className="text-[10px] uppercase text-slate-400 font-semibold block">Tarifa Estimada</span>
+                              <span className="text-base sm:text-lg font-black text-slate-900">{trans.price}</span>
+                              <span className="text-[11px] text-slate-500 block">Sujeto a destino / zona</span>
+                            </>
+                          ) : (
+                            <>
+                              <span className="text-[10px] uppercase text-slate-400 font-semibold block">Modalidad</span>
+                              <span className="text-base sm:text-lg font-black text-[#005ea6]">Disponible</span>
+                              <span className="text-[11px] text-slate-500 block">Mostrador en Hall de Llegadas</span>
+                            </>
+                          )}
                         </div>
-                        <p className="text-xs text-slate-500 mt-1 max-w-md">
-                          Puntos de recogida delimitados frente a la salida exterior de la Terminal A y B (Nivel 1). Solicite su vehículo una vez tenga su equipaje en mano.
-                        </p>
                       </div>
-                    </div>
-                    <div className="sm:text-right shrink-0">
-                      <span className="text-[10px] uppercase text-slate-400 font-semibold block">Estimado en App</span>
-                      <span className="text-base sm:text-lg font-black text-slate-900">RD$ 1,100 - 1,600</span>
-                      <span className="text-[11px] text-slate-500 block">Sujeto a demanda horaria</span>
-                    </div>
-                  </div>
-
-                  {/* Car Rental */}
-                  <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-[#005ea6]/60 transition shadow-xs">
-                    <div className="flex items-start space-x-3.5">
-                      <div className="w-10 h-10 rounded-xl bg-blue-100 text-[#005ea6] flex items-center justify-center shrink-0">
-                        <Key className="w-5 h-5" />
-                      </div>
-                      <div>
-                        <div className="flex items-center space-x-2">
-                          <h3 className="font-bold text-slate-900 text-sm sm:text-base">Renta de Autos Multimarca</h3>
-                          <span className="text-[10px] bg-slate-100 text-slate-700 px-2 py-0.5 rounded font-medium">8 Agencias</span>
-                        </div>
-                        <p className="text-xs text-slate-500 mt-1 max-w-md">
-                          Avis, Budget, Hertz, Sixt, Europcar, Alamo, National y Dollar con mostradores en el vestíbulo y entrega de vehículos en estacionamiento exclusivo.
-                        </p>
-                      </div>
-                    </div>
-                    <div className="sm:text-right shrink-0">
-                      <span className="text-[10px] uppercase text-slate-400 font-semibold block">Desde</span>
-                      <span className="text-base sm:text-lg font-black text-slate-900">US$ 35 / día</span>
-                      <Link to="/contacto" className="text-xs text-[#005ea6] font-semibold hover:underline block mt-0.5">
-                        Reservar con anticipación →
-                      </Link>
-                    </div>
-                  </div>
-
-                  {/* Public Interurban Bus */}
-                  <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-[#005ea6]/60 transition shadow-xs">
-                    <div className="flex items-start space-x-3.5">
-                      <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center shrink-0">
-                        <Bus className="w-5 h-5" />
-                      </div>
-                      <div>
-                        <div className="flex items-center space-x-2">
-                          <h3 className="font-bold text-slate-900 text-sm sm:text-base">Autobús Interurbano y Transfers</h3>
-                          <span className="bg-slate-100 text-slate-600 text-[10px] font-bold px-2 py-0.5 rounded">Económico</span>
-                        </div>
-                        <p className="text-xs text-slate-500 mt-1 max-w-md">
-                          Parada de microbuses hacia Boca Chica y el Parque Enriquillo / Zona Colonial en el ramal de la autopista exterior. Traslados turísticos privados a hoteles del litoral.
-                        </p>
-                      </div>
-                    </div>
-                    <div className="sm:text-right shrink-0">
-                      <span className="text-[10px] uppercase text-slate-400 font-semibold block">Pasaje Local</span>
-                      <span className="text-base sm:text-lg font-black text-emerald-700">RD$ 75 - 100</span>
-                      <span className="text-[11px] text-slate-500 block">Solo pago en efectivo local</span>
-                    </div>
-                  </div>
+                    );
+                  })}
                 </div>
               </section>
 
@@ -722,33 +669,27 @@ export default function AeropuertoDetalle() {
                 <div className="max-w-2xl relative z-10">
                   <span className="text-xs font-bold text-[#00a3e0] uppercase tracking-wider">Reseña e Infraestructura</span>
                   <h2 className="text-2xl font-bold text-white mt-1 font-display">
-                    {isSDQ ? "El Gran Centro de Conectividad de la Capital" : `Infraestructura Oficial de ${airport.name}`}
+                    {narrative.title}
                   </h2>
                   <p className="text-slate-300 text-xs sm:text-sm mt-3 leading-relaxed">
-                    {isSDQ ? (
-                      "Inaugurado originalmente en 1959 en Punta Caucedo, el Aeropuerto Las Américas fue rebautizado en honor al prominente líder político Dr. José Francisco Peña Gómez. Con su pista de 3,354 metros apta para aeronaves de fuselaje ancho como Boeing 777 y Airbus A350, representa el punto neurálgico del comercio aéreo y turismo internacional dominicano."
-                    ) : airport.description}
+                    {narrative.p1}
                   </p>
                   <p className="text-slate-300 text-xs sm:text-sm mt-2.5 leading-relaxed">
-                    {isSDQ ? (
-                      "Con la moderna concesión de AERODOM operada por el conglomerado global VINCI Airports, el aeropuerto ha completado la ampliación de la Terminal Pública Central con una inversión superior a US$ 250 millones, fortaleciendo a Santo Domingo como el gran Hub Continental de bajo costo de la región."
-                    ) : (
-                      "La terminal aeroportuaria dispone de sistemas de radionavegación satelital y certificación internacional OACI para operaciones nocturnas e intercontinentales continuas."
-                    )}
+                    {narrative.p2}
                   </p>
 
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-6 pt-6 border-t border-slate-800 text-xs">
                     <div>
-                      <span className="text-[#00a3e0] font-bold block text-sm">Hub Arajet</span>
-                      <span className="text-slate-400">Base estratégica del Caribe</span>
+                      <span className="text-[#00a3e0] font-bold block text-sm">{narrative.stat1.label}</span>
+                      <span className="text-slate-400">{narrative.stat1.desc}</span>
                     </div>
                     <div>
-                      <span className="text-[#00a3e0] font-bold block text-sm">Terminal Carga #1</span>
-                      <span className="text-slate-400">111,000+ tons/año</span>
+                      <span className="text-[#00a3e0] font-bold block text-sm">{narrative.stat2.label}</span>
+                      <span className="text-slate-400">{narrative.stat2.desc}</span>
                     </div>
                     <div>
-                      <span className="text-[#00a3e0] font-bold block text-sm">Autovía del Este</span>
-                      <span className="text-slate-400">Acceso a playas en 10 min</span>
+                      <span className="text-[#00a3e0] font-bold block text-sm">{narrative.stat3.label}</span>
+                      <span className="text-slate-400">{narrative.stat3.desc}</span>
                     </div>
                   </div>
                 </div>
@@ -761,42 +702,27 @@ export default function AeropuertoDetalle() {
                     <span className="text-xs font-bold text-[#005ea6] uppercase tracking-wider">Visuales de la Terminal</span>
                     <h2 className="text-2xl font-bold text-slate-900 mt-1 font-display">Galería Fotográfica</h2>
                   </div>
-                  <span className="text-xs text-slate-500 hidden sm:inline">Instalaciones renovadas 2024-2026</span>
+                  <span className="text-xs text-slate-500 hidden sm:inline">Instalaciones activas {airport.code}</span>
                 </div>
 
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                  <div className="group relative overflow-hidden rounded-xl h-44 bg-slate-200 shadow-xs">
-                    <img 
-                      alt="Terminal Aérea y Plataforma" 
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
-                      src={airport.gallery[0] || airport.imageUrl} 
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent flex items-end p-2.5">
-                      <span className="text-white text-xs font-medium">Plataforma de Aeronaves</span>
-                    </div>
-                  </div>
-
-                  <div className="group relative overflow-hidden rounded-xl h-44 bg-slate-200 shadow-xs">
-                    <img 
-                      alt="Pasillos de Salidas y Duty Free" 
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
-                      src={airport.gallery[1] || airport.imageUrl} 
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent flex items-end p-2.5">
-                      <span className="text-white text-xs font-medium">Concourse y Puertas de Embarque</span>
-                    </div>
-                  </div>
-
-                  <div className="group relative overflow-hidden rounded-xl h-44 bg-slate-200 col-span-2 sm:col-span-1 shadow-xs">
-                    <img 
-                      alt="Aproximación sobre el Mar Caribe" 
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
-                      src={airport.gallery[2] || airport.imageUrl} 
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent flex items-end p-2.5">
-                      <span className="text-white text-xs font-medium">Aproximación sobre el Mar Caribe</span>
-                    </div>
-                  </div>
+                  {(airport.gallery && airport.gallery.length > 0 ? airport.gallery : [airport.imageUrl, airport.imageUrl, airport.imageUrl]).slice(0, 3).map((imgUrl, idx) => {
+                    const label = idx === 0 ? "Plataforma de Aeronaves & Pista" :
+                                  idx === 1 ? "Concourse & Puertas de Embarque" :
+                                              "Aproximación Aérea y Paisaje";
+                    return (
+                      <div key={idx} className={`group relative overflow-hidden rounded-xl h-44 bg-slate-200 shadow-xs ${idx === 2 ? "col-span-2 sm:col-span-1" : ""}`}>
+                        <img 
+                          alt={`${airport.name} - ${label}`} 
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
+                          src={imgUrl} 
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent flex items-end p-2.5">
+                          <span className="text-white text-xs font-medium">{label}</span>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </section>
 
