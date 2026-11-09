@@ -12,6 +12,13 @@ import { MarinaContent } from "@/components/marinas/MarinaContent";
 import { MarinaSidebar } from "@/components/marinas/MarinaSidebar";
 import { usePageContent } from "@/lib/pageContent";
 
+/** "18°24'N" o "68°54.5'W" → grados decimales (sur y oeste en negativo). */
+const dms = (v: string) => {
+  const [, d = "0", m = "0", h = ""] = v.match(/([\d.]+)°\s*([\d.]+)?'?\s*([NSEW])?/i) ?? [];
+  const n = Number(d) + Number(m) / 60;
+  return Math.round((/[SW]/i.test(h) ? -n : n) * 1e4) / 1e4;
+};
+
 export default function MarinaDetalle() {
   const pc = usePageContent("marina-detalle");
   const { slug: id } = useParams<{ slug: string }>();
@@ -38,12 +45,24 @@ export default function MarinaDetalle() {
     );
   }
 
+  const lat = dms(marina.coordenadas.lat);
+  const lng = dms(marina.coordenadas.lng);
+
   return (
     <PageTransition>
       <SEOHead
         title={`${marina.nombre} - Marinas en República Dominicana`}
         description={marina.descripcion}
-        keywords={`${marina.nombre}, marinas RD, puertos deportivos, yates Caribe`}
+        keywords={`${marina.nombre}, marina ${marina.ubicacion}, marinas ${marina.provincia}, marinas RD, puertos deportivos, yates Caribe`}
+        url={`/marina/${id}`}
+        geo={{ latitude: lat, longitude: lng, placename: marina.ubicacion, region: "DO" }}
+        jsonLd={{
+          "@context": "https://schema.org", "@type": "Marina", name: marina.nombre, description: marina.descripcion,
+          url: `https://www.descubrerepdom.com/marina/${id}`, telephone: marina.telefono || undefined, email: marina.email || undefined,
+          sameAs: marina.website ? [marina.website] : undefined,
+          address: { "@type": "PostalAddress", addressLocality: marina.ubicacion, addressRegion: marina.provincia, addressCountry: "DO" },
+          geo: { "@type": "GeoCoordinates", latitude: lat, longitude: lng },
+        }}
       />
       <div className="min-h-screen flex flex-col bg-background">
         <Header />

@@ -747,12 +747,25 @@ function newsListPage(rows: NewsRow[]): PageMeta {
 
 const xmlEsc = (v: unknown) => esc(v).replace(/&#39;/g, "&apos;");
 
+// shortcut: copia a mano de los slugs de src/data (airports, puertosDetalleData, marinasDetalleData); al pasar esos
+// datos a Turso, leerlos de la base. Cada página pública nueva de staging se añade aquí (sitemap y llms.txt).
+const AIRPORTS = ["aeropuerto-internacional-de-punta-cana", "aeropuerto-internacional-las-americas", "aeropuerto-internacional-del-cibao",
+  "aeropuerto-internacional-gregorio-luperon", "aeropuerto-internacional-de-la-romana", "aeropuerto-internacional-presidente-juan-bosch",
+  "aeropuerto-internacional-maria-montez", "aeropuerto-internacional-dr-joaquin-balaguer"];
+const PORTS = ["sans-souci", "amber-cove", "taino-bay", "cabo-rojo", "la-romana", "puerto-caucedo", "puerto-haina", "manzanillo"];
+const MARINAS = ["casa-de-campo", "cap-cana", "ocean-world", "marina-zar-par", "puerto-bahia", "luperon"];
+export const STATIC_PAGES = [
+  "/eventos", "/requisitos-viaje", "/e-ticket", "/aeropuerto", ...AIRPORTS.map((x) => `/aeropuerto/${x}`),
+  "/puertos-marinas", ...PORTS.map((x) => `/puerto/${x}`), ...MARINAS.map((x) => `/marina/${x}`),
+  "/negocios", "/anunciate", "/registra-tu-negocio", "/contacto", "/privacidad", "/terminos",
+];
+
 function sitemap(rows: NewsRow[]): string {
   const url = (loc: string, lastmod?: string | null, extra = "") =>
     `<url><loc>${xmlEsc(`${siteUrl()}${loc}`)}</loc>${lastmod ? `<lastmod>${xmlEsc(lastmod)}</lastmod>` : ""}${extra}</url>`;
   const newest = rows.map((r) => r.updated_at).sort().at(-1);
   return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">`
-    + url("/") + url("/noticias", newest) + url("/eventos") + url("/requisitos-viaje") + url("/e-ticket") + url("/privacidad") + url("/terminos") + url("/contacto")
+    + url("/") + url("/noticias", newest) + STATIC_PAGES.map((p) => url(p)).join("")
     + rows.map((n) => url(`/noticias/${n.slug}`, n.updated_at || n.published_at,
       n.cover_url ? `<image:image><image:loc>${xmlEsc(absolute(n.cover_url))}</image:loc></image:image>` : "")).join("")
     + "</urlset>";
@@ -844,7 +857,8 @@ async function seoRoute(db: Client, path: string, host: string | undefined, load
 // Los agentes (ChatGPT, Claude, Perplexity, Gemini…) leen mejor texto plano que una SPA: /llms.txt es el índice
 // (https://llmstxt.org), /noticias/<slug>.md cada noticia limpia y /llms-full.txt todas juntas.
 const SITE_SUMMARY = "Portal de turismo de República Dominicana: noticias de actualidad turística (eventos, cultura, "
-  + "gastronomía, naturaleza, infraestructura y avisos al viajero) y guía de sus provincias y destinos.";
+  + "gastronomía, naturaleza, infraestructura y avisos al viajero), guía del e-Ticket, aeropuertos, "
+  + "puertos de cruceros, marinas, eventos y directorio de negocios turísticos por provincia.";
 
 /** Las URLs relativas del cuerpo (imágenes subidas) pasan a absolutas: el Markdown se lee fuera del sitio. */
 const absoluteMarkdown = (md: string) => md.replace(/\]\((\/[^)\s]+)/g, (_m, u: string) => `](${siteUrl()}${u}`);
@@ -869,7 +883,11 @@ function llmsTxt(rows: NewsRow[]): string {
     + "Contenido en español de República Dominicana. Cada noticia tiene una versión en Markdown (enlaces de abajo) "
     + `y una página web en ${siteUrl()}/noticias/<slug>. Los datos estructurados de cada página siguen schema.org (NewsArticle).\n\n`
     + `## Noticias\n\n${items || "- Todavía no hay noticias publicadas."}\n\n`
-    + `## Guías\n\n- [E-Ticket de República Dominicana: guía del nuevo portal](${siteUrl()}/e-ticket.md): cómo hacer gratis el formulario de entrada y salida en eticket.gob.do.\n\n`
+    + `## Guías\n\n- [E-Ticket de República Dominicana: guía del nuevo portal](${siteUrl()}/e-ticket.md): cómo hacer gratis el formulario de entrada y salida en eticket.gob.do.\n`
+    + `- [Aeropuertos internacionales de República Dominicana](${siteUrl()}/aeropuerto): terminales, aerolíneas, transporte y destinos cercanos de los ${AIRPORTS.length} aeropuertos.\n`
+    + `- [Puertos de cruceros y marinas](${siteUrl()}/puertos-marinas): ${PORTS.length} puertos (Amber Cove, Taíno Bay, Sans Souci, Cabo Rojo…) y ${MARINAS.length} marinas (Cap Cana, Casa de Campo, Ocean World…).\n`
+    + `- [Eventos en República Dominicana](${siteUrl()}/eventos): conciertos, festivales y deportes con fecha, lugar y provincia.\n`
+    + `- [Directorio de negocios turísticos](${siteUrl()}/negocios): negocios y servicios turísticos por provincia.\n\n`
     + `## Opcional\n\n- [Todas las noticias en un solo archivo](${siteUrl()}/llms-full.txt)\n`
     + `- [Listado de noticias](${siteUrl()}/noticias)\n- [Feed RSS](${siteUrl()}/noticias/rss.xml)\n- [Sitemap](${siteUrl()}/sitemap.xml)\n`;
 }

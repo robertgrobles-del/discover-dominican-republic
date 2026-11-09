@@ -33,6 +33,9 @@ const RequisitosViaje = lazy(() => import("./pages/RequisitosViaje"));
 const ETicket = lazy(() => import("./pages/ETicket"));
 const Aeropuerto = lazy(() => import("./pages/Aeropuerto"));
 const AeropuertoDetalle = lazy(() => import("./pages/AeropuertoDetalle"));
+const PuertosMarinas = lazy(() => import("./pages/PuertosMarinas"));
+const PuertoDetalle = lazy(() => import("./pages/PuertoDetalle"));
+const MarinaDetalle = lazy(() => import("./pages/MarinaDetalle"));
 const Contacto = lazy(() => import("./pages/staging/Contacto"));
 const Privacidad = lazy(() => import("./pages/staging/Privacidad"));
 const Terminos = lazy(() => import("./pages/staging/Terminos"));
@@ -42,11 +45,11 @@ const NegociosDirectorio = lazy(() => import("./pages/NegociosDirectorio"));
 const NegocioDetalle = lazy(() => import("./pages/NegocioDetalle"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
-/** Páginas públicas que existen en staging: la landing, noticias, eventos, requisitos de viaje, aeropuertos y directorio de negocios. */
+/** Páginas públicas que existen en staging: la landing, noticias, eventos, requisitos de viaje, aeropuertos, puertos y marinas, y directorio de negocios. */
 const PUBLISHED = [
   "/noticias", "/eventos", "/evento", "/requisitos-viaje", "/e-ticket",
   "/privacidad", "/terminos", "/contacto", "/anunciate", "/registra-tu-negocio",
-  "/aeropuerto", "/aeropuertos", "/negocios", "/negocio", "/empresa", "/empresas", "/404"
+  "/aeropuerto", "/aeropuertos", "/puertos-marinas", "/puerto", "/marina", "/negocios", "/negocio", "/empresa", "/empresas", "/404"
 ];
 const isPublishedPath = (path: string) => path === "/" || PUBLISHED.some((p) => path === p || path.startsWith(`${p}/`));
 
@@ -157,6 +160,9 @@ function AnimatedRoutes() {
             <Route path="/aeropuerto" element={<Aeropuerto />} />
             <Route path="/aeropuerto/:slug" element={<AeropuertoDetalle />} />
             <Route path="/aeropuertos" element={<Navigate to="/aeropuerto" replace />} />
+            <Route path="/puertos-marinas" element={<PuertosMarinas />} />
+            <Route path="/puerto/:slug" element={<PuertoDetalle />} />
+            <Route path="/marina/:slug" element={<MarinaDetalle />} />
             <Route path="/contacto" element={<Contacto />} />
             <Route path="/privacidad" element={<Privacidad />} />
             <Route path="/terminos" element={<Terminos />} />

@@ -3,10 +3,12 @@ import { useParams, Link } from "react-router-dom";
 import { 
   Plane, MapPin, Star, ChevronRight, Phone, Globe, 
   Car, ShoppingBag, Wifi, Navigation, PlaneTakeoff, 
-  ExternalLink, Check, Search, QrCode, FileCheck2,
+  ExternalLink, Check, Search, FileCheck2,
   Crown, Banknote, Utensils, Cross, Smartphone, Key, 
   Bus, Headphones, ShieldAlert, Sun, Landmark, Waves, 
-  Palmtree, Building2, HelpCircle, Navigation2
+  Palmtree, Building2, HelpCircle, Navigation2,
+  Luggage, Clock, ShieldCheck, CheckCircle2, ArrowRight, Sparkles, Radio,
+  QrCode, Newspaper, Calendar
 } from "lucide-react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -14,6 +16,7 @@ import { PageTransition } from "@/components/PageTransition";
 import { SEOHead, generateAirportSchema } from "@/components/SEOHead";
 import { useTranslation } from "@/i18n";
 import { getAirportBySlug, airports, type AirlineContact } from "@/data/airports";
+import { useEditorialArticles, formatEditorialDate } from "@/lib/editorialApi";
 
 interface AirportStory {
   title: string;
@@ -111,9 +114,108 @@ export default function AeropuertoDetalle() {
   const { t } = useTranslation();
   const { slug } = useParams<{ slug: string }>();
   const airport = slug ? getAirportBySlug(slug) : undefined;
+  const { data: allArticles = [] } = useEditorialArticles();
 
   const [activeRegion, setActiveRegion] = useState<string>("all");
   const [airlineSearch, setAirlineSearch] = useState<string>("");
+
+  // Noticias vinculadas específicamente a este aeropuerto (solo renderiza la sección si hay al menos 1 post)
+  const airportNews = useMemo(() => {
+    if (!airport || !allArticles.length) return [];
+
+    const name = airport.name.toLowerCase();
+    const codeRegex = new RegExp(`\\b${airport.code}\\b`, "i");
+    const icaoRegex = new RegExp(`\\b${airport.icao}\\b`, "i");
+
+    return allArticles.filter((article) => {
+      // Filtrar sólo publicaciones de noticias, prensa o comunicados
+      const isNewsChannel =
+        article.channel === "noticias" ||
+        article.channel === "prensa" ||
+        article.category.toLowerCase().includes("noticia") ||
+        article.category.toLowerCase().includes("prensa");
+      if (!isNewsChannel) return false;
+
+      const fullText = [
+        article.title,
+        article.excerpt,
+        article.slug,
+        ...(article.tags || [])
+      ].join(" ").toLowerCase();
+
+      // 1. Coincidencia directa por código IATA (ej. PUJ, SDQ) en título, extracto o tags
+      if (
+        codeRegex.test(article.title) || 
+        codeRegex.test(article.excerpt) || 
+        codeRegex.test(article.tags?.join(" ") || "")
+      ) {
+        return true;
+      }
+
+      // 2. Coincidencia por código ICAO (ej. MDPC, MDSD)
+      if (icaoRegex.test(fullText)) {
+        return true;
+      }
+
+      // 3. Coincidencia por nombre completo del aeropuerto o slug
+      if (fullText.includes(name) || fullText.includes(airport.slug)) {
+        return true;
+      }
+
+      // 4. Coincidencias específicas por aeropuertos dominicanos
+      if (
+        airport.code === "SDQ" && 
+        (fullText.includes("las américas") || fullText.includes("las americas") || fullText.includes("peña gómez") || fullText.includes("pena gomez") || fullText.includes("punta caucedo"))
+      ) {
+        return true;
+      }
+      if (
+        airport.code === "PUJ" && 
+        (fullText.includes("aeropuerto") || fullText.includes("terminal")) && 
+        (fullText.includes("punta cana") || fullText.includes("grupo puntacana"))
+      ) {
+        return true;
+      }
+      if (
+        airport.code === "STI" && 
+        (fullText.includes("aeropuerto del cibao") || fullText.includes("aeropuerto cibao") || (fullText.includes("cibao") && (fullText.includes("aeropuerto") || fullText.includes("terminal"))))
+      ) {
+        return true;
+      }
+      if (
+        airport.code === "POP" && 
+        (fullText.includes("gregorio luperón") || fullText.includes("gregorio luperon") || (fullText.includes("puerto plata") && (fullText.includes("aeropuerto") || fullText.includes("terminal"))))
+      ) {
+        return true;
+      }
+      if (
+        airport.code === "AZS" && 
+        (fullText.includes("el catey") || fullText.includes("juan bosch") || (fullText.includes("samaná") && (fullText.includes("aeropuerto") || fullText.includes("vuelo"))))
+      ) {
+        return true;
+      }
+      if (
+        airport.code === "LRM" && 
+        (fullText.includes("aeropuerto de la romana") || fullText.includes("aeropuerto la romana") || (fullText.includes("casa de campo") && fullText.includes("aeropuerto")))
+      ) {
+        return true;
+      }
+      if (
+        airport.code === "JBQ" && 
+        (fullText.includes("la isabela") || fullText.includes("higüero") || fullText.includes("higuero") || fullText.includes("joaquín balaguer") || fullText.includes("joaquin balaguer"))
+      ) {
+        return true;
+      }
+      if (
+        airport.code === "BRX" && 
+        (fullText.includes("maría montez") || fullText.includes("maria montez"))
+      ) {
+        return true;
+      }
+
+      return false;
+    });
+  }, [airport, allArticles]);
 
   // Filtrado de aerolíneas en tiempo real
   const filteredAirlines = useMemo<AirlineContact[]>(() => {
@@ -231,7 +333,7 @@ export default function AeropuertoDetalle() {
         <Header />
 
         {/* BEGIN: HeroSection */}
-        <section className="relative bg-[#0b1d3a] text-white overflow-hidden py-14 lg:py-20" data-purpose="airport-hero">
+        <section className="relative bg-[#0b1d3a] text-white overflow-hidden min-h-[85vh] flex flex-col justify-between py-10 lg:py-14" data-purpose="airport-hero">
           {/* Background Image with Lighter/Clearer Overlay */}
           <div className="absolute inset-0 z-0">
             <img 
@@ -243,7 +345,7 @@ export default function AeropuertoDetalle() {
             <div className="absolute inset-0 bg-gradient-to-t from-[#0b1d3a]/90 via-transparent to-black/20" />
           </div>
 
-          <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full flex-1 flex flex-col justify-between">
             {/* Single Informative Antetítulo (Sin icono y sin color de fondo) */}
             <div className="mb-3">
               <span className="text-xs sm:text-sm font-semibold tracking-wider uppercase text-cyan-300 block font-sans">
@@ -266,25 +368,24 @@ export default function AeropuertoDetalle() {
               {/* Hero Action CTA Buttons */}
               <div className="mt-6 flex flex-wrap items-center gap-3">
                 <a 
-                  href="#eticket-section" 
-                  className="inline-flex items-center justify-center px-6 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-sm shadow-lg shadow-emerald-950/20 transition-all active:scale-95"
+                  href="#servicios" 
+                  className="inline-flex items-center justify-center px-6 py-3 rounded-xl bg-[#005ea6] hover:bg-[#004e8a] text-white font-bold text-sm shadow-lg shadow-blue-950/20 transition-all active:scale-95"
                 >
-                  <FileCheck2 className="w-4 h-4 mr-2" />
-                  <span>Completar E-Ticket Oficial</span>
+                  <span>Servicios en Terminal</span>
                   <ChevronRight className="w-4 h-4 ml-1" />
                 </a>
                 <a 
-                  href="#servicios" 
+                  href="#sobre-aeropuerto" 
                   className="inline-flex items-center justify-center px-5 py-3 rounded-xl bg-white/15 hover:bg-white/25 text-white font-semibold text-sm backdrop-blur-md border border-white/20 transition-all"
                 >
-                  <span>Servicios en Terminal</span>
+                  <span>Sobre el Aeropuerto</span>
                   <ChevronRight className="w-4 h-4 ml-1" />
                 </a>
               </div>
             </div>
 
             {/* Quick Airport Metric Cards (Horizontal Ribbon) */}
-            <div className="mt-8 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 pt-6 border-t border-white/15">
+            <div className="mt-auto pt-8 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 border-t border-white/15">
               <div className="bg-slate-900/60 backdrop-blur-md rounded-xl p-3 border border-white/10">
                 <span className="text-[11px] uppercase tracking-wider text-slate-300 block font-semibold">IATA / ICAO</span>
                 <span className="text-base font-bold text-white flex items-center mt-1">
@@ -331,89 +432,128 @@ export default function AeropuertoDetalle() {
         </section>
         {/* END: HeroSection */}
 
-        {/* BEGIN: ETicketBanner Floating */}
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6 relative z-20" data-purpose="mandatory-notice-banner" id="eticket-section">
-          <div className="bg-gradient-to-r from-emerald-950 via-teal-950 to-slate-900 rounded-2xl p-5 sm:p-6 text-white shadow-xl border border-emerald-500/40 relative overflow-hidden">
-            {/* Decorative background watermark */}
-            <div className="absolute right-0 top-0 translate-x-12 -translate-y-8 opacity-10 pointer-events-none">
-              <QrCode className="w-72 h-72 text-emerald-300" />
-            </div>
-
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
-              <div className="flex items-start space-x-4 max-w-3xl">
-                <div className="w-12 h-12 rounded-xl bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center shrink-0 text-emerald-300">
-                  <FileCheck2 className="w-7 h-7" />
+        {/* BEGIN: Section 3 - Airport Description with Side Photo */}
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-10 scroll-mt-24" id="sobre-aeropuerto" data-purpose="airport-overview-story">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 lg:p-10 border border-slate-200/90 shadow-sm">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+              
+              {/* Text Description Column */}
+              <div className="lg:col-span-7 space-y-4">
+                <div className="inline-flex items-center space-x-2 text-xs font-bold text-[#005ea6] uppercase tracking-wider">
+                  <Building2 className="w-4 h-4 text-[#005ea6]" />
+                  <span>Perfil e Infraestructura Oficial</span>
                 </div>
-                <div>
-                  <div className="flex flex-wrap items-center gap-2 mb-1">
-                    <span className="bg-emerald-500 text-slate-950 font-black text-[10px] px-2.5 py-0.5 rounded uppercase tracking-wider">
-                      Requisito Migratorio Obligatorio
+                <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight font-display">
+                  Acerca del {airport.name} ({airport.code})
+                </h2>
+                <p className="text-slate-600 text-sm sm:text-base leading-relaxed">
+                  {airport.description}
+                </p>
+
+                {airport.highlights && airport.highlights.length > 0 && (
+                  <div className="pt-2">
+                    <span className="text-xs font-bold uppercase tracking-wider text-slate-400 block mb-2.5">
+                      Aspectos Destacados de la Terminal
                     </span>
-                    <span className="text-xs text-emerald-300 font-semibold">100% Gratuito en Portal Estatal</span>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {airport.highlights.map((h, i) => (
+                        <div key={i} className="flex items-center space-x-2 text-xs text-slate-700 font-medium bg-slate-50 border border-slate-200/80 rounded-xl px-3 py-2">
+                          <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+                          <span className="truncate">{h}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                  <h2 className="text-lg sm:text-xl font-bold text-white">
-                    E-Ticket Electrónico de Entrada y Salida a República Dominicana
-                  </h2>
-                  <p className="text-xs sm:text-sm text-slate-200 mt-1 leading-relaxed">
-                    Todos los pasajeros nacionales y extranjeros que entren o salgan por el <strong className="text-white">{airport.name} ({airport.code})</strong> deben completar la declaración jurada digital de Migración, Aduanas y Salud Pública antes de abordar para generar su código QR único.
-                  </p>
-                  <div className="flex flex-wrap gap-y-2 gap-x-4 mt-3 text-xs text-emerald-200">
-                    <span className="flex items-center"><Check className="w-3.5 h-3.5 mr-1 text-emerald-400" /> Válido por familia o individual</span>
-                    <span className="flex items-center"><Check className="w-3.5 h-3.5 mr-1 text-emerald-400" /> Sin costo alguno en el sitio gubernamental</span>
-                    <span className="flex items-center"><Check className="w-3.5 h-3.5 mr-1 text-emerald-400" /> Genera código QR descargable</span>
+                )}
+                {/* Key Aviation Metric Counters (Inspirado en Slide World Travel Agency) */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
+                  <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-3 text-center group hover:border-[#005ea6] transition">
+                    <span className="text-xl sm:text-2xl font-black text-[#005ea6] block">
+                      {airport.airlinesDetailed?.length || airport.airlines?.length || 20}+
+                    </span>
+                    <span className="text-[11px] font-semibold text-slate-500 uppercase">Aerolíneas</span>
+                  </div>
+                  <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-3 text-center group hover:border-[#0284c7] transition">
+                    <span className="text-xl sm:text-2xl font-black text-[#0284c7] block">
+                      {airport.destinations?.length || 30}+
+                    </span>
+                    <span className="text-[11px] font-semibold text-slate-500 uppercase">Rutas Directas</span>
+                  </div>
+                  <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-3 text-center group hover:border-amber-400 transition">
+                    <span className="text-xl sm:text-2xl font-black text-amber-500 block">
+                      ★ {airport.rating || 4.7}
+                    </span>
+                    <span className="text-[11px] font-semibold text-slate-500 uppercase">Reseñas ({airport.reviewCount?.toLocaleString() || "10k+"})</span>
+                  </div>
+                  <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-3 text-center group hover:border-emerald-500 transition">
+                    <span className="text-xl sm:text-2xl font-black text-emerald-600 block">
+                      24/7
+                    </span>
+                    <span className="text-[11px] font-semibold text-slate-500 uppercase">Operatividad</span>
+                  </div>
+                </div>
+
+                <div className="pt-4 border-t border-slate-100 flex flex-wrap items-center gap-4 text-xs text-slate-500">
+                  <div className="flex items-center space-x-1.5">
+                    <MapPin className="w-3.5 h-3.5 text-[#005ea6]" />
+                    <span>{airport.city}, {airport.provinceName}</span>
+                  </div>
+                  <div className="flex items-center space-x-1.5">
+                    <PlaneTakeoff className="w-3.5 h-3.5 text-[#0284c7]" />
+                    <span>Pista: {airport.runwayLength?.split("·")[0]?.trim() || "Internacional OACI"}</span>
                   </div>
                 </div>
               </div>
 
-              {/* Action Buttons */}
-              <div className="flex flex-col sm:flex-row lg:flex-col gap-2.5 shrink-0 justify-center">
-                <a 
-                  className="inline-flex items-center justify-center px-5 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-sm shadow-md transition-all active:scale-95" 
-                  href="https://eticket.gob.do/" 
-                  rel="noopener noreferrer" 
-                  target="_blank"
-                >
-                  <span>Completar E-Ticket Oficial</span>
-                  <ExternalLink className="w-4 h-4 ml-2" />
-                </a>
-                <Link 
-                  to="/e-ticket" 
-                  className="inline-flex items-center justify-center px-4 py-2 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 text-emerald-200 border border-emerald-500/30 font-medium text-xs transition" 
-                  data-purpose="open-eticket-guide"
-                >
-                  <HelpCircle className="w-3.5 h-3.5 mr-1.5" />
-                  <span>Ver Guía Oficial y Pasos</span>
-                </Link>
+              {/* Side Photos Column (Fotos a la derecha) */}
+              <div className="lg:col-span-5 space-y-3">
+                {/* Foto Principal */}
+                <div className="relative rounded-2xl overflow-hidden aspect-[16/10] shadow-md border border-slate-200 group">
+                  <img 
+                    src={airport.imageUrl} 
+                    alt={`${airport.name} - Fachada Oficial`}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-transparent flex items-end p-3.5">
+                    <div className="text-white">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-cyan-300 block">Fotografía Principal</span>
+                      <p className="text-xs font-semibold text-slate-100 truncate">{airport.name} ({airport.code})</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Fotos Secundarias (Mosaico) */}
+                {airport.gallery && airport.gallery.length > 1 && (
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="relative rounded-xl overflow-hidden aspect-[4/3] shadow-xs border border-slate-200 group">
+                      <img 
+                        src={airport.gallery[1]} 
+                        alt={`${airport.name} - Instalaciones`}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex items-end p-2.5">
+                        <span className="text-[11px] font-medium text-white truncate">Instalaciones &amp; Pista</span>
+                      </div>
+                    </div>
+
+                    <div className="relative rounded-xl overflow-hidden aspect-[4/3] shadow-xs border border-slate-200 group">
+                      <img 
+                        src={airport.gallery[2] || airport.gallery[0] || airport.imageUrl} 
+                        alt={`${airport.name} - Plataforma`}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex items-end p-2.5">
+                        <span className="text-[11px] font-medium text-white truncate">Plataforma &amp; Vuelos</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
+
             </div>
           </div>
         </section>
-        {/* END: ETicketBanner Floating */}
-
-        {/* BEGIN: InteractiveTabNav */}
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8" data-purpose="quick-jump-navigation">
-          <div className="bg-white rounded-2xl p-2 border border-slate-200/80 shadow-sm flex items-center gap-1 overflow-x-auto whitespace-nowrap">
-            <a className="px-4 py-2.5 rounded-xl font-semibold text-xs sm:text-sm bg-[#005ea6] text-white shadow-sm transition" href="#aerolineas">
-              Aerolíneas &amp; Vuelos
-            </a>
-            <a className="px-4 py-2.5 rounded-xl font-medium text-xs sm:text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition" href="#destinos">
-              Rutas y Destinos
-            </a>
-            <a className="px-4 py-2.5 rounded-xl font-medium text-xs sm:text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition" href="#servicios">
-              Salas VIP &amp; Amenidades
-            </a>
-            <a className="px-4 py-2.5 rounded-xl font-medium text-xs sm:text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition" href="#transporte">
-              Transporte &amp; Tarifas
-            </a>
-            <a className="px-4 py-2.5 rounded-xl font-medium text-xs sm:text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition" href="#historia-terminal">
-              Sobre el Aeropuerto
-            </a>
-            <a className="px-4 py-2.5 rounded-xl font-medium text-xs sm:text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition" href="#galeria">
-              Galería Visual
-            </a>
-          </div>
-        </section>
-        {/* END: InteractiveTabNav */}
+        {/* END: Section 3 */}
 
         {/* BEGIN: MainContentGrid */}
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
@@ -424,6 +564,43 @@ export default function AeropuertoDetalle() {
             {/* ========================================== */}
             <div className="lg:col-span-8 space-y-12">
               
+              {/* SECTION 4: Services & Amenities */}
+              <section className="scroll-mt-24" data-purpose="airport-amenities" id="servicios">
+                <div className="mb-6">
+                  <span className="text-xs font-bold text-[#005ea6] uppercase tracking-wider">Comodidades y Confort</span>
+                  <h2 className="text-2xl font-bold text-slate-900 mt-1 font-display">Servicios en Terminal</h2>
+                  <p className="text-xs text-slate-500 mt-1">Infraestructura de estándar mundial para una experiencia placentera de llegada y salida.</p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {(airport.services && airport.services.length > 0 ? airport.services.slice(0, 6) : [
+                    { name: "Salones VIP & Executive Lounge", description: "Atención preferencial, Wi-Fi, bar y descanso privado." },
+                    { name: "Tiendas Duty Free & Souvenirs", description: "Marcas internacionales, puros artesanales y ron dominicano libre de impuestos." },
+                    { name: "Wi-Fi Gratuito de Alta Velocidad", description: "Conexión a internet ilimitada en salas de preembarque y llegadas." },
+                    { name: "Cajeros ATM & Cambio Oficial", description: "Bancos comerciales y cajeros automáticos multimoneda (DOP, USD, EUR)." },
+                    { name: "Gastronomía & Cafeterías", description: "Restaurantes con sabor caribeño, bocadillos frescos y café local tostado." },
+                    { name: "Asistencia Médica & POLITUR", description: "Seguridad turística 24/7 y dispensario de primeros auxilios." }
+                  ]).map((service, idx) => {
+                    const style = serviceCardStyles[idx % serviceCardStyles.length];
+                    const IconComponent = style.icon;
+                    return (
+                      <div key={idx} className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:shadow transition">
+                        <div className={`w-10 h-10 rounded-xl ${style.bg} flex items-center justify-center mb-3`}>
+                          <IconComponent className="w-5 h-5" />
+                        </div>
+                        <h3 className="font-bold text-slate-900 text-base">{service.name}</h3>
+                        <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">
+                          {service.description}
+                        </p>
+                        <div className={`mt-3 flex items-center text-xs font-semibold ${style.tagColor}`}>
+                          <span>{style.tag}</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </section>
+
               {/* SECTION: Airlines & Flights */}
               <section className="scroll-mt-24" data-purpose="airlines-section" id="aerolineas">
                 <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-6 pb-4 border-b border-slate-200 gap-4">
@@ -516,6 +693,52 @@ export default function AeropuertoDetalle() {
                 </div>
               </section>
 
+              {/* SECTION: E-Ticket Dominicano Banner (Bajado tres secciones) */}
+              <section className="scroll-mt-24" data-purpose="eticket-notice-banner" id="eticket-section">
+                <div className="bg-gradient-to-r from-emerald-950 via-teal-950 to-slate-900 rounded-2xl p-5 sm:p-6 text-white shadow-lg border border-emerald-500/30 relative overflow-hidden">
+                  <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
+                    <div className="flex items-start space-x-4 max-w-2xl">
+                      <div className="w-11 h-11 rounded-xl bg-emerald-500/20 border border-emerald-400/30 flex items-center justify-center shrink-0 text-emerald-300">
+                        <FileCheck2 className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <h2 className="text-lg sm:text-xl font-bold text-white">
+                          E-Ticket Electrónico de Entrada y Salida a República Dominicana
+                        </h2>
+                        <p className="text-xs sm:text-sm text-slate-200 mt-1 leading-relaxed">
+                          Todos los pasajeros que entren o salgan por el <strong className="text-white">{airport.name} ({airport.code})</strong> deben completar la declaración jurada digital de Migración, Aduanas y Salud Pública antes de abordar para generar su código QR.
+                        </p>
+                        <div className="flex flex-wrap gap-y-1.5 gap-x-4 mt-3 text-xs text-emerald-200">
+                          <span className="flex items-center"><Check className="w-3.5 h-3.5 mr-1 text-emerald-400" /> Válido por familia o individual</span>
+                          <span className="flex items-center"><Check className="w-3.5 h-3.5 mr-1 text-emerald-400" /> Trámite digital previo al vuelo</span>
+                          <span className="flex items-center"><Check className="w-3.5 h-3.5 mr-1 text-emerald-400" /> Genera código QR descargable</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex flex-col sm:flex-row lg:flex-col gap-2 shrink-0 justify-center">
+                      <a 
+                        className="inline-flex items-center justify-center px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs sm:text-sm shadow-md transition-all active:scale-95" 
+                        href="https://eticket.gob.do/" 
+                        rel="noopener noreferrer" 
+                        target="_blank"
+                      >
+                        <span>Completar E-Ticket Oficial</span>
+                        <ExternalLink className="w-3.5 h-3.5 ml-1.5" />
+                      </a>
+                      <Link 
+                        to="/e-ticket" 
+                        className="inline-flex items-center justify-center px-4 py-2 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 text-emerald-200 border border-emerald-500/30 font-medium text-xs transition" 
+                      >
+                        <HelpCircle className="w-3.5 h-3.5 mr-1.5" />
+                        <span>Ver Guía Oficial y Pasos</span>
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
               {/* SECTION: Destinations & Network */}
               <section className="scroll-mt-24" data-purpose="destinations-section" id="destinos">
                 <div className="mb-4">
@@ -567,43 +790,6 @@ export default function AeropuertoDetalle() {
                         <Plane className={`w-3 h-3 mr-1.5 ${isKeyCity ? "text-[#005ea6]" : "text-slate-400"}`} />
                         {city}
                       </span>
-                    );
-                  })}
-                </div>
-              </section>
-
-              {/* SECTION: Services & Amenities */}
-              <section className="scroll-mt-24" data-purpose="airport-amenities" id="servicios">
-                <div className="mb-6">
-                  <span className="text-xs font-bold text-[#005ea6] uppercase tracking-wider">Comodidades y Confort</span>
-                  <h2 className="text-2xl font-bold text-slate-900 mt-1 font-display">Servicios en Terminal</h2>
-                  <p className="text-xs text-slate-500 mt-1">Infraestructura de estándar mundial para una experiencia placentera de llegada y salida.</p>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {(airport.services && airport.services.length > 0 ? airport.services.slice(0, 6) : [
-                    { name: "Salones VIP & Executive Lounge", description: "Atención preferencial, Wi-Fi, bar y descanso privado." },
-                    { name: "Tiendas Duty Free & Souvenirs", description: "Marcas internacionales, puros artesanales y ron dominicano libre de impuestos." },
-                    { name: "Wi-Fi Gratuito de Alta Velocidad", description: "Conexión a internet ilimitada en salas de preembarque y llegadas." },
-                    { name: "Cajeros ATM & Cambio Oficial", description: "Bancos comerciales y cajeros automáticos multimoneda (DOP, USD, EUR)." },
-                    { name: "Gastronomía & Cafeterías", description: "Restaurantes con sabor caribeño, bocadillos frescos y café local tostado." },
-                    { name: "Asistencia Médica & POLITUR", description: "Seguridad turística 24/7 y dispensario de primeros auxilios." }
-                  ]).map((service, idx) => {
-                    const style = serviceCardStyles[idx % serviceCardStyles.length];
-                    const IconComponent = style.icon;
-                    return (
-                      <div key={idx} className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:shadow transition">
-                        <div className={`w-10 h-10 rounded-xl ${style.bg} flex items-center justify-center mb-3`}>
-                          <IconComponent className="w-5 h-5" />
-                        </div>
-                        <h3 className="font-bold text-slate-900 text-base">{service.name}</h3>
-                        <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">
-                          {service.description}
-                        </p>
-                        <div className={`mt-3 flex items-center text-xs font-semibold ${style.tagColor}`}>
-                          <span>{style.tag}</span>
-                        </div>
-                      </div>
                     );
                   })}
                 </div>
@@ -664,21 +850,153 @@ export default function AeropuertoDetalle() {
                 </div>
               </section>
 
-              {/* SECTION: History & Infrastructure Story */}
-              <section className="bg-gradient-to-br from-slate-900 to-[#0b1d3a] rounded-2xl p-6 sm:p-8 text-white relative overflow-hidden" data-purpose="about-airport" id="historia-terminal">
-                <div className="max-w-2xl relative z-10">
-                  <span className="text-xs font-bold text-[#00a3e0] uppercase tracking-wider">Reseña e Infraestructura</span>
-                  <h2 className="text-2xl font-bold text-white mt-1 font-display">
+              {/* SECTION: Passenger Journey Flow (Inspirado en Journey To The Skies Made Simple / UIXSHUVO) */}
+              <section className="scroll-mt-24" data-purpose="passenger-journey-guide" id="flujo-pasajero">
+                <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-6 pb-4 border-b border-slate-200 gap-2">
+                  <div>
+                    <span className="text-xs font-bold text-[#005ea6] uppercase tracking-wider">Guía Práctica al Viajero</span>
+                    <h2 className="text-2xl font-bold text-slate-900 mt-1 font-display">Tu Experiencia en la Terminal Paso a Paso</h2>
+                    <p className="text-xs text-slate-500 mt-1">Procedimientos recomendados para una salida o llegada fluida en {airport.code}.</p>
+                  </div>
+                  <span className="text-xs font-semibold text-slate-400 font-mono hidden sm:inline">PROCESO ESTÁNDAR OACI ›››</span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {/* Step 1 */}
+                  <div className="bg-white rounded-2xl p-5 border border-slate-200 hover:border-[#005ea6] transition shadow-xs flex flex-col justify-between group">
+                    <div>
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="w-8 h-8 rounded-xl bg-blue-50 text-[#005ea6] font-black text-xs flex items-center justify-center font-mono">01</span>
+                        <Luggage className="w-5 h-5 text-slate-400 group-hover:text-[#005ea6] transition" />
+                      </div>
+                      <h3 className="font-bold text-slate-900 text-sm mb-1.5">Llegada &amp; Check-in</h3>
+                      <p className="text-xs text-slate-500 leading-relaxed">
+                        Preséntate 3 horas antes para vuelos internacionales. Emite pases de abordar en kioscos digitales o en el mostrador de tu aerolínea.
+                      </p>
+                    </div>
+                    <div className="mt-4 pt-3 border-t border-slate-100 text-[11px] font-semibold text-[#005ea6] flex items-center">
+                      <span>Equipaje de bodega</span>
+                      <ChevronRight className="w-3.5 h-3.5 ml-1" />
+                    </div>
+                  </div>
+
+                  {/* Step 2 */}
+                  <div className="bg-white rounded-2xl p-5 border border-slate-200 hover:border-[#005ea6] transition shadow-xs flex flex-col justify-between group">
+                    <div>
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="w-8 h-8 rounded-xl bg-blue-50 text-[#005ea6] font-black text-xs flex items-center justify-center font-mono">02</span>
+                        <ShieldCheck className="w-5 h-5 text-slate-400 group-hover:text-emerald-600 transition" />
+                      </div>
+                      <h3 className="font-bold text-slate-900 text-sm mb-1.5">Seguridad &amp; Migración</h3>
+                      <p className="text-xs text-slate-500 leading-relaxed">
+                        Muestra pasaporte y código QR del E-Ticket oficial. Pasa por los escáneres biométricos y puntos de inspección autorizados.
+                      </p>
+                    </div>
+                    <div className="mt-4 pt-3 border-t border-slate-100 text-[11px] font-semibold text-emerald-600 flex items-center">
+                      <span>Filtro rápido QR</span>
+                      <ChevronRight className="w-3.5 h-3.5 ml-1" />
+                    </div>
+                  </div>
+
+                  {/* Step 3 */}
+                  <div className="bg-white rounded-2xl p-5 border border-slate-200 hover:border-[#005ea6] transition shadow-xs flex flex-col justify-between group">
+                    <div>
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="w-8 h-8 rounded-xl bg-blue-50 text-[#005ea6] font-black text-xs flex items-center justify-center font-mono">03</span>
+                        <ShoppingBag className="w-5 h-5 text-slate-400 group-hover:text-amber-500 transition" />
+                      </div>
+                      <h3 className="font-bold text-slate-900 text-sm mb-1.5">Duty Free &amp; Salas VIP</h3>
+                      <p className="text-xs text-slate-500 leading-relaxed">
+                        Disfruta de tiendas libres de impuestos con rones dominicanos y larimar, gastronomía caribeña y descanso en salones ejecutivos.
+                      </p>
+                    </div>
+                    <div className="mt-4 pt-3 border-t border-slate-100 text-[11px] font-semibold text-amber-600 flex items-center">
+                      <span>Zonas de confort</span>
+                      <ChevronRight className="w-3.5 h-3.5 ml-1" />
+                    </div>
+                  </div>
+
+                  {/* Step 4 */}
+                  <div className="bg-white rounded-2xl p-5 border border-slate-200 hover:border-[#005ea6] transition shadow-xs flex flex-col justify-between group">
+                    <div>
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="w-8 h-8 rounded-xl bg-blue-50 text-[#005ea6] font-black text-xs flex items-center justify-center font-mono">04</span>
+                        <PlaneTakeoff className="w-5 h-5 text-slate-400 group-hover:text-[#0284c7] transition" />
+                      </div>
+                      <h3 className="font-bold text-slate-900 text-sm mb-1.5">Puerta de Embarque</h3>
+                      <p className="text-xs text-slate-500 leading-relaxed">
+                        Verifica tu puerta en las pantallas FIDS en tiempo real. Aborda cómodamente a través de los puentes telescópicos hacia tu vuelo.
+                      </p>
+                    </div>
+                    <div className="mt-4 pt-3 border-t border-slate-100 text-[11px] font-semibold text-[#0284c7] flex items-center">
+                      <span>Despegue seguro</span>
+                      <ChevronRight className="w-3.5 h-3.5 ml-1" />
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              {/* SECTION: History & Infrastructure Story (Inspirado en AeroEquip GSE & Airbus Presentation) */}
+              <section className="bg-gradient-to-br from-slate-950 via-slate-900 to-[#0b1d3a] rounded-3xl p-6 sm:p-8 text-white relative overflow-hidden border border-slate-800 shadow-md" data-purpose="about-airport" id="historia-terminal">
+                {/* Decorative radar contour rings */}
+                <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/3 w-96 h-96 rounded-full border border-cyan-500/10 pointer-events-none" />
+                <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/3 w-64 h-64 rounded-full border border-cyan-500/10 pointer-events-none" />
+
+                <div className="relative z-10">
+                  <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+                    <span className="text-xs font-bold text-[#00a3e0] uppercase tracking-wider font-mono">
+                      Ficha Técnica &amp; Operaciones Aéreas • Estándar OACI
+                    </span>
+                    <span className="text-[10px] bg-cyan-950 text-cyan-300 border border-cyan-800/80 px-2 py-0.5 rounded font-mono font-semibold">
+                      ICAO Code E / Wide-Body Ready
+                    </span>
+                  </div>
+
+                  <h2 className="text-2xl sm:text-3xl font-extrabold text-white mt-1 font-display">
                     {narrative.title}
                   </h2>
-                  <p className="text-slate-300 text-xs sm:text-sm mt-3 leading-relaxed">
+                  <p className="text-slate-300 text-xs sm:text-sm mt-3 leading-relaxed max-w-3xl">
                     {narrative.p1}
                   </p>
-                  <p className="text-slate-300 text-xs sm:text-sm mt-2.5 leading-relaxed">
+                  <p className="text-slate-300 text-xs sm:text-sm mt-2 leading-relaxed max-w-3xl">
                     {narrative.p2}
                   </p>
 
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-6 pt-6 border-t border-slate-800 text-xs">
+                  {/* Technical Capabilities Matrix (Inspirado en AeroEquip GSE) */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 mt-6 pt-6 border-t border-slate-800 text-xs">
+                    <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-3.5">
+                      <div className="flex items-center space-x-2 text-[#00a3e0] mb-1.5 font-bold">
+                        <Plane className="w-4 h-4" />
+                        <span>Aeronaves Compatibles</span>
+                      </div>
+                      <p className="text-slate-400 text-[11px] leading-relaxed">
+                        Apta para aviones de fuselaje ancho: Boeing 777, 787 Dreamliner, Airbus A350 y A330 transcontinentales.
+                      </p>
+                    </div>
+
+                    <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-3.5">
+                      <div className="flex items-center space-x-2 text-emerald-400 mb-1.5 font-bold">
+                        <Radio className="w-4 h-4" />
+                        <span>Radionavegación &amp; ILS</span>
+                      </div>
+                      <p className="text-slate-400 text-[11px] leading-relaxed">
+                        Aproximación por instrumentos ILS CAT I/II, VOR/DME y balizamiento nocturno de alta intensidad PAPI.
+                      </p>
+                    </div>
+
+                    <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-3.5 sm:col-span-2 lg:col-span-1">
+                      <div className="flex items-center space-x-2 text-cyan-300 mb-1.5 font-bold">
+                        <Sparkles className="w-4 h-4" />
+                        <span>Servicios en Rampa (GSE)</span>
+                      </div>
+                      <p className="text-slate-400 text-[11px] leading-relaxed">
+                        Puentes de abordaje climatizados, hidrantes de combustible Jet A-1 bajo ala y despacho aduanero 24 horas.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Key Stats Counter */}
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-4 pt-4 border-t border-slate-800/80 text-xs">
                     <div>
                       <span className="text-[#00a3e0] font-bold block text-sm">{narrative.stat1.label}</span>
                       <span className="text-slate-400">{narrative.stat1.desc}</span>
@@ -937,6 +1255,116 @@ export default function AeropuertoDetalle() {
 
             </aside>
           </div>
+
+          {/* SECTION 11: Noticias & Actualidad del Aeropuerto (Condicional: solo se muestra si hay al menos 1 post sobre este aeropuerto) */}
+          {airportNews.length > 0 && (
+            <section className="mt-16 pt-12 border-t border-slate-200" data-purpose="airport-news" id="noticias-aeropuerto">
+              <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8">
+                <div>
+                  <div className="flex items-center space-x-2 text-[#005ea6] text-xs font-bold uppercase tracking-wider mb-1.5">
+                    <Newspaper className="w-4 h-4" />
+                    <span>Actualidad &amp; Cobertura Oficial</span>
+                  </div>
+                  <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 font-display">
+                    Noticias sobre {airport.code}
+                  </h2>
+                  <p className="text-xs sm:text-sm text-slate-500 mt-1 max-w-2xl">
+                    Comunicados de prensa, expansiones de infraestructura, nuevas rutas y novedades de aviación vinculadas al {airport.name}.
+                  </p>
+                </div>
+
+                <Link 
+                  to="/noticias" 
+                  className="inline-flex items-center text-xs font-bold text-[#005ea6] hover:text-[#004880] transition group self-start sm:self-auto shrink-0"
+                >
+                  <span>Ver todas las noticias</span>
+                  <ArrowRight className="w-3.5 h-3.5 ml-1.5 group-hover:translate-x-1 transition-transform" />
+                </Link>
+              </div>
+
+              {/* Grid or Spotlight Cards */}
+              <div className={`grid gap-6 ${airportNews.length === 1 ? 'grid-cols-1 md:grid-cols-12' : airportNews.length === 2 ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'}`}>
+                {airportNews.map((article) => {
+                  const isSingle = airportNews.length === 1;
+                  return (
+                    <article 
+                      key={article.id} 
+                      className={`group bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs hover:shadow-md hover:border-[#005ea6]/40 transition duration-300 flex ${isSingle ? 'flex-col md:flex-row md:col-span-12' : 'flex-col'}`}
+                    >
+                      <div className={`relative overflow-hidden bg-slate-100 ${isSingle ? 'md:w-5/12 h-64 md:h-auto min-h-[220px]' : 'h-52 w-full'}`}>
+                        <img 
+                          src={article.image || airport.imageUrl} 
+                          alt={article.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          loading="lazy"
+                        />
+                        <div className="absolute top-3 left-3 flex flex-wrap gap-1.5">
+                          <span className="bg-[#005ea6] text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md shadow-xs">
+                            {article.category || "Noticia"}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className={`p-5 sm:p-6 flex flex-col justify-between flex-1 ${isSingle ? 'md:w-7/12' : ''}`}>
+                        <div>
+                          <div className="flex items-center space-x-3 text-slate-400 text-xs mb-2.5">
+                            {article.publishedAt && (
+                              <div className="flex items-center space-x-1">
+                                <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                                <span>{formatEditorialDate(article.publishedAt)}</span>
+                              </div>
+                            )}
+                            {article.readMinutes && (
+                              <div className="flex items-center space-x-1">
+                                <Clock className="w-3.5 h-3.5 text-slate-400" />
+                                <span>{article.readMinutes} min de lectura</span>
+                              </div>
+                            )}
+                          </div>
+
+                          <h3 className="font-bold text-slate-900 text-lg group-hover:text-[#005ea6] transition leading-snug mb-2 font-display">
+                            <Link to={article.href}>
+                              {article.title}
+                            </Link>
+                          </h3>
+
+                          {article.excerpt && (
+                            <p className="text-slate-600 text-xs sm:text-sm line-clamp-3 leading-relaxed mb-4">
+                              {article.excerpt}
+                            </p>
+                          )}
+
+                          {article.tags && article.tags.length > 0 && (
+                            <div className="flex flex-wrap gap-1.5 mb-4">
+                              {article.tags.slice(0, 3).map((tag, tIdx) => (
+                                <span key={tIdx} className="text-[10px] bg-slate-100 text-slate-600 font-medium px-2 py-0.5 rounded">
+                                  #{tag}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="pt-4 border-t border-slate-100 flex items-center justify-between mt-auto">
+                          <div className="text-xs text-slate-500">
+                            Por <span className="font-semibold text-slate-700">{article.authorName}</span>
+                          </div>
+                          <Link 
+                            to={article.href}
+                            className="inline-flex items-center text-xs font-bold text-[#005ea6] group-hover:text-[#004880] transition"
+                          >
+                            <span>Leer artículo</span>
+                            <ArrowRight className="w-3.5 h-3.5 ml-1 group-hover:translate-x-1 transition-transform" />
+                          </Link>
+                        </div>
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            </section>
+          )}
+
         </main>
         {/* END: MainContentGrid */}
 

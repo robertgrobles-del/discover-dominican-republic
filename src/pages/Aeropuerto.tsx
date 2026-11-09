@@ -27,7 +27,7 @@ const ALL_AIRPORTS = [
     operator: "AERODOM / VINCI Airports",
     passengers: "> 5.8M pax/año",
     runway: "3,354 m",
-    image: "https://images.unsplash.com/photo-1569154941061-e231b4725ef1?w=800&fit=crop",
+    image: "/img/Aeropuerto Internacional de Las Américas.jpg",
     flightsDay: 130,
     tags: ["Hub de la Capital", "Zona de Carga", "Arajet Mega-Hub"],
     slug: "aeropuerto-internacional-las-americas"
@@ -40,7 +40,7 @@ const ALL_AIRPORTS = [
     operator: "Grupo Puntacana",
     passengers: "> 9.5M pax/año",
     runway: "3,100 m",
-    image: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=800&fit=crop",
+    image: "/img/Aeropuerto Internaciona de Punta Cana PUJ 1.webp",
     flightsDay: 160,
     tags: ["Mayor tráfico", "Piscina VIP", "Terminal Ecológica"],
     slug: "aeropuerto-internacional-de-punta-cana"
@@ -66,7 +66,7 @@ const ALL_AIRPORTS = [
     operator: "AERODOM / VINCI Airports",
     passengers: "> 850k pax/año",
     runway: "3,081 m",
-    image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&fit=crop",
+    image: "/img/Puerto Plata Aurport - Aerodom.jpg",
     flightsDay: 30,
     tags: ["Costa Norte", "Vuelos Chárter", "Deportes Acuáticos"],
     slug: "aeropuerto-internacional-gregorio-luperon"

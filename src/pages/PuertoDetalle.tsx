@@ -36,12 +36,23 @@ export default function PuertoDetalle() {
     );
   }
 
+  const [lat, lng] = puerto.coordinates.split(",").map(Number);
+
   return (
     <PageTransition>
       <SEOHead
         title={`${puerto.name} - Puertos y Cruceros en República Dominicana | Descubre República Dominicana`}
         description={puerto.description.slice(0, 160)}
         image={puerto.image}
+        url={`/puerto/${slug}`}
+        geo={{ latitude: lat, longitude: lng, placename: puerto.location, region: "DO" }}
+        jsonLd={{
+          "@context": "https://schema.org", "@type": ["Place", "TouristAttraction"], name: puerto.name, description: puerto.description,
+          image: puerto.image, url: `https://www.descubrerepdom.com/puerto/${slug}`,
+          address: { "@type": "PostalAddress", addressLocality: puerto.location, addressCountry: "DO" },
+          geo: { "@type": "GeoCoordinates", latitude: lat, longitude: lng },
+          ...(puerto.reviewCount ? { aggregateRating: { "@type": "AggregateRating", ratingValue: puerto.rating, reviewCount: puerto.reviewCount } } : {}),
+        }}
       />
       <div className="min-h-screen bg-background">
         <Header />

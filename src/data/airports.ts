@@ -108,11 +108,11 @@ export const airports: Airport[] = [
     highlights: ['Piscina VIP en Terraza', 'Arquitectura Tropical Ecológica', 'Hub Líder del Caribe', 'Wi-Fi 6 de Alta Velocidad'],
     shortDescription: 'El aeropuerto más transitado del Caribe y principal puerta de entrada turística del país.',
     description: 'El Aeropuerto Internacional de Punta Cana (PUJ) es el aeropuerto privado comercial más transitado del mundo y la principal puerta de entrada a la República Dominicana, concentrando más del 56% de todas las llegadas aéreas internacionales. Diseñado con una célebre arquitectura vernácula de techos de cana de palma y piedra coralina, cuenta con una Terminal B recientemente expandida con una inversión de US$ 90M que incluye una icónica piscina infinita en la terraza VIP con vistas panorámicas a la pista activa.',
-    imageUrl: 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=1200&h=800&fit=crop&q=80',
+    imageUrl: '/img/Aeropuerto Internaciona de Punta Cana PUJ 1.webp',
     gallery: [
-      'https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=1200&h=800&fit=crop&q=80',
-      'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1200&h=800&fit=crop&q=80',
-      'https://images.unsplash.com/photo-1569154941061-e231b4725ef1?w=1200&h=800&fit=crop&q=80'
+      '/img/Aeropuerto Internaciona de Punta Cana PUJ 1.webp',
+      '/img/Aeropuerto Internaciona de Punta Cana PUJ.webp',
+      '/img/aeropuerto-punta-cana-hq.jpg'
     ],
     coordinates: { lat: 18.5674, lng: -68.3634 },
     terminals: ['Terminal A (Vuelos Internacionales)', 'Terminal B (Nueva Expansión & Puentes)', 'FBO (Aviación Privada y Ejecutiva)'],
@@ -191,11 +191,11 @@ export const airports: Airport[] = [
     highlights: ['Hub Principal de Arajet', 'Terminal de Carga #1 de RD', 'Inversión US$ 250M en marcha', 'Conexión Autovía del Este', '5 Salas VIP Exclusivas'],
     shortDescription: 'Principal aeropuerto de la capital, hub de Arajet y nombrado en honor a José Francisco Peña Gómez.',
     description: 'El Aeropuerto Internacional Las Américas Dr. José Francisco Peña Gómez (SDQ) es la principal infraestructura aérea de Santo Domingo y el mayor nodo de carga aérea del Caribe (más de 111,000 toneladas anuales). Operado por AERODOM/VINCI Airports, funciona como hub continental para Arajet y enlaza la capital con Norteamérica, Europa, Centroamérica y Sudamérica a través de su pista de 3,354 metros de longitud.',
-    imageUrl: 'https://images.unsplash.com/photo-1569154941061-e231b4725ef1?w=1200&h=800&fit=crop&q=80',
+    imageUrl: '/img/Aeropuerto Internacional de Las Américas.jpg',
     gallery: [
-      'https://images.unsplash.com/photo-1569154941061-e231b4725ef1?w=1200&h=800&fit=crop&q=80',
-      'https://images.unsplash.com/photo-1546825551-a6628a941c91?w=1200&h=800&fit=crop&q=80',
-      'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1200&h=800&fit=crop&q=80'
+      '/img/Aeropuerto Internacional de Las Américas.jpg',
+      '/img/Arajet - Aeropuerto.avif',
+      '/img/aeropuerto-las-americas-hq.jpg'
     ],
     coordinates: { lat: 18.4297, lng: -69.6689 },
     terminals: ['Terminal A (Sur)', 'Terminal B (Norte / Arajet Hub)', 'Terminal de Carga Internacional'],
@@ -485,11 +485,11 @@ export const airports: Airport[] = [
     highlights: ['Costa del Ámbar & Surf', 'Chárters de Europa & Canadá', 'Acceso Rápido a Cabarete & Sosúa', 'Vistas al Atlántico y Loma Isabel de Torres'],
     shortDescription: 'Aeropuerto de la Costa del Ámbar, puerta a playas del Atlántico, deportes acuáticos y turismo de aventura.',
     description: 'El Aeropuerto Internacional Gregorio Luperón (POP) sirve a Puerto Plata y toda la costa norte dominicana. Administrado por AERODOM/VINCI Airports, es el punto neurálgico de acceso a destinos de kitesurf y windsurf de clase mundial como Cabarete, las playas doradas de Sosúa, y el puerto de cruceros Amber Cove.',
-    imageUrl: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1200&h=800&fit=crop&q=80',
+    imageUrl: '/img/Puerto Plata Aurport - Aerodom.jpg',
     gallery: [
-      'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1200&h=800&fit=crop&q=80',
-      'https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=1200&h=800&fit=crop&q=80',
-      'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1200&h=800&fit=crop&q=80'
+      '/img/Puerto Plata Aurport - Aerodom.jpg',
+      '/img/aeropuerto-puerto-plata-hq.jpg',
+      'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1200&h=800&fit=crop&q=80'
     ],
     coordinates: { lat: 19.7579, lng: -70.5700 },
     airlinesDetailed: [

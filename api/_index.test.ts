@@ -231,6 +231,8 @@ describe("SEO de noticias", () => {
     const map = html(await render("/sitemap.xml"));
     expect(map).toContain("<loc>https://www.descubrerepdom.com/noticias/ballenas-seo</loc>");
     expect(map).not.toContain("nota-borrador");
+    expect(map).toContain("<loc>https://www.descubrerepdom.com/marina/cap-cana</loc>");
+    expect(map).toContain("<loc>https://www.descubrerepdom.com/puerto/amber-cove</loc>");
     expect(html(await render("/rss.xml"))).toContain("<category>Naturaleza</category>");
 
     expect(data(await call("GET", "/public/news/ballenas-seo"))).toMatchObject({ slug: "ballenas-seo", category_name: "Naturaleza" });
