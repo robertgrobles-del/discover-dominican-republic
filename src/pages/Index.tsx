@@ -40,7 +40,7 @@ const Index = () => {
         url="/"
         image="/og-image.jpg"
         keywords="República Dominicana, turismo, playas, Punta Cana, Samaná, Santo Domingo, hoteles, viajes Caribe, vuelos republica dominicana"
-        geo={{ placename: "República Dominicana", region: "DO", position: "18.7357;-70.1627" }}
+        geo={{ placename: "República Dominicana", region: "DO", latitude: 18.7357, longitude: -70.1627 }}
         jsonLd={generateOrganizationSchema()}
       />
       <div className="min-h-screen bg-background" id="main-content">

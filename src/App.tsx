@@ -40,12 +40,13 @@ const Anunciate = lazy(() => import("./pages/staging/Anunciate"));
 const RegistroNegocio = lazy(() => import("./pages/staging/RegistroNegocio"));
 const NegociosDirectorio = lazy(() => import("./pages/NegociosDirectorio"));
 const NegocioDetalle = lazy(() => import("./pages/NegocioDetalle"));
+const NotFound = lazy(() => import("./pages/NotFound"));
 
 /** Páginas públicas que existen en staging: la landing, noticias, eventos, requisitos de viaje, aeropuertos y directorio de negocios. */
 const PUBLISHED = [
   "/noticias", "/eventos", "/evento", "/requisitos-viaje", "/e-ticket",
   "/privacidad", "/terminos", "/contacto", "/anunciate", "/registra-tu-negocio",
-  "/aeropuerto", "/aeropuertos", "/negocios", "/negocio", "/empresa", "/empresas"
+  "/aeropuerto", "/aeropuertos", "/negocios", "/negocio", "/empresa", "/empresas", "/404"
 ];
 const isPublishedPath = (path: string) => path === "/" || PUBLISHED.some((p) => path === p || path.startsWith(`${p}/`));
 
@@ -168,9 +169,10 @@ function AnimatedRoutes() {
             <Route path="/noticias/:slug" element={<NoticiaDetalle />} />
             <Route path="/login" element={<Login />} />
             <Route path="/admin" element={<AdminPanel />} />
+            <Route path="/404" element={<NotFound />} />
 
-            {/* Lo demás no existe en staging: vuelve a la landing */}
-            <Route path="*" element={<Navigate to="/" replace />} />
+            {/* Página 404 personalizada para URLs no encontradas */}
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </RouteErrorBoundary>
       </Suspense>

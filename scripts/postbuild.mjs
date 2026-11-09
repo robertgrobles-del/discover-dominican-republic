@@ -178,6 +178,9 @@ export function toPage(source, item, row, resolveAsset) {
 const PIXEL_SOURCES = {
   VITE_META_PIXEL_ID: { "script-src": ["https://connect.facebook.net"], "connect-src": ["https://www.facebook.com", "https://connect.facebook.net"], "img-src": ["https://www.facebook.com"] },
   VITE_TIKTOK_PIXEL_ID: { "script-src": ["https://analytics.tiktok.com"], "connect-src": ["https://analytics.tiktok.com"], "img-src": ["https://analytics.tiktok.com"] },
+  VITE_GA_MEASUREMENT_ID: { "script-src": ["https://www.googletagmanager.com"], "connect-src": ["https://*.google-analytics.com", "https://*.analytics.google.com", "https://*.googletagmanager.com"], "img-src": ["https://*.google-analytics.com", "https://*.googletagmanager.com"] },
+  VITE_GTM_ID: { "script-src": ["https://www.googletagmanager.com"], "connect-src": ["https://*.google-analytics.com", "https://*.analytics.google.com", "https://*.googletagmanager.com"], "img-src": ["https://*.google-analytics.com", "https://*.googletagmanager.com"] },
+  VITE_CLARITY_PROJECT_ID: { "script-src": ["https://www.clarity.ms"], "connect-src": ["https://*.clarity.ms"], "img-src": ["https://*.clarity.ms"] },
 };
 
 /** Añade a la política los dominios de los píxeles configurados. Sin identificadores, devuelve el HTML igual. */

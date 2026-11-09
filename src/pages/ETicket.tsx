@@ -73,15 +73,20 @@ const ETICKET_FAQS = [
   { question: "¿Por qué ya no hay formulario de salud?", answer: "El nuevo portal eliminó la declaración de salud para simplificar el trámite. Ahora se completan los datos migratorios y la declaración de aduanas." },
 ];
 
-function OfficialSiteButton({ label, size = "lg", className = "" }: { label: string; size?: "lg" | "default"; className?: string }) {
+function OfficialSiteButton({ label, className = "" }: { label: string; size?: "lg" | "default"; className?: string }) {
   return (
-    <Button size={size} className={`gap-2 font-semibold ${className}`} asChild>
-      <a href={OFFICIAL_URL} target="_blank" rel="noopener noreferrer">
-        <span>{label}</span>
-        <ExternalLink className="h-4 w-4" aria-hidden="true" />
-        <span className="sr-only">(se abre en otra pestaña)</span>
-      </a>
-    </Button>
+    <a
+      href={OFFICIAL_URL}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={`group relative inline-flex items-center justify-between gap-3 rounded-full bg-primary px-6 py-3.5 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/25 transition-all hover:bg-primary/95 active:scale-[0.98] ${className}`}
+    >
+      <span>{label}</span>
+      <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/20 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
+        <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+      </span>
+      <span className="sr-only">(se abre en otra pestaña)</span>
+    </a>
   );
 }
 
@@ -128,37 +133,43 @@ export default function ETicket() {
           <section className="border-b border-border bg-muted/30">
             <div className="container mx-auto grid gap-12 px-4 pb-14 pt-24 lg:grid-cols-[1.15fr_1fr] lg:items-center lg:px-8 lg:pt-28">
               <div>
-                <p className="mb-4 text-sm italic text-muted-foreground">Guía actualizada · Nuevo portal oficial</p>
-                <h1 className="font-display text-4xl font-bold leading-[1.02] tracking-[-0.03em] [text-wrap:balance] md:text-6xl">E-Ticket de República Dominicana</h1>
-                <p className="mt-5 max-w-[34rem] text-lg leading-relaxed text-muted-foreground [text-wrap:pretty]">El formulario digital, obligatorio y gratuito, para entrar y salir del país. Reúne en un solo trámite los datos de Migración y Aduanas.</p>
-                <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3">
+                <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3.5 py-1 text-xs font-semibold uppercase tracking-wider text-primary mb-4">
+                  <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+                  Guía Oficial de Viaje
+                </div>
+                <h1 className="font-display text-4xl font-bold leading-[1.02] tracking-[-0.03em] [text-wrap:balance] md:text-6xl text-foreground">E-Ticket de República Dominicana</h1>
+                <p className="mt-5 max-w-[34rem] text-lg leading-relaxed text-muted-foreground [text-wrap:pretty]">El formulario digital, obligatorio y 100% gratuito, para entrar y salir del país. Reúne en un solo trámite los datos de Migración y Aduanas.</p>
+                <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-4">
                   <OfficialSiteButton label="Completar mi e-Ticket gratis" />
-                  <a href="#como-obtenerlo" className="text-sm font-medium text-foreground underline decoration-primary/40 underline-offset-4 transition-colors hover:decoration-primary">Ver cómo se hace</a>
+                  <a href="#como-obtenerlo" className="text-sm font-semibold text-foreground underline decoration-primary/50 underline-offset-4 transition-colors hover:decoration-primary">Ver guía paso a paso ↗</a>
                 </div>
               </div>
 
               <div className="relative pb-16 lg:pb-10">
-                <figure className="overflow-hidden rounded-sm">
+                <figure className="overflow-hidden rounded-2xl border border-border/50 shadow-lg">
                   <img src="/images/eticket-punta-cana.jpg" alt="Playa de Punta Cana con palmeras y mar turquesa" width={960} height={720}
                     className="aspect-[4/3] w-full object-cover" />
                   <figcaption className="sr-only">Foto: Miltiadis Fragkidis</figcaption>
                 </figure>
-                <span className="absolute right-2 top-2 rounded-sm bg-black/45 px-1.5 py-0.5 text-[10px] text-white/90">Foto: Miltiadis Fragkidis</span>
+                <span className="absolute right-3 top-3 rounded-md bg-black/50 px-2 py-0.5 text-[10px] text-white/90 backdrop-blur-sm">Foto: Miltiadis Fragkidis</span>
 
-                <aside aria-labelledby="sitio-oficial" className="absolute -bottom-2 left-4 right-4 rounded-md bg-card p-5 shadow-[0_18px_40px_-18px_hsl(var(--primary)/0.45)] ring-1 ring-border sm:left-8 sm:right-auto sm:w-[22rem] lg:-left-10">
-                  <h2 id="sitio-oficial" className="flex items-center gap-1.5 text-sm font-semibold text-emerald-700 dark:text-emerald-400">
-                    <ShieldCheck className="h-4 w-4" aria-hidden="true" /><span>Portal oficial</span>
-                  </h2>
-                  <p className="text-xs text-muted-foreground">Dirección General de Migración</p>
-                  <div className="mt-2 flex items-center justify-between gap-3">
-                    <code className="min-w-0 truncate font-mono text-xl font-semibold tracking-tight text-foreground">{OFFICIAL_HOST}</code>
-                    <Button variant="ghost" size="sm" className="shrink-0 gap-1.5 active:scale-[0.97]" onClick={copyUrl}>
-                      {copied ? <Check className="h-4 w-4" aria-hidden="true" /> : <Copy className="h-4 w-4" aria-hidden="true" />}
-                      <span>{copied ? "Copiada" : "Copiar"}</span>
-                    </Button>
-                  </div>
-                  <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">Comprueba que la dirección termine en .gob.do, el dominio del gobierno dominicano.</p>
-                </aside>
+                {/* Double-Bezel Card */}
+                <div className="absolute -bottom-4 left-4 right-4 rounded-[1.75rem] border border-border/60 bg-muted/30 p-1.5 shadow-2xl shadow-primary/10 ring-1 ring-black/5 dark:ring-white/5 sm:left-8 sm:right-auto sm:w-[23rem] lg:-left-10">
+                  <aside aria-labelledby="sitio-oficial" className="rounded-[calc(1.75rem-0.375rem)] border border-border/50 bg-card p-5 shadow-sm">
+                    <h2 id="sitio-oficial" className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
+                      <ShieldCheck className="h-4 w-4" aria-hidden="true" /><span>Portal Oficial Verificado</span>
+                    </h2>
+                    <p className="mt-0.5 text-xs text-muted-foreground">Dirección General de Migración</p>
+                    <div className="mt-3 flex items-center justify-between gap-3 rounded-xl border border-border/50 bg-muted/40 p-2">
+                      <code className="min-w-0 truncate font-mono text-base font-bold tracking-tight text-foreground">{OFFICIAL_HOST}</code>
+                      <Button variant="ghost" size="sm" className="shrink-0 h-8 gap-1.5 rounded-lg active:scale-[0.97]" onClick={copyUrl}>
+                        {copied ? <Check className="h-3.5 w-3.5" aria-hidden="true" /> : <Copy className="h-3.5 w-3.5" aria-hidden="true" />}
+                        <span className="text-xs">{copied ? "Copiada" : "Copiar"}</span>
+                      </Button>
+                    </div>
+                    <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">Comprueba siempre que el dominio termine en <strong className="text-foreground">.gob.do</strong>, exclusivo del gobierno dominicano.</p>
+                  </aside>
+                </div>
               </div>
             </div>
 

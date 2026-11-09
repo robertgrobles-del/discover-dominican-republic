@@ -22,6 +22,8 @@ interface SEOHeadProps {
    * (`src/lib/breadcrumbs.ts`), donde nunca se muestran. Pasar `breadcrumbs={[]}` fuerza a ocultarlas también. */
   breadcrumbs?: { name: string; url: string }[];
   geo?: GeoTagProps;
+  /** Páginas que no deben indexarse (404, resultados vacíos…). */
+  noindex?: boolean;
 }
 
 export function SEOHead({
@@ -34,6 +36,7 @@ export function SEOHead({
   jsonLd,
   breadcrumbs,
   geo,
+  noindex = false,
 }: SEOHeadProps) {
   const fullTitle = title.includes("Descubre RD") ? title : `${title} | Descubre República Dominicana`;
   // Canonical URLs must not inherit tracking, filter, or fragment parameters.
@@ -102,6 +105,8 @@ export function SEOHead({
     updateMeta("twitter:description", description);
     updateMeta("twitter:image", imageUrl);
     updateMeta("twitter:image:alt", description.slice(0, 100));
+
+    updateMeta("robots", noindex ? "noindex, follow" : "index, follow");
 
     // SEO Local (Geotags & ICBM para posicionamiento geográfico)
     const geoRegion = geo?.region || "DO";
@@ -175,7 +180,7 @@ export function SEOHead({
       const bcScript = document.querySelector('script[data-seo-breadcrumb]');
       if (bcScript) bcScript.remove();
     };
-  }, [fullTitle, description, keywords, image, currentUrl, type, jsonLd, breadcrumbs, geo]);
+  }, [fullTitle, description, keywords, image, currentUrl, type, jsonLd, breadcrumbs, geo, noindex]);
 
   return null;
 }

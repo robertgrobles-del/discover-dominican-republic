@@ -7,6 +7,7 @@ import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PageTransition } from "@/components/PageTransition";
+import { SEOHead } from "@/components/SEOHead";
 import heroBeachImg from "@/assets/hero-beach.jpg";
 import puntaCanaImg from "@/assets/punta-cana.jpg";
 import samanaImg from "@/assets/samana.jpg";
@@ -37,6 +38,12 @@ export default function NotFound() {
 
   return (
     <PageTransition>
+      <SEOHead
+        title="404 - Página no encontrada | Descubre RD"
+        description="La página que buscas no existe o ha sido movida. Explora playas, destinos y actividades de República Dominicana."
+        noindex={true}
+        breadcrumbs={[]}
+      />
       <div className="min-h-screen bg-background flex flex-col">
         <Header />
 

@@ -3,6 +3,9 @@
 export interface AirlineContact {
   name: string;
   website: string;
+  code?: string;
+  terminal?: string;
+  isHub?: boolean;
 }
 
 export interface VipLoungeItem {
@@ -113,8 +116,32 @@ export const airports: Airport[] = [
     ],
     coordinates: { lat: 18.5674, lng: -68.3634 },
     terminals: ['Terminal A (Vuelos Internacionales)', 'Terminal B (Nueva Expansión & Puentes)', 'FBO (Aviación Privada y Ejecutiva)'],
-    airlines: ['American Airlines', 'Delta', 'JetBlue', 'United', 'Air Canada', 'Air France', 'British Airways', 'Iberia', 'Condor', 'TUI', 'Copa Airlines', 'Avianca', 'Arajet', 'Frontier', 'WestJet', 'Edelweiss', 'Eurowings'],
-    destinations: ['Miami', 'New York (JFK)', 'Atlanta', 'Toronto', 'Madrid', 'París (CDG)', 'Frankfurt', 'Londres (LGW)', 'Bogotá', 'Panamá', 'San Juan', 'Zúrich'],
+    airlinesDetailed: [
+      { name: 'American Airlines', code: 'AAL', website: 'https://www.aa.com/', terminal: 'Terminal B' },
+      { name: 'Delta Air Lines', code: 'DAL', website: 'https://www.delta.com/', terminal: 'Terminal B' },
+      { name: 'United Airlines', code: 'UAL', website: 'https://www.united.com/', terminal: 'Terminal B' },
+      { name: 'JetBlue Airways', code: 'JBU', website: 'https://www.jetblue.com/', terminal: 'Terminal A' },
+      { name: 'Air France', code: 'AFR', website: 'https://www.airfrance.com/', terminal: 'Terminal A' },
+      { name: 'British Airways', code: 'BAW', website: 'https://www.britishairways.com/', terminal: 'Terminal A' },
+      { name: 'Iberia', code: 'IBE', website: 'https://www.iberia.com/', terminal: 'Terminal A' },
+      { name: 'Air Canada', code: 'ACA', website: 'https://www.aircanada.com/', terminal: 'Terminal B' },
+      { name: 'Copa Airlines', code: 'CMP', website: 'https://www.copaair.com/', terminal: 'Terminal A' },
+      { name: 'Avianca', code: 'AVA', website: 'https://www.avianca.com/', terminal: 'Terminal A' },
+      { name: 'Arajet', code: 'ARA', website: 'https://www.arajet.com/', terminal: 'Terminal B' },
+      { name: 'Condor', code: 'CFG', website: 'https://www.condor.com/', terminal: 'Terminal A' },
+      { name: 'TUI Airways', code: 'TOM', website: 'https://www.tui.co.uk/', terminal: 'Terminal A' },
+      { name: 'WestJet', code: 'WJA', website: 'https://www.westjet.com/', terminal: 'Terminal B' },
+      { name: 'Frontier Airlines', code: 'FFT', website: 'https://www.flyfrontier.com/', terminal: 'Terminal B' },
+      { name: 'Edelweiss Air', code: 'EDW', website: 'https://www.flyedelweiss.com/', terminal: 'Terminal A' },
+      { name: 'Eurowings Discover', code: 'EWG', website: 'https://www.discover-airlines.com/', terminal: 'Terminal A' }
+    ],
+    destinations: ['Miami (MIA)', 'New York (JFK)', 'Atlanta (ATL)', 'Toronto (YYZ)', 'Madrid (MAD)', 'París (CDG)', 'Frankfurt (FRA)', 'Londres (LGW)', 'Bogotá (BOG)', 'Panamá (PTY)', 'San Juan (SJU)', 'Zúrich (ZRH)'],
+    destinationsByContinent: [
+      { region: 'Norteamérica', destinations: ['Miami (MIA)', 'New York (JFK)', 'Atlanta (ATL)', 'Toronto (YYZ)', 'Montreal (YUL)', 'Boston (BOS)', 'Charlotte (CLT)', 'Chicago (ORD)', 'Orlando (MCO)'] },
+      { region: 'Europa', destinations: ['Madrid (MAD)', 'París (CDG/ORY)', 'Frankfurt (FRA)', 'Londres (LGW)', 'Zúrich (ZRH)', 'Bruselas (BRU)', 'Ámsterdam (AMS)'] },
+      { region: 'Sudamérica', destinations: ['Bogotá (BOG)', 'Medellín (MDE)', 'Lima (LIM)', 'São Paulo (GRU)', 'Buenos Aires (EZE)'] },
+      { region: 'Caribe y Centroamérica', destinations: ['Panamá (PTY)', 'San Juan (SJU)', 'San José (SJO)', 'Curazao (CUR)'] }
+    ],
     vipLounges: [
       { name: 'VIP Lounge Terminal B (con Piscina)', location: 'Terminal B, Aire, puertas 24-31', access: 'Priority Pass, LoungeKey, DragonPass, Day Pass', highlight: 'Piscina infinita al aire libre frente a la pista de aterrizaje, duchas y barra premium.' },
       { name: 'VIP Lounge Terminal A', location: 'Terminal A, Nivel 2', access: 'Priority Pass, Tarjetas Bancarias Selectas', highlight: 'Espacio climatizado, buffet gourmet y business center silencioso.' }
@@ -180,35 +207,35 @@ export const airports: Airport[] = [
       'United Airlines', 'Venezolana', 'Wingo', 'World2Fly'
     ],
     airlinesDetailed: [
-      { name: 'AeroMexico', website: 'https://www.aeromexico.com/' },
-      { name: 'Air Antilles Express', website: 'https://www.airantilles.com/' },
-      { name: 'Air Caraibes', website: 'https://www.aircaraibes.com/' },
-      { name: 'Air Century', website: 'https://aircentury.com/' },
-      { name: 'Air Europa', website: 'https://www.aireuropa.com/' },
-      { name: 'American Airlines', website: 'https://www.aa.com/' },
-      { name: 'Arajet', website: 'https://www.arajet.com/' },
-      { name: 'Avianca', website: 'https://www.avianca.com/' },
-      { name: 'Avior Airlines', website: 'https://aviorair.com/' },
-      { name: 'Condor', website: 'https://www.condor.com/' },
-      { name: 'Copa Airlines', website: 'https://www.copaair.com/' },
-      { name: 'Delta Airlines', website: 'https://www.delta.com/' },
-      { name: 'Eastern Airlines', website: 'https://iflyea.com/' },
-      { name: 'Frontier Airlines', website: 'https://www.flyfrontier.com/' },
-      { name: 'GlobalX Airlines', website: 'https://www.globalairlinesgroup.com/' },
-      { name: 'Iberia', website: 'https://www.iberia.com/' },
-      { name: 'Intercaribbean', website: 'https://www.intercaribbean.com/' },
-      { name: 'Jet Blue', website: 'https://www.jetblue.com/' },
-      { name: 'Laser Airlines', website: 'https://www.laserairlines.com/' },
-      { name: 'Rutaca', website: 'https://www.flyrutaca.com/' },
-      { name: 'Sky Cana', website: 'https://skycana.com/' },
-      { name: 'Sky High Aviation Services', website: 'https://www.skyhighdominicana.com/' },
-      { name: 'Spirit Airlines', website: 'https://www.spirit.com/' },
-      { name: 'Sunrise', website: 'https://www.sunriseairways.net/' },
-      { name: 'Turpial Airlines', website: 'https://www.turpialairlines.com/' },
-      { name: 'United Airlines', website: 'https://www.united.com/' },
-      { name: 'Venezolana', website: 'https://www.venezolana.aero/' },
-      { name: 'Wingo', website: 'https://www.wingo.com/' },
-      { name: 'World2Fly', website: 'https://www.w2fly.es/' }
+      { name: 'AeroMéxico', code: 'AMX', website: 'https://www.aeromexico.com/', terminal: 'Mostrador Terminal A' },
+      { name: 'Arajet', code: 'ARA', website: 'https://www.arajet.com/', terminal: 'Terminal B (Norte)', isHub: true },
+      { name: 'American Airlines', code: 'AAL', website: 'https://www.aa.com/', terminal: 'Mostrador Terminal B' },
+      { name: 'Air Europa', code: 'AEA', website: 'https://www.aireuropa.com/', terminal: 'Terminal A (Sur)' },
+      { name: 'Iberia', code: 'IBE', website: 'https://www.iberia.com/', terminal: 'Terminal A (Sur)' },
+      { name: 'JetBlue', code: 'JBU', website: 'https://www.jetblue.com/', terminal: 'Terminal A & B' },
+      { name: 'Copa Airlines', code: 'CMP', website: 'https://www.copaair.com/', terminal: 'Terminal B (Norte)' },
+      { name: 'Delta Air Lines', code: 'DAL', website: 'https://www.delta.com/', terminal: 'Terminal B (Norte)' },
+      { name: 'Avianca', code: 'AVA', website: 'https://www.avianca.com/', terminal: 'Terminal A (Sur)' },
+      { name: 'Air Century', code: 'CEY', website: 'https://aircentury.com/', terminal: 'Operador Doméstico/Caribe' },
+      { name: 'United Airlines', code: 'UAL', website: 'https://www.united.com/', terminal: 'Terminal B (Norte)' },
+      { name: 'Spirit Airlines', code: 'NKS', website: 'https://www.spirit.com/', terminal: 'Terminal A (Sur)' },
+      { name: 'Frontier Airlines', code: 'FFT', website: 'https://www.flyfrontier.com/', terminal: 'Terminal B (Norte)' },
+      { name: 'Air Caraïbes', code: 'FWI', website: 'https://www.aircaraibes.com/', terminal: 'Terminal A (Sur)' },
+      { name: 'Wingo', code: 'RPB', website: 'https://www.wingo.com/', terminal: 'Conexión Colombia' },
+      { name: 'Air Antilles Express', code: 'CCE', website: 'https://www.airantilles.com/', terminal: 'Terminal A' },
+      { name: 'Avior Airlines', code: 'ROI', website: 'https://aviorair.com/', terminal: 'Terminal A' },
+      { name: 'Condor', code: 'CFG', website: 'https://www.condor.com/', terminal: 'Terminal A (Vuelos Europa)' },
+      { name: 'Eastern Airlines', code: 'EAL', website: 'https://iflyea.com/', terminal: 'Terminal B' },
+      { name: 'GlobalX Airlines', code: 'GXA', website: 'https://www.globalairlinesgroup.com/', terminal: 'Terminal B' },
+      { name: 'Intercaribbean', code: 'IWY', website: 'https://www.intercaribbean.com/', terminal: 'Terminal A' },
+      { name: 'Laser Airlines', code: 'LER', website: 'https://www.laserairlines.com/', terminal: 'Terminal A' },
+      { name: 'Rutaca', code: 'RUC', website: 'https://www.flyrutaca.com/', terminal: 'Terminal A' },
+      { name: 'Sky Cana', code: 'SNA', website: 'https://skycana.com/', terminal: 'Terminal A' },
+      { name: 'Sky High Aviation Services', code: 'SHH', website: 'https://www.skyhighdominicana.com/', terminal: 'Terminal A & B' },
+      { name: 'Sunrise Airways', code: 'KSZ', website: 'https://www.sunriseairways.net/', terminal: 'Terminal A' },
+      { name: 'Turpial Airlines', code: 'VTU', website: 'https://www.turpialairlines.com/', terminal: 'Terminal A' },
+      { name: 'Venezolana', code: 'VNE', website: 'https://www.venezolana.aero/', terminal: 'Terminal A' },
+      { name: 'World2Fly', code: 'WFL', website: 'https://www.w2fly.es/', terminal: 'Terminal A (Vuelos Madrid)' }
     ],
     destinations: [
       'New York', 'Miami', 'Madrid', 'Bogotá', 'Panamá', 'San Juan', 'Ciudad de México', 'Atlanta', 'Boston',
@@ -395,9 +422,22 @@ export const airports: Airport[] = [
       'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1200&h=800&fit=crop&q=80'
     ],
     coordinates: { lat: 19.4061, lng: -70.6047 },
-    terminals: ['Terminal Internacional de Pasajeros', 'Terminal de Aviación General / FBO', 'Área de Carga Agrícola'],
-    airlines: ['JetBlue', 'Spirit', 'United', 'American Airlines', 'Delta', 'Copa Airlines', 'Arajet', 'Air Century'],
-    destinations: ['New York (JFK/EWR)', 'Boston', 'Miami', 'Fort Lauderdale', 'Panamá', 'San Juan', 'Orlando'],
+    airlinesDetailed: [
+      { name: 'JetBlue Airways', code: 'JBU', website: 'https://www.jetblue.com/', terminal: 'Terminal Principal', isHub: true },
+      { name: 'American Airlines', code: 'AAL', website: 'https://www.aa.com/', terminal: 'Terminal Principal' },
+      { name: 'Delta Air Lines', code: 'DAL', website: 'https://www.delta.com/', terminal: 'Terminal Principal' },
+      { name: 'United Airlines', code: 'UAL', website: 'https://www.united.com/', terminal: 'Terminal Principal' },
+      { name: 'Spirit Airlines', code: 'NKS', website: 'https://www.spirit.com/', terminal: 'Terminal Principal' },
+      { name: 'Copa Airlines', code: 'CMP', website: 'https://www.copaair.com/', terminal: 'Terminal Principal' },
+      { name: 'Arajet', code: 'ARA', website: 'https://www.arajet.com/', terminal: 'Terminal Principal' },
+      { name: 'Air Century', code: 'CEY', website: 'https://aircentury.com/', terminal: 'Terminal Doméstica/Caribe' }
+    ],
+    destinations: ['New York (JFK/EWR)', 'Boston (BOS)', 'Miami (MIA)', 'Fort Lauderdale (FLL)', 'Panamá (PTY)', 'San Juan (SJU)', 'Orlando (MCO)'],
+    destinationsByContinent: [
+      { region: 'Norteamérica', destinations: ['New York (JFK/EWR)', 'Boston (BOS)', 'Miami (MIA)', 'Fort Lauderdale (FLL)', 'Orlando (MCO)'] },
+      { region: 'Caribe y Centroamérica', destinations: ['San Juan (SJU)', 'Panamá Tocumen (PTY)', 'St. Maarten (SXM)', 'Curazao (CUR)'] },
+      { region: 'Sudamérica', destinations: ['Bogotá (BOG - vía Conexión PTY)'] }
+    ],
     vipLounges: [
       { name: 'Sala VIP Cibao Lounge', location: 'Terminal Internacional, Salidas segundo nivel', access: 'Priority Pass, Mastercard Black, Visa Infinite, Day Pass', highlight: 'Salas de descanso ejecutivas, refrigerios premium, Wi-Fi de alta velocidad y vista a plataforma.' }
     ],
@@ -452,9 +492,21 @@ export const airports: Airport[] = [
       'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1200&h=800&fit=crop&q=80'
     ],
     coordinates: { lat: 19.7579, lng: -70.5700 },
-    terminals: ['Terminal Principal Internacional', 'Terminal FBO Chárter'],
-    airlines: ['JetBlue', 'United', 'American Airlines', 'Air Canada', 'WestJet', 'Sunwing', 'Condor', 'TUI', 'Edelweiss'],
-    destinations: ['New York (JFK)', 'Miami', 'Toronto', 'Montreal', 'Frankfurt', 'Zúrich', 'Düsseldorf'],
+    airlinesDetailed: [
+      { name: 'American Airlines', code: 'AAL', website: 'https://www.aa.com/', terminal: 'Terminal Principal' },
+      { name: 'United Airlines', code: 'UAL', website: 'https://www.united.com/', terminal: 'Terminal Principal' },
+      { name: 'JetBlue Airways', code: 'JBU', website: 'https://www.jetblue.com/', terminal: 'Terminal Principal' },
+      { name: 'Air Canada', code: 'ACA', website: 'https://www.aircanada.com/', terminal: 'Terminal Principal' },
+      { name: 'WestJet', code: 'WJA', website: 'https://www.westjet.com/', terminal: 'Terminal Principal' },
+      { name: 'Condor', code: 'CFG', website: 'https://www.condor.com/', terminal: 'Terminal Principal' },
+      { name: 'TUI Airways', code: 'TOM', website: 'https://www.tui.co.uk/', terminal: 'Terminal Principal' },
+      { name: 'Air Transat', code: 'TSC', website: 'https://www.airtransat.com/', terminal: 'Terminal Principal' }
+    ],
+    destinations: ['Miami (MIA)', 'New York (JFK)', 'Boston (BOS)', 'Toronto (YYZ)', 'Montreal (YUL)', 'Frankfurt (FRA)', 'Zúrich (ZRH)', 'Düsseldorf (DUS)'],
+    destinationsByContinent: [
+      { region: 'Norteamérica', destinations: ['Miami (MIA)', 'New York (JFK)', 'Boston (BOS)', 'Toronto (YYZ)', 'Montreal (YUL)'] },
+      { region: 'Europa', destinations: ['Frankfurt (FRA)', 'Zúrich (ZRH)', 'Düsseldorf (DUS)', 'Bruselas (BRU)', 'Londres (LGW)'] }
+    ],
     vipLounges: [
       { name: 'Sala VIP Gregorio Luperón', location: 'Salidas Internacionales, Nivel 2', access: 'Priority Pass, LoungeKey, DragonPass', highlight: 'Ambiente climatizado con vista al monte Isabel de Torres, snacks y bar de bebidas selectas.' }
     ],
@@ -565,20 +617,36 @@ export const airports: Airport[] = [
     coordinates: { lat: 19.2670, lng: -69.7420 },
     terminals: ['Terminal Internacional El Catey'],
     airlines: ['Air Canada', 'WestJet', 'Air Transat', 'Condor', 'TUI', 'Air Century'],
-    destinations: ['Toronto', 'Montreal', 'Frankfurt', 'Bruselas', 'París', 'Quebec City'],
+    airlinesDetailed: [
+      { name: 'Air Canada', code: 'ACA', website: 'https://www.aircanada.com/', terminal: 'Terminal Principal' },
+      { name: 'WestJet', code: 'WJA', website: 'https://www.westjet.com/', terminal: 'Terminal Principal' },
+      { name: 'Air Transat', code: 'TSC', website: 'https://www.airtransat.com/', terminal: 'Terminal Principal' },
+      { name: 'Condor', code: 'CFG', website: 'https://www.condor.com/', terminal: 'Terminal Principal (Vuelos Europa)' },
+      { name: 'TUI Airways', code: 'TOM', website: 'https://www.tui.co.uk/', terminal: 'Terminal Principal' },
+      { name: 'Air Century', code: 'CEY', website: 'https://aircentury.com/', terminal: 'Conexión Doméstica / Caribe' }
+    ],
+    destinations: ['Toronto (YYZ)', 'Montreal (YUL)', 'Frankfurt (FRA)', 'Bruselas (BRU)', 'París (CDG)', 'Quebec City (YQB)'],
+    destinationsByContinent: [
+      { region: 'Norteamérica', destinations: ['Toronto Pearson (YYZ)', 'Montreal Trudeau (YUL)', 'Quebec City (YQB)', 'Ottawa (YOW)'] },
+      { region: 'Europa', destinations: ['Frankfurt (FRA)', 'Bruselas (BRU)', 'París (CDG)'] },
+      { region: 'Caribe', destinations: ['Santo Domingo (JBQ)', 'Punta Cana (PUJ)'] }
+    ],
     vipLounges: [
       { name: 'Salón VIP Samaná', location: 'Terminal Principal, Salidas', access: 'Priority Pass, Pases de Operador', highlight: 'Ambiente tranquilo, cafés locales y vista a los palmerales que rodean la pista.' }
     ],
     services: [
       { name: 'Salón VIP Samaná', description: 'Espacio relajante con bebidas frías, Wi-Fi y bocadillos.' },
-      { name: 'Información Turística MITUR', description: 'Oficina turística con mapas de excursiones y avistamiento de ballenas.' },
-      { name: 'Cafetería & Snack Bar', description: 'Comida fresca, café dominicano y dulces tradicionales de coco.' },
-      { name: 'Wi-Fi en Terminal', description: 'Internet disponible para pasajeros en tránsito.' },
+      { name: 'Información Turística MITUR & Ballenas', description: 'Oficina turística con mapas de excursiones y avistamiento de ballenas jorobadas.' },
+      { name: 'Cafetería & Cocoteros Snack Bar', description: 'Comida fresca, café dominicano y dulces tradicionales de coco.' },
+      { name: 'Wi-Fi en Terminal Aerodom', description: 'Internet de cortesía para todos los pasajeros en tránsito y salas de embarque.' },
+      { name: 'Duty Free & Artesanías Locales', description: 'Tiendas libres de impuestos con artesanías de Samaná, larimar y ron dominicano.' },
+      { name: 'Cambio de Divisas & Cajeros 24/7', description: 'Servicios financieros y cajeros automáticos multimoneda en el hall de llegadas.' },
     ],
     transportation: [
       { name: 'Taxi Oficial a Las Terrenas', detail: 'Traslado directo por el Boulevard Turístico del Atlántico', price: 'US$ 35-50' },
-      { name: 'Shuttles Turísticos', detail: 'Minibuses coordinados hacia Santa Bárbara de Samaná y Las Galeras' },
-      { name: 'Rent a Car en Terminal', detail: 'Vehículos 4x4 y SUV ideales para recorrer las playas de la península' },
+      { name: 'Shuttles Turísticos a Samaná', detail: 'Minibuses coordinados hacia Santa Bárbara de Samaná y Las Galeras', price: 'US$ 20-30' },
+      { name: 'Rent a Car en Terminal', detail: 'Vehículos 4x4 y SUV ideales para recorrer las playas vírgenes de la península' },
+      { name: 'Guaguas / Transporte Público El Catey', detail: 'Conexión sobre la carretera Sánchez - Nagua', price: 'RD$ 100-150' },
     ],
     nearbyDestinations: [
       { name: 'Las Terrenas (Playas & Gastronomía)', distance: '30 min', slug: 'las-terrenas' },
