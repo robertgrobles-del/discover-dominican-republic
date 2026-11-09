@@ -29,7 +29,7 @@ const TRANSLATABLE = ["title", "excerpt", "body", "seo_title", "seo_description"
 type TrField = (typeof TRANSLATABLE)[number];
 type Texts = Partial<Record<TrField, string>>;
 
-const SITE = "https://www.descubrerepdom.com";
+const SITE = "https://descubrerepdom.com";
 const apiMessage = (e: unknown) => (e instanceof HttpError ? (e.details as { error?: { message?: string } } | null)?.error?.message : null) ?? (e instanceof Error ? e.message : "Error");
 const toSlug = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
 /** ISO ↔ valor de <input type="datetime-local"> en la hora local de quien edita. */

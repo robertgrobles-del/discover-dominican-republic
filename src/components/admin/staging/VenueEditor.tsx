@@ -18,7 +18,7 @@ import { VENUE_CATEGORY } from "./VenueList";
 
 type Row = Record<string, unknown> & { id: string };
 type Photo = { url: string; alt: string };
-const SITE = "https://www.descubrerepdom.com";
+const SITE = "https://descubrerepdom.com";
 const AMENITY_SUGGESTIONS = ["Estacionamiento", "Acceso para silla de ruedas", "Baños accesibles", "Climatizado", "Zona VIP", "Restaurantes", "Bares", "WiFi", "Seguridad", "Taquilla", "Guardarropa", "Primeros auxilios"];
 const HOW_TO_GET = [["byCar", "En carro"], ["byBus", "En guagua / autobús"], ["byMetro", "En metro o teleférico"], ["taxi", "En taxi o Uber"], ["parking", "Estacionamiento"]] as const;
 const apiMessage = (e: unknown) => (e instanceof HttpError ? (e.details as { error?: { message?: string } } | null)?.error?.message : null) ?? (e instanceof Error ? e.message : "Error");

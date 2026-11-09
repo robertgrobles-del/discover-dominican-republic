@@ -37,5 +37,17 @@ Disallow: /login
 Disallow: /api/
 Allow: /api/v1/media/
 
-Sitemap: https://www.descubrerepdom.com/sitemap.xml
-Sitemap: https://www.descubrerepdom.com/noticias/rss.xml
+
+# Publicaciones editoriales y noticias indexadas
+# Sincronizado automáticamente al agregar un post o noticia
+Allow: /articulo/ruta-secreta-playas-virgenes-samana
+Allow: /articulo/guia-gastronomica-santo-domingo-alta-cocina
+Allow: /noticias/record-historico-llegada-turistas-2026
+Allow: /noticias/inauguracion-nueva-terminal-aeropuerto-punta-cana
+Allow: /noticias/alianza-cadena-hotelera-pop-turismo-sostenible
+Allow: /noticias/lanzamiento-ruta-vuelos-directos-madrid-samana
+Allow: /articulo/mi-primera-vez-haciendo-senderismo-pico-duarte
+Allow: /articulo/fotografiando-cascadas-ocultas-montegordito
+
+Sitemap: https://descubrerepdom.com/sitemap.xml
+Sitemap: https://descubrerepdom.com/noticias/rss.xml

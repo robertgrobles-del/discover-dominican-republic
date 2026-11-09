@@ -48,7 +48,7 @@ export default function PuertoDetalle() {
         geo={{ latitude: lat, longitude: lng, placename: puerto.location, region: "DO" }}
         jsonLd={{
           "@context": "https://schema.org", "@type": ["Place", "TouristAttraction"], name: puerto.name, description: puerto.description,
-          image: puerto.image, url: `https://www.descubrerepdom.com/puerto/${slug}`,
+          image: puerto.image, url: `https://descubrerepdom.com/puerto/${slug}`,
           address: { "@type": "PostalAddress", addressLocality: puerto.location, addressCountry: "DO" },
           geo: { "@type": "GeoCoordinates", latitude: lat, longitude: lng },
           ...(puerto.reviewCount ? { aggregateRating: { "@type": "AggregateRating", ratingValue: puerto.rating, reviewCount: puerto.reviewCount } } : {}),

@@ -2,7 +2,7 @@
 
 > El e-Ticket es el formulario digital, obligatorio y gratuito, para entrar y salir de República Dominicana. Se hace en el portal oficial https://eticket.gob.do/ de la Dirección General de Migración.
 
-- URL: https://www.descubrerepdom.com/e-ticket
+- URL: https://descubrerepdom.com/e-ticket
 - Revisado: 2026-11
 - Portal oficial: https://eticket.gob.do/ (solo direcciones que terminan en .gob.do)
 - Soporte oficial: teléfono 809-508-2555, correo info@migracion.gob.do

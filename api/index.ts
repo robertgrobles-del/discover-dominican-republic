@@ -586,7 +586,7 @@ async function serveMedia(db: Client, id: string): Promise<ApiResponse> {
 // Google ejecuta JavaScript, pero las vistas previas de WhatsApp, Facebook o X y otros buscadores no: por eso
 // /noticias y /noticias/<slug> se sirven desde aquí con el index.html del sitio y sus metadatos ya escritos.
 // React sustituye después el resumen legible del #root por la página completa.
-export const siteUrl = () => (process.env.SITE_URL || "https://www.descubrerepdom.com").replace(/\/+$/, "");
+export const siteUrl = () => (process.env.SITE_URL || "https://descubrerepdom.com").replace(/\/+$/, "");
 const SITE_NAME = "Descubre RD";
 const DEFAULT_IMAGE = "/og-default.jpg";
 const HTML_CACHE = { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "public, max-age=0, s-maxage=60, stale-while-revalidate=600" };

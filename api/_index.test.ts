@@ -212,7 +212,7 @@ describe("SEO de noticias", () => {
     const page = html(r);
     expect(page).not.toContain("<script>alert(1)</script>");
     expect(page).toContain("&lt;script&gt;");
-    expect(page).toContain('<link rel="canonical" href="https://www.descubrerepdom.com/noticias/ballenas-seo" />');
+    expect(page).toContain('<link rel="canonical" href="https://descubrerepdom.com/noticias/ballenas-seo" />');
     expect(page).toContain('content="Guía de la temporada de ballenas en Samaná."');
     expect(page).toContain('"@type":"NewsArticle"');
     expect(page).toContain('"articleSection":"Naturaleza"');
@@ -229,10 +229,10 @@ describe("SEO de noticias", () => {
 
     expect(html(await render("/render/noticias"))).toContain('href="/noticias/ballenas-seo"');
     const map = html(await render("/sitemap.xml"));
-    expect(map).toContain("<loc>https://www.descubrerepdom.com/noticias/ballenas-seo</loc>");
+    expect(map).toContain("<loc>https://descubrerepdom.com/noticias/ballenas-seo</loc>");
     expect(map).not.toContain("nota-borrador");
-    expect(map).toContain("<loc>https://www.descubrerepdom.com/marina/cap-cana</loc>");
-    expect(map).toContain("<loc>https://www.descubrerepdom.com/puerto/amber-cove</loc>");
+    expect(map).toContain("<loc>https://descubrerepdom.com/marina/cap-cana</loc>");
+    expect(map).toContain("<loc>https://descubrerepdom.com/puerto/amber-cove</loc>");
     expect(html(await render("/rss.xml"))).toContain("<category>Naturaleza</category>");
 
     expect(data(await call("GET", "/public/news/ballenas-seo"))).toMatchObject({ slug: "ballenas-seo", category_name: "Naturaleza" });
@@ -246,15 +246,15 @@ describe("SEO de noticias", () => {
 
     const llms = html(await render("/llms.txt"));
     expect(llms.startsWith("# Descubre RD\n\n> ")).toBe(true);
-    expect(llms).toContain("](https://www.descubrerepdom.com/noticias/para-ia.md): Resumen.");
+    expect(llms).toContain("](https://descubrerepdom.com/noticias/para-ia.md): Resumen.");
     expect(llms).not.toContain("nota-borrador");
 
     const md = await render("/md/noticias/para-ia");
     expect(md.headers?.["Content-Type"]).toContain("text/markdown");
-    expect(html(md)).toContain("](https://www.descubrerepdom.com" + img + ")");
-    expect(html(md)).toContain("- URL: https://www.descubrerepdom.com/noticias/para-ia");
+    expect(html(md)).toContain("](https://descubrerepdom.com" + img + ")");
+    expect(html(md)).toContain("- URL: https://descubrerepdom.com/noticias/para-ia");
     expect(html(await render("/llms-full.txt"))).toContain("# Para IA");
-    expect(html(await render("/render/noticias/para-ia"))).toContain('type="text/markdown" href="https://www.descubrerepdom.com/noticias/para-ia.md"');
+    expect(html(await render("/render/noticias/para-ia"))).toContain('type="text/markdown" href="https://descubrerepdom.com/noticias/para-ia.md"');
     expect((await render("/md/noticias/no-existe")).status).toBe(404);
   });
 });
@@ -363,12 +363,12 @@ describe("traducciones del CMS", () => {
 
     const page = Buffer.from((await handle(req("GET", "/render/noticias/multi", undefined, { host: "x" }, "en"), db, SECRET, false, shell)).raw!).toString();
     expect(page).toContain('<html lang="en"');
-    expect(page).toContain('hreflang="en" href="https://www.descubrerepdom.com/noticias/multi?lang=en"');
+    expect(page).toContain('hreflang="en" href="https://descubrerepdom.com/noticias/multi?lang=en"');
     expect(page).toContain('hreflang="x-default"');
     expect(page).toContain("<title>Whales | Descubre RD</title>");
     // Un idioma sin traducción sirve la versión española (canónica sin ?lang)
     const fr = Buffer.from((await handle(req("GET", "/render/noticias/multi", undefined, { host: "x" }, "fr"), db, SECRET, false, shell)).raw!).toString();
-    expect(fr).toContain('<link rel="canonical" href="https://www.descubrerepdom.com/noticias/multi" />');
+    expect(fr).toContain('<link rel="canonical" href="https://descubrerepdom.com/noticias/multi" />');
   });
 
   it("traduce con el proveedor configurado y avisa si falta la clave", async () => {

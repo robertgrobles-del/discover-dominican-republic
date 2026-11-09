@@ -70,7 +70,7 @@ datos locales y sesión real) ya van en el `buildCommand` de `vercel.json`. No p
 - Para agentes de IA: `/llms.txt` (índice, https://llmstxt.org), `/llms-full.txt` (todas las noticias) y
   `/noticias/<slug>.md` (cada noticia en Markdown, anunciada con `<link rel="alternate" type="text/markdown">`).
   `robots.txt` da acceso explícito a los rastreadores de IA conocidos.
-- Dominio: `SITE_URL` (variable de entorno opcional; por defecto `https://www.descubrerepdom.com`).
+- Dominio: `SITE_URL` (variable de entorno opcional; por defecto `https://descubrerepdom.com`).
 - `/admin` y `/login` llevan `X-Robots-Tag: noindex`; el resto del sitio es indexable.
 - Con `VITE_STAGING_API=true` (en el `buildCommand`) el frontend no llama a rutas que el mini backend no tiene.
 

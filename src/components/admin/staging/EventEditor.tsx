@@ -18,7 +18,7 @@ import { EventPlacePicker } from "./EventPlacePicker";
 
 type Row = Record<string, unknown> & { id: string };
 const EVENT_TYPES = ["Cultural", "Música", "Feria", "Regional", "Exposición", "Deporte", "Gastronomía", "Evento"];
-const SITE = "https://www.descubrerepdom.com";
+const SITE = "https://descubrerepdom.com";
 const apiMessage = (e: unknown) => (e instanceof HttpError ? (e.details as { error?: { message?: string } } | null)?.error?.message : null) ?? (e instanceof Error ? e.message : "Error");
 const toSlug = (v: string) => v.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
 const s = (v: unknown) => (v == null ? "" : String(v));

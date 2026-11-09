@@ -23,7 +23,7 @@ type Photo = { url: string; alt: string };
 
 const REGIONS = [["norte", "Norte (Cibao)"], ["sur", "Sur"], ["este", "Este"], ["santo-domingo", "Santo Domingo"]] as const;
 const PLACE_TYPES = ["Playa", "Cascada", "Montaña", "Parque nacional", "Mirador", "Museo", "Monumento", "Pueblo", "Gastronomía", "Otro"];
-const SITE = "https://www.descubrerepdom.com";
+const SITE = "https://descubrerepdom.com";
 const apiMessage = (e: unknown) => (e instanceof HttpError ? (e.details as { error?: { message?: string } } | null)?.error?.message : null) ?? (e instanceof Error ? e.message : "Error");
 const toSlug = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
 const parse = <T,>(v: unknown): T[] => { try { const a = JSON.parse(String(v ?? "[]")); return Array.isArray(a) ? a : []; } catch { return []; } };

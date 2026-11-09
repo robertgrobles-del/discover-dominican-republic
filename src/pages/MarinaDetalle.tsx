@@ -58,7 +58,7 @@ export default function MarinaDetalle() {
         geo={{ latitude: lat, longitude: lng, placename: marina.ubicacion, region: "DO" }}
         jsonLd={{
           "@context": "https://schema.org", "@type": "Marina", name: marina.nombre, description: marina.descripcion,
-          url: `https://www.descubrerepdom.com/marina/${id}`, telephone: marina.telefono || undefined, email: marina.email || undefined,
+          url: `https://descubrerepdom.com/marina/${id}`, telephone: marina.telefono || undefined, email: marina.email || undefined,
           sameAs: marina.website ? [marina.website] : undefined,
           address: { "@type": "PostalAddress", addressLocality: marina.ubicacion, addressRegion: marina.provincia, addressCountry: "DO" },
           geo: { "@type": "GeoCoordinates", latitude: lat, longitude: lng },
