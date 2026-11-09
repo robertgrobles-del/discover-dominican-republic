@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "prebuild": "node scripts/page-content-registry.cjs",
+    "prebuild": "node scripts/sync-seo-llms.mjs && node scripts/page-content-registry.cjs",
+    "sync:seo": "node scripts/sync-seo-llms.mjs",
     "build": "vite build",
     "page-content": "node scripts/page-content-codemod.cjs && node scripts/page-content-pass2.cjs && node scripts/page-content-registry.cjs",
     "postbuild": "node scripts/postbuild.mjs",

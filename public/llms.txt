@@ -1,0 +1,38 @@
+# Descubre República Dominicana
+
+> Portal oficial de turismo de República Dominicana: noticias de actualidad turística (eventos, cultura, gastronomía, naturaleza, infraestructura y avisos al viajero), guía del e-Ticket, aeropuertos, puertos de cruceros, marinas, eventos y directorio de negocios turísticos por provincia.
+
+Contenido en español de República Dominicana. Cada noticia y artículo dispone de una versión limpia y una página web interactiva en https://www.descubrerepdom.com/noticias/<slug> o https://www.descubrerepdom.com/articulo/<slug>. Los metadatos siguen schema.org (NewsArticle y Article).
+
+## Noticias y Actualidad del Sector
+
+- [República Dominicana Rompe Récord Histórico de Turistas en el Primer Semestre 2026](https://www.descubrerepdom.com/noticias/record-historico-llegada-turistas-2026): El Ministerio de Turismo informa un crecimiento interanual del 14% en llegadas aéreas y cruceristas, consolidando el liderazgo regional.
+- [Inauguran Nueva Terminal B Sostenible en el Aeropuerto Internacional de Punta Cana](https://www.descubrerepdom.com/noticias/inauguracion-nueva-terminal-aeropuerto-punta-cana): Con tecnología biométrica de última generación y operación 100% con energía solar, la nueva terminal eleva la capacidad a 12 millones de pasajeros anuales.
+
+## Notas de Prensa de Aliados & Comunicados
+
+- [Playa Dorada Resort & Spa Anuncia Certificación Carbono Neutral en Puerto Plata](https://www.descubrerepdom.com/noticias/alianza-cadena-hotelera-pop-turismo-sostenible): COMUNICADO OFICIAL: La cadena hotelera líder en la Costa Norte alcanza el estándar internacional de cero emisiones netas en todas sus propiedades.
+- [Aerolínea Aliada Lanza Ruta Directa Madrid – El Catey (Samaná) para Temporada de Ballenas](https://www.descubrerepdom.com/noticias/lanzamiento-ruta-vuelos-directos-madrid-samana): COMUNICADO: Dos frecuencias semanales conectarán directamente la capital española con el polo ecoturístico de Samaná a partir de noviembre.
+
+## Artículos de Viaje y Experiencias
+
+- [Ruta de Playas Vírgenes en Samaná: De Rincón a Playa Frontón](https://www.descubrerepdom.com/articulo/ruta-secreta-playas-virgenes-samana): Una travesía inolvidable por los rincones costeros más salvajes y espectaculares de la península de Samaná.
+- [Guía Gastronómica de Santo Domingo: Nueva Cocina Dominicana](https://www.descubrerepdom.com/articulo/guia-gastronomica-santo-domingo-alta-cocina): Descubre cómo los chefs dominicanos están reinterpretando el sancocho, el chivo liniero y el coco en propuestas de vanguardia.
+- [3 Días en el Techo del Caribe: Mi Primera Travesía al Pico Duarte](https://www.descubrerepdom.com/articulo/mi-primera-vez-haciendo-senderismo-pico-duarte): Crónica vivencial de un excursionista aficionado conquistando los 3,087 metros sobre el nivel del mar entre pinares, fogatas y mulas.
+- [En Busca de los Charcos Olvidados de Jamao al Norte](https://www.descubrerepdom.com/articulo/fotografiando-cascadas-ocultas-montegordito): Guía fotográfica para exploradores independientes que buscan cañones turquesas y saltos de agua sin aglomeraciones.
+
+## Guías Oficiales y Servicios de Viaje
+
+- [E-Ticket de República Dominicana: guía del nuevo portal](https://www.descubrerepdom.com/e-ticket.md): Cómo tramitar 100% gratis el formulario electrónico obligatorio de entrada y salida migratoria en eticket.gob.do.
+- [Aeropuertos Internacionales de República Dominicana](https://www.descubrerepdom.com/aeropuerto): Terminales, aerolíneas, conexiones y servicios en terminal (PUJ, SDQ, STI, POP, LRM, AZS, BRX, JBQ).
+- [Puertos de Cruceros y Marinas Deportivas](https://www.descubrerepdom.com/puertos-marinas): Puertos marítimos (Amber Cove, Taíno Bay, Sans Souci, Cabo Rojo…) y marinas náuticas (Cap Cana, Casa de Campo, Ocean World…).
+- [Eventos en República Dominicana](https://www.descubrerepdom.com/eventos): Agenda cultural, festivales y eventos deportivos por provincia.
+- [Directorio de Negocios Turísticos](https://www.descubrerepdom.com/negocios): Alojamientos, restaurantes y servicios turísticos verificados por provincia.
+
+## Opcional y Recursos Globales
+
+- [Todas las noticias y artículos en texto completo](https://www.descubrerepdom.com/llms-full.txt)
+- [Listado oficial de noticias](https://www.descubrerepdom.com/noticias)
+- [Revista & Blog de Viajes](https://www.descubrerepdom.com/revista)
+- [Feed RSS de Noticias](https://www.descubrerepdom.com/noticias/rss.xml)
+- [Sitemap General XML](https://www.descubrerepdom.com/sitemap.xml)
