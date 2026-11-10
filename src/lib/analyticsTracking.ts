@@ -3,7 +3,7 @@ import { ANALYTICS_EVENT, AnalyticsEventDetail } from "@/lib/marketingPixels";
 
 /**
  * Módulo de integración para Google Analytics (GA4), Google Tag Manager (GTM)
- * y Microsoft Clarity.
+ * Microsoft Clarity y Cloudflare Web Analytics.
  *
  * Principios de Privacidad y Cumplimiento:
  * 1. Cero carga de scripts de terceros sin consentimiento previo (GDPR / GPC / Do Not Track).
@@ -23,21 +23,25 @@ export interface AnalyticsIds {
   gaMeasurementId?: string;
   gtmId?: string;
   clarityProjectId?: string;
+  cloudflareToken?: string;
 }
 
 export function readAnalyticsIds(env: {
   VITE_GA_MEASUREMENT_ID?: string;
   VITE_GTM_ID?: string;
   VITE_CLARITY_PROJECT_ID?: string;
+  VITE_CF_BEACON_TOKEN?: string;
 } = import.meta.env): AnalyticsIds {
   const ga = env.VITE_GA_MEASUREMENT_ID?.trim();
   const gtm = env.VITE_GTM_ID?.trim();
   const clarity = env.VITE_CLARITY_PROJECT_ID?.trim();
+  const cf = env.VITE_CF_BEACON_TOKEN?.trim();
 
   return {
     gaMeasurementId: ga && /^G-[A-Z0-9]+$/i.test(ga) ? ga : undefined,
     gtmId: gtm && /^GTM-[A-Z0-9]+$/i.test(gtm) ? gtm : undefined,
     clarityProjectId: clarity && /^[a-z0-9]{8,15}$/i.test(clarity) ? clarity : undefined,
+    cloudflareToken: cf && /^[a-f0-9]{32}$/i.test(cf) ? cf : undefined,
   };
 }
 
@@ -87,6 +91,17 @@ function loadClarity(projectId: string): void {
   })(window, document, "clarity", "script", projectId);
 }
 
+/** Cloudflare Web Analytics: sin cookies; el beacon sigue solo la navegación SPA (pushState). */
+function loadCloudflare(token: string): void {
+  if (document.getElementById("cf-beacon")) return;
+  const script = document.createElement("script");
+  script.defer = true;
+  script.id = "cf-beacon";
+  script.src = "https://static.cloudflareinsights.com/beacon.min.js";
+  script.dataset.cfBeacon = JSON.stringify({ token, spa: true });
+  document.head.appendChild(script);
+}
+
 let started = false;
 let active = false;
 
@@ -97,6 +112,7 @@ function sync(ids: AnalyticsIds): void {
     if (ids.gaMeasurementId) loadGA(ids.gaMeasurementId);
     if (ids.gtmId) loadGTM(ids.gtmId);
     if (ids.clarityProjectId) loadClarity(ids.clarityProjectId);
+    if (ids.cloudflareToken) loadCloudflare(ids.cloudflareToken);
     active = true;
 
     // Track initial pageview
@@ -114,7 +130,7 @@ function sync(ids: AnalyticsIds): void {
 
 export function initAnalyticsTracking(env = import.meta.env): AnalyticsIds {
   const ids = readAnalyticsIds(env);
-  if (started || typeof window === "undefined" || (!ids.gaMeasurementId && !ids.gtmId && !ids.clarityProjectId)) {
+  if (started || typeof window === "undefined" || (!ids.gaMeasurementId && !ids.gtmId && !ids.clarityProjectId && !ids.cloudflareToken)) {
     return ids;
   }
 
