@@ -12,7 +12,7 @@ Estado: borrador v1 (2026-11-06). Sin fecha oficial: el calendario es relativo a
 | Usuarios gamificación | 500 | Registro con puntos |
 | Patrocinadores evento | 3–5 | Contratos firmados |
 
-Base actual: 38k seguidores (IG 25k, TikTok 8k, FB 5k). Es el mayor activo: convertir **1,3 %** de seguidores en usuarios ya da los 500.
+Base actual (2026-11-10): más de 65k seguidores (IG 21,5k + 15,3k en dos cuentas, TikTok 13,7k, FB 13k, X 1,7k). Es el mayor activo: convertir **0,8 %** de seguidores en usuarios ya da los 500.
 
 Riesgo honesto: 30k visitas/mes con 10 USD/semana de pauta depende casi todo de orgánico (redes + SEO + prensa). Es alcanzable solo si las redes empujan tráfico al sitio todos los días.
 
@@ -25,7 +25,7 @@ Riesgo honesto: 30k visitas/mes con 10 USD/semana de pauta depende casi todo de 
 | Turista local | 3 | Escapadas de fin de semana, ofertas | IG, TikTok |
 | Estudiantes | 4 | Puntos y rifas mensuales | TikTok, universidades |
 | Operadores | B2B | "Visibilidad gratis ante viajeros" | Correo directo |
-| Patrocinadores/anunciantes | B2B | Audiencia de 38k+ y creciendo | Correo + media kit |
+| Patrocinadores/anunciantes | B2B | Audiencia de 65k+ y creciendo | Correo + media kit |
 
 ## 3. Fases
 
@@ -67,7 +67,7 @@ Riesgo honesto: 30k visitas/mes con 10 USD/semana de pauta depende casi todo de 
 
 Hola, {Nombre}:
 
-Somos **Descubre República Dominicana** (descubrerepdom.com), un portal de turismo con una comunidad de más de 38.000 seguidores en redes, enfocado en viajeros extranjeros, la diáspora y el turista local.
+Somos **Descubre República Dominicana** (descubrerepdom.com), un portal de turismo con una comunidad de más de 65.000 seguidores en redes, enfocado en viajeros extranjeros, la diáspora y el turista local.
 
 Queremos publicar **sin costo** las novedades de {Empresa}: aperturas, ofertas, eventos y notas de prensa, en el portal y nuestras redes.
 
@@ -86,7 +86,7 @@ Hola, {Nombre}:
 
 Estamos lanzando **Descubre República Dominicana**, un portal que conecta a viajeros con operadores locales. Registrar {Empresa} es gratis y le da una ficha propia con fotos, servicios y contacto directo.
 
-Los primeros 50 operadores tendrán **distintivo de fundador** y destaque en nuestras redes (38.000+ seguidores).
+Los primeros 50 operadores tendrán **distintivo de fundador** y destaque en nuestras redes (65.000+ seguidores).
 
 Regístrese aquí: {enlace}
 
@@ -100,7 +100,7 @@ _Si prefiere no recibir más correos, responda "baja"._
 
 Hola, {Nombre}:
 
-Preparamos el lanzamiento presencial de **Descubre República Dominicana**, portal de turismo con una comunidad de 38.000+ seguidores y meta de 30.000 visitas mensuales.
+Preparamos el lanzamiento presencial de **Descubre República Dominicana**, portal de turismo con una comunidad de 65.000+ seguidores y meta de 30.000 visitas mensuales.
 
 Buscamos {3–5} marcas aliadas. A cambio ofrecemos: presencia de marca en el evento y la transmisión, productos patrocinados dentro del portal y la rifa, y publicaciones en redes.
 

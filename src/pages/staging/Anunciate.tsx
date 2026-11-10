@@ -11,9 +11,10 @@ import { cn } from "@/lib/utils";
 import { LEGAL } from "./LegalPage";
 
 const AUDIENCE = [
-  { value: "25 mil", label: "Instagram" },
-  { value: "8 mil", label: "TikTok" },
-  { value: "5 mil", label: "Facebook" },
+  { value: "36,8 mil", label: "Instagram (2 cuentas)" },
+  { value: "13,7 mil", label: "TikTok" },
+  { value: "13 mil", label: "Facebook" },
+  { value: "1,7 mil", label: "X" },
 ];
 
 const PLANS = [
@@ -72,7 +73,7 @@ export default function Anunciate() {
         <header className="grid gap-8 lg:grid-cols-[1.4fr_1fr] lg:items-end">
           <div>
             <h1 className="font-display text-4xl font-bold tracking-tight md:text-5xl">Anúnciate en Descubre RD</h1>
-            <p className="mt-4 max-w-xl text-lg leading-relaxed text-muted-foreground">Contamos lo que pasa en el turismo dominicano a 38 mil personas que siguen el portal en redes: viajeros de fuera, dominicanos en el exterior y quienes recorren el país los fines de semana.</p>
+            <p className="mt-4 max-w-xl text-lg leading-relaxed text-muted-foreground">Contamos lo que pasa en el turismo dominicano a más de 65 mil personas que siguen el portal en redes: viajeros de fuera, dominicanos en el exterior y quienes recorren el país los fines de semana.</p>
           </div>
           <dl className="flex gap-8 border-l-2 border-primary pl-6">
             {AUDIENCE.map((a) => (
