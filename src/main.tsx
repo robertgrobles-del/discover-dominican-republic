@@ -30,8 +30,8 @@ if (import.meta.env.VITE_META_PIXEL_ID || import.meta.env.VITE_TIKTOK_PIXEL_ID) 
   void import("./lib/marketingPixels").then((m) => m.initMarketingPixels()).catch(() => undefined);
 }
 
-// Analítica externa (Google Analytics / GTM / Microsoft Clarity) con consentimiento estricto
-if (import.meta.env.VITE_GA_MEASUREMENT_ID || import.meta.env.VITE_GTM_ID || import.meta.env.VITE_CLARITY_PROJECT_ID) {
+// Analítica externa (Google Analytics / GTM / Microsoft Clarity / Cloudflare) con consentimiento estricto
+if (import.meta.env.VITE_GA_MEASUREMENT_ID || import.meta.env.VITE_GTM_ID || import.meta.env.VITE_CLARITY_PROJECT_ID || import.meta.env.VITE_CF_BEACON_TOKEN) {
   void import("./lib/analyticsTracking").then((m) => m.initAnalyticsTracking()).catch(() => undefined);
 }
 
