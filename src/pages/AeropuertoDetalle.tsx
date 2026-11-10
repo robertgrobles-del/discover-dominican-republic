@@ -789,117 +789,6 @@ export default function AeropuertoDetalle() {
                 </div>
               </section>
 
-              {/* SECTION: Destinations & Network */}
-              <section className="scroll-mt-24" data-purpose="destinations-section" id="destinos">
-                <div className="mb-4">
-                  <span className="text-xs font-bold text-[#005ea6] uppercase tracking-wider">Rutas Directas</span>
-                  <h2 className="text-2xl font-bold text-slate-900 mt-1 font-display">Destinos Conectados sin Escalas</h2>
-                  <p className="text-xs text-slate-500 mt-1">Conexión inmediata con las principales capitales de América y Europa.</p>
-                </div>
-
-                {/* Region Filter Pills */}
-                <div className="flex flex-wrap gap-2 mb-4">
-                  <button 
-                    onClick={() => setActiveRegion("all")}
-                    className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition ${
-                      activeRegion === "all" 
-                        ? "bg-[#0b1d3a] text-white shadow-xs" 
-                        : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"
-                    }`}
-                  >
-                    Todos ({destinationGroups.reduce((acc, g) => acc + g.destinations.length, 0)})
-                  </button>
-                  {destinationGroups.map((group) => (
-                    <button 
-                      key={group.region}
-                      onClick={() => setActiveRegion(group.region)}
-                      className={`px-3.5 py-1.5 rounded-lg text-xs font-medium transition ${
-                        activeRegion === group.region 
-                          ? "bg-[#0b1d3a] text-white font-semibold shadow-xs" 
-                          : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"
-                      }`}
-                    >
-                      {group.region} ({group.destinations.length})
-                    </button>
-                  ))}
-                </div>
-
-                {/* Connected Cities Cloud */}
-                <div className="bg-white p-5 rounded-2xl border border-slate-200 flex flex-wrap gap-2">
-                  {displayedDestinations.map((city, idx) => {
-                    const isKeyCity = city.includes("MAD") || city.includes("Madrid");
-                    return (
-                      <span 
-                        key={idx}
-                        className={`inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-medium transition cursor-default ${
-                          isKeyCity 
-                            ? "bg-blue-50 text-[#005ea6] font-semibold border border-blue-200" 
-                            : "bg-slate-50 text-slate-700 border border-slate-200/80 hover:border-[#005ea6] hover:text-[#005ea6]"
-                        }`}
-                      >
-                        <Plane className={`w-3 h-3 mr-1.5 ${isKeyCity ? "text-[#005ea6]" : "text-slate-400"}`} />
-                        {city}
-                      </span>
-                    );
-                  })}
-                </div>
-              </section>
-
-              {/* SECTION: Ground Transportation */}
-              <section className="scroll-mt-24" data-purpose="ground-transportation" id="transporte">
-                <div className="mb-6">
-                  <span className="text-xs font-bold text-[#005ea6] uppercase tracking-wider">Movilidad y Traslados</span>
-                  <h2 className="text-2xl font-bold text-slate-900 mt-1 font-display">Cómo Moverse desde el {airport.name}</h2>
-                  <p className="text-xs text-slate-500 mt-1">Opciones verificadas y reguladas para trasladarse a {airport.city} y los principales destinos turísticos.</p>
-                </div>
-
-                {/* Transport Cards Stack */}
-                <div className="space-y-3.5">
-                  {(airport.transportation && airport.transportation.length > 0 ? airport.transportation.slice(0, 4) : [
-                    { name: `Taxi Oficial ${airport.code}`, detail: `Servicio con tarifa fija por zona con ticket en mostrador oficial`, price: "US$ 25 - 40" },
-                    { name: "Uber / DiDi Ridesharing", detail: "Puntos de encuentro autorizados frente a la salida exterior", price: "Tarifa en app" },
-                    { name: "Renta de Autos Multimarca", detail: "Agencias líderes con mostradores en vestíbulo y entrega de vehículos", price: "Desde US$ 35/día" },
-                    { name: "Autobús & Transfers Turísticos", detail: "Minibuses hacia el centro de la ciudad y hoteles turísticos", price: "Económico" }
-                  ]).map((trans, idx) => {
-                    const style = transportCardStyles[idx % transportCardStyles.length];
-                    const IconComponent = style.icon;
-                    return (
-                      <div key={idx} className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-[#005ea6]/60 transition shadow-xs">
-                        <div className="flex items-start space-x-3.5">
-                          <div className={`w-10 h-10 rounded-xl ${style.bg} flex items-center justify-center shrink-0`}>
-                            <IconComponent className="w-5 h-5" />
-                          </div>
-                          <div>
-                            <div className="flex items-center space-x-2">
-                              <h3 className="font-bold text-slate-900 text-sm sm:text-base">{trans.name}</h3>
-                              <span className={`${style.badgeClass} text-[10px] font-bold px-2 py-0.5 rounded`}>{style.badge}</span>
-                            </div>
-                            <p className="text-xs text-slate-500 mt-1 max-w-md">
-                              {trans.detail}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="sm:text-right shrink-0">
-                          {trans.price ? (
-                            <>
-                              <span className="text-[10px] uppercase text-slate-400 font-semibold block">Tarifa Estimada</span>
-                              <span className="text-base sm:text-lg font-black text-slate-900">{trans.price}</span>
-                              <span className="text-[11px] text-slate-500 block">Sujeto a destino / zona</span>
-                            </>
-                          ) : (
-                            <>
-                              <span className="text-[10px] uppercase text-slate-400 font-semibold block">Modalidad</span>
-                              <span className="text-base sm:text-lg font-black text-[#005ea6]">Disponible</span>
-                              <span className="text-[11px] text-slate-500 block">Mostrador en Hall de Llegadas</span>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </section>
-
             </div>
 
             {/* ========================================== */}
@@ -1130,6 +1019,119 @@ export default function AeropuertoDetalle() {
           {/* FULL-WIDTH SECTIONS (OCUPAN AMBAS COLUMNAS AL 100% ANCHO) */}
           {/* ======================================================== */}
           <div className="space-y-16 mt-16 pt-4 border-t border-slate-200/80">
+
+            {/* SECTION: Destinations & Network (A todo ancho) */}
+            <section className="scroll-mt-24" data-purpose="destinations-section" id="destinos">
+              <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-6 pb-4 border-b border-slate-200 gap-4">
+                <div>
+                  <span className="text-xs font-bold text-[#005ea6] uppercase tracking-wider">Rutas Directas Globales</span>
+                  <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mt-1 font-display">Destinos Conectados sin Escalas</h2>
+                  <p className="text-xs sm:text-sm text-slate-500 mt-1">Conexión inmediata con las principales capitales y ciudades de América y Europa desde {airport.code}.</p>
+                </div>
+
+                {/* Region Filter Pills */}
+                <div className="flex flex-wrap gap-2">
+                  <button 
+                    onClick={() => setActiveRegion("all")}
+                    className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition ${
+                      activeRegion === "all" 
+                        ? "bg-[#0b1d3a] text-white shadow-xs" 
+                        : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"
+                    }`}
+                  >
+                    Todos ({destinationGroups.reduce((acc, g) => acc + g.destinations.length, 0)})
+                  </button>
+                  {destinationGroups.map((group) => (
+                    <button 
+                      key={group.region}
+                      onClick={() => setActiveRegion(group.region)}
+                      className={`px-3.5 py-1.5 rounded-lg text-xs font-medium transition ${
+                        activeRegion === group.region 
+                          ? "bg-[#0b1d3a] text-white font-semibold shadow-xs" 
+                          : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"
+                      }`}
+                    >
+                      {group.region} ({group.destinations.length})
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Connected Cities Cloud */}
+              <div className="bg-white p-6 sm:p-7 rounded-2xl border border-slate-200 flex flex-wrap gap-2.5 shadow-xs">
+                {displayedDestinations.map((city, idx) => {
+                  const isKeyCity = city.includes("MAD") || city.includes("Madrid");
+                  return (
+                    <span 
+                      key={idx}
+                      className={`inline-flex items-center px-3.5 py-2 rounded-xl text-xs font-medium transition cursor-default ${
+                        isKeyCity 
+                          ? "bg-blue-50 text-[#005ea6] font-semibold border border-blue-200 shadow-2xs" 
+                          : "bg-slate-50 text-slate-700 border border-slate-200/80 hover:border-[#005ea6] hover:text-[#005ea6]"
+                      }`}
+                    >
+                      <Plane className={`w-3.5 h-3.5 mr-2 ${isKeyCity ? "text-[#005ea6]" : "text-slate-400"}`} />
+                      {city}
+                    </span>
+                  );
+                })}
+              </div>
+            </section>
+
+            {/* SECTION: Ground Transportation (A todo ancho) */}
+            <section className="scroll-mt-24" data-purpose="ground-transportation" id="transporte">
+              <div className="mb-6 pb-4 border-b border-slate-200">
+                <span className="text-xs font-bold text-[#005ea6] uppercase tracking-wider">Movilidad y Traslados</span>
+                <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mt-1 font-display">Cómo Moverse desde el {airport.name}</h2>
+                <p className="text-xs sm:text-sm text-slate-500 mt-1">Opciones verificadas y reguladas para trasladarse a {airport.city} y los principales polos turísticos del país.</p>
+              </div>
+
+              {/* Transport Cards Grid (2 Columnas en desktop para aprovechar el ancho completo) */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {(airport.transportation && airport.transportation.length > 0 ? airport.transportation.slice(0, 4) : [
+                  { name: `Taxi Oficial ${airport.code}`, detail: `Servicio con tarifa fija por zona con ticket en mostrador oficial`, price: "US$ 25 - 40" },
+                  { name: "Uber / DiDi Ridesharing", detail: "Puntos de encuentro autorizados frente a la salida exterior", price: "Tarifa en app" },
+                  { name: "Renta de Autos Multimarca", detail: "Agencias líderes con mostradores en vestíbulo y entrega de vehículos", price: "Desde US$ 35/día" },
+                  { name: "Autobús & Transfers Turísticos", detail: "Minibuses hacia el centro de la ciudad y hoteles turísticos", price: "Económico" }
+                ]).map((trans, idx) => {
+                  const style = transportCardStyles[idx % transportCardStyles.length];
+                  const IconComponent = style.icon;
+                  return (
+                    <div key={idx} className="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-[#005ea6]/60 transition shadow-xs group">
+                      <div className="flex items-start space-x-3.5">
+                        <div className={`w-11 h-11 rounded-xl ${style.bg} flex items-center justify-center shrink-0`}>
+                          <IconComponent className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <div className="flex items-center space-x-2">
+                            <h3 className="font-bold text-slate-900 text-sm sm:text-base group-hover:text-[#005ea6] transition">{trans.name}</h3>
+                            <span className={`${style.badgeClass} text-[10px] font-bold px-2 py-0.5 rounded`}>{style.badge}</span>
+                          </div>
+                          <p className="text-xs text-slate-500 mt-1 leading-relaxed max-w-md">
+                            {trans.detail}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="sm:text-right shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
+                        {trans.price ? (
+                          <>
+                            <span className="text-[10px] uppercase text-slate-400 font-semibold block">Tarifa Estimada</span>
+                            <span className="text-base sm:text-lg font-black text-slate-900">{trans.price}</span>
+                            <span className="text-[11px] text-slate-500 block">Sujeto a destino / zona</span>
+                          </>
+                        ) : (
+                          <>
+                            <span className="text-[10px] uppercase text-slate-400 font-semibold block">Modalidad</span>
+                            <span className="text-base sm:text-lg font-black text-[#005ea6]">Disponible</span>
+                            <span className="text-[11px] text-slate-500 block">Mostrador en Hall de Llegadas</span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
 
             {/* SECTION 9: Passenger Journey Flow (Flujo del Pasajero a Todo Ancho) */}
             <section className="scroll-mt-24" data-purpose="passenger-journey-guide" id="flujo-pasajero">
