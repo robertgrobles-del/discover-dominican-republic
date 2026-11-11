@@ -252,7 +252,8 @@ export function NewsEditor({ row, onClose, onNew }: { row: Row | "new"; onClose:
         </div>
 
         {/* Columna lateral */}
-        <aside className="min-w-0 space-y-4">
+        {/* La barra lateral se queda fija y se desplaza por dentro: no crece más que la pantalla. */}
+        <aside className="min-w-0 space-y-4 lg:sticky lg:top-4 lg:max-h-[calc(100dvh-2rem)] lg:overflow-y-auto lg:overscroll-contain lg:pr-1">
           <Box title="Publicar">
             <div className="flex justify-between gap-2">
               <Button size="sm" variant="outline" disabled={busy} onClick={() => save.mutate("draft")}>{published ? "Pasar a borrador" : "Guardar borrador"}</Button>

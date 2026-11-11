@@ -1,6 +1,7 @@
 // Lista de eventos con el aspecto de la de entradas: filtro por estado (incluidos los enviados por el público
 // y los ya terminados), búsqueda y acciones por fila.
 import { useMemo, useState } from "react";
+import { BulkBar, STATUS_ACTIONS, useChecked } from "./BulkBar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -36,6 +37,7 @@ export function EventList({ rows, onNew, onEdit, onDelete, busy }: {
     .sort((a, b) => s(b.start_date).localeCompare(s(a.start_date))),
   [rows, q, view]);
 
+  const sel = useChecked(list);
   return (
     <section className="space-y-4">
       <div className="flex items-center gap-3">
@@ -43,6 +45,8 @@ export function EventList({ rows, onNew, onEdit, onDelete, busy }: {
         <Button size="sm" variant="outline" className="border-primary text-primary" onClick={onNew}>Añadir evento</Button>
       </div>
       <div className="flex flex-wrap items-center justify-between gap-3">
+        <BulkBar resource="events" ids={[...sel.checked]} onDelete={onDelete} onDone={sel.clear} busy={busy} actions={[...STATUS_ACTIONS,
+          { key: "feat", label: "Destacar", patch: { is_featured: true } }, { key: "unfeat", label: "Quitar de destacados", patch: { is_featured: false } }]} />
         <nav aria-label="Filtrar por estado" className="text-sm">
           {(Object.keys(LABEL) as View[]).map((v, i) => (
             <span key={v}>
@@ -59,13 +63,14 @@ export function EventList({ rows, onNew, onEdit, onDelete, busy }: {
         <table className="w-full min-w-[760px] text-sm">
           <thead className="border-b border-border text-left">
             <tr>
-              <th className="p-3 font-normal">Evento</th><th className="p-3 font-normal">Tipo</th><th className="p-3 font-normal">Fecha</th>
+              <th className="w-10 p-3"><input type="checkbox" aria-label="Seleccionar todos" className="h-4 w-4" checked={sel.all} onChange={sel.toggleAll} /></th><th className="p-3 font-normal">Evento</th><th className="p-3 font-normal">Tipo</th><th className="p-3 font-normal">Fecha</th>
               <th className="p-3 font-normal">Lugar</th><th className="p-3 font-normal">Estado</th>
             </tr>
           </thead>
           <tbody>
-            {list.length === 0 ? <tr><td colSpan={5} className="p-6 text-muted-foreground">No hay eventos que coincidan.</td></tr> : list.map((r, i) => (
+            {list.length === 0 ? <tr><td colSpan={6} className="p-6 text-muted-foreground">No hay eventos que coincidan.</td></tr> : list.map((r, i) => (
               <tr key={r.id} className={`group align-top ${i % 2 ? "" : "bg-muted/40"}`}>
+                <td className="p-3"><input type="checkbox" aria-label={`Seleccionar ${String(r.name ?? "")}`} className="h-4 w-4" checked={sel.checked.has(r.id)} onChange={() => sel.toggle(r.id)} /></td>
                 <td className="p-3">
                   <button type="button" className="font-semibold text-primary hover:underline" onClick={() => onEdit(r)}>{s(r.name)}</button>
                   {r.is_featured ? <span className="ml-1.5 text-xs text-muted-foreground">— Destacado</span> : null}

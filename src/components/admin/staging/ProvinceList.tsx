@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { analyzeSeo, splitKeywords } from "@/lib/seoAnalysis";
 import { SeoScore } from "./SeoAnalysisBox";
+import { BulkBar, STATUS_ACTIONS, useChecked } from "./BulkBar";
+import { INTRO_LAYOUTS } from "@/components/province/ProvinceIntroSection";
 
 type Row = Record<string, unknown> & { id: string };
 const s = (v: unknown) => (v == null ? "" : String(v));
@@ -20,6 +22,7 @@ export function ProvinceList({ rows, onNew, onEdit, onDelete, busy }: {
     .filter((r) => (view === "all" || (view === "published") === (r.status === "published"))
       && (!region || r.region === region) && s(r.name).toLowerCase().includes(q.trim().toLowerCase()))
     .sort((a, b) => s(a.name).localeCompare(s(b.name), "es")), [rows, q, region, view]);
+  const sel = useChecked(list);
   const n = { all: rows.length, published: rows.filter((r) => r.status === "published").length, draft: rows.filter((r) => r.status !== "published").length };
 
   return (
@@ -39,6 +42,9 @@ export function ProvinceList({ rows, onNew, onEdit, onDelete, busy }: {
             </span>
           ))}
         </nav>
+        <BulkBar resource="provinces" ids={[...sel.checked]} onDelete={onDelete} onDone={sel.clear} busy={busy} actions={[...STATUS_ACTIONS,
+          { key: "region", label: "Cambiar región", field: "region", options: Object.entries(REGION) },
+          { key: "layout", label: "Cambiar composición de la presentación", field: "intro_layout", options: INTRO_LAYOUTS }]} />
         <div className="flex gap-2">
           <select aria-label="Filtrar por región" value={region} onChange={(e) => setRegion(e.target.value)} className="h-9 rounded border border-input bg-background px-2 text-sm">
             <option value="">Todas las regiones</option>
@@ -52,13 +58,15 @@ export function ProvinceList({ rows, onNew, onEdit, onDelete, busy }: {
         <table className="w-full min-w-[760px] text-sm">
           <thead className="border-b border-border text-left">
             <tr>
+              <th className="w-10 p-3"><input type="checkbox" aria-label="Seleccionar todas" className="h-4 w-4" checked={sel.all} onChange={sel.toggleAll} /></th>
               <th className="p-3 font-normal">Nombre</th><th className="p-3 font-normal">Región</th><th className="p-3 font-normal">Contenido</th>
               <th className="p-3 font-normal">Estado</th><th className="p-3 font-normal">SEO</th>
             </tr>
           </thead>
           <tbody>
-            {list.length === 0 ? <tr><td colSpan={5} className="p-6 text-muted-foreground">No hay provincias que coincidan.</td></tr> : list.map((r, i) => (
+            {list.length === 0 ? <tr><td colSpan={6} className="p-6 text-muted-foreground">No hay provincias que coincidan.</td></tr> : list.map((r, i) => (
               <tr key={r.id} className={`group align-top ${i % 2 ? "" : "bg-muted/40"}`}>
+                <td className="p-3"><input type="checkbox" aria-label={`Seleccionar ${s(r.name)}`} className="h-4 w-4" checked={sel.checked.has(r.id)} onChange={() => sel.toggle(r.id)} /></td>
                 <td className="p-3">
                   <span className="flex items-center gap-2">
                     {r.color_primary ? <span className="h-3 w-3 shrink-0 rounded-sm" style={{ background: s(r.color_primary) }} aria-hidden="true" /> : null}

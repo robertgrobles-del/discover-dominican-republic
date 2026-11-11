@@ -107,7 +107,8 @@ export function PlaceEditor({ kind, row, onClose, onNew }: { kind: PlaceKind; ro
           </Box>
         </div>
 
-        <aside className="min-w-0 space-y-4">
+        {/* La barra lateral se queda fija y se desplaza por dentro: no crece más que la pantalla. */}
+        <aside className="min-w-0 space-y-4 lg:sticky lg:top-4 lg:max-h-[calc(100dvh-2rem)] lg:overflow-y-auto lg:overscroll-contain lg:pr-1">
           <Box title="Publicar">
             <p>Estado: <strong>{f.status === "published" ? "Publicado" : "Borrador"}</strong></p>
             <Button variant="outline" size="sm" disabled={busy || !ready} onClick={() => save.mutate("draft")}>Guardar borrador</Button>

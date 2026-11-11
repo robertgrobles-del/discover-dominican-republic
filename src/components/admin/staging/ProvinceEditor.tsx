@@ -245,6 +245,11 @@ export function ProvinceEditor({ row, onClose, onNew }: { row: Row | "new"; onCl
               )} />
           </Box>
 
+          <Box id="pe-fotos" collapsible title={`Slider de portada (${hero.length}/10)`}>
+            <p className="text-xs text-muted-foreground">Si añades fotos aquí, la portada pasa a ser un slider; si no, se usa la imagen de portada.</p>
+            <PhotoList items={hero} onChange={setHero} max={10} />
+          </Box>
+
           <Box id="pe-slider" collapsible title={`Slider de portada: textos (${slides.length}/10)`}>
             <p className="text-xs text-muted-foreground">Cada diapositiva con su foto y su texto. Si no hay ninguna, se usan las fotos del «Slider de portada» de la derecha.</p>
             <Repeater items={slides} onChange={setSlides} empty={{ image: "", tag: "", title: "", subtitle: "", description: "", ctaText: "", ctaLink: "" }} add="Añadir diapositiva" render={(x, p) => (
@@ -403,7 +408,8 @@ export function ProvinceEditor({ row, onClose, onNew }: { row: Row | "new"; onCl
               body: f.description, imageAlt: f.image_alt, hasImage: Boolean(f.image_url) }} />
         </div>
 
-        <aside className="min-w-0 space-y-4">
+        {/* La barra lateral se queda fija y se desplaza por dentro: no crece más que la pantalla. */}
+        <aside className="min-w-0 space-y-4 lg:sticky lg:top-4 lg:max-h-[calc(100dvh-2rem)] lg:overflow-y-auto lg:overscroll-contain lg:pr-1">
           <Box title={`Ficha completa: ${done} de ${checks.length}`}>
             <div className="h-2 overflow-hidden rounded-full bg-muted" role="progressbar" aria-valuemin={0} aria-valuemax={checks.length} aria-valuenow={done} aria-label="Ficha completa">
               <div className="h-full bg-primary transition-[width]" style={{ width: `${(done / checks.length) * 100}%` }} />
@@ -445,10 +451,6 @@ export function ProvinceEditor({ row, onClose, onNew }: { row: Row | "new"; onCl
               <Input id="p-alt" value={f.image_alt} onChange={(e) => set("image_alt", e.target.value)} placeholder="Describe la imagen" /></div>
           </Box>
 
-          <Box id="pe-fotos" title={`Slider de portada (${hero.length}/10)`}>
-            <p className="text-xs text-muted-foreground">Si añades fotos aquí, la portada pasa a ser un slider; si no, se usa la imagen de portada.</p>
-            <PhotoList items={hero} onChange={setHero} max={10} />
-          </Box>
 
           <Box title="Identidad">
             <div className="space-y-1"><Label htmlFor="p-region">Región</Label>

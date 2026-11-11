@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useTerritory } from "./LocationPicker";
+import { BulkBar, STATUS_ACTIONS, useChecked, type BulkAction } from "./BulkBar";
 
 type Row = Record<string, unknown> & { id: string };
 const s = (v: unknown) => (v == null ? "" : String(v));
@@ -25,6 +26,14 @@ export function PlaceList({ kind, rows, onNew, onEdit, onDelete, busy }: {
     .filter((r) => (view === "all" || (view === "published") === (r.status === "published")) && (!prov || r.province_id === prov)
       && `${s(r.name)} ${provName(r.province_id)}`.toLowerCase().includes(q.trim().toLowerCase()))
     .sort((a, b) => s(a.name).localeCompare(s(b.name), "es"));
+  const sel = useChecked(list);
+  const provinceOptions = t.provinces.map((p) => [p.id, s(p.name)] as [string, string]);
+  const actions: BulkAction[] = kind === "municipalities"
+    ? [...STATUS_ACTIONS, { key: "prov", label: "Mover a la provincia", field: "province_id", options: provinceOptions },
+      { key: "kind", label: "Cambiar tipo", field: "kind", options: [["municipio", "Municipio"], ["distrito_municipal", "Distrito municipal"]] }]
+    : [...STATUS_ACTIONS, { key: "prov", label: "Mover a la provincia", field: "province_id", options: provinceOptions },
+      { key: "popular", label: "Marcar como zona popular", patch: { is_popular: true } }, { key: "unpopular", label: "Quitar de zona popular", patch: { is_popular: false } },
+      { key: "kind", label: "Cambiar tipo", field: "kind", options: [["zona_turistica", "Zona turística"], ["ciudad", "Ciudad"], ["pueblo", "Pueblo"], ["sector", "Sector o barrio"], ["isla", "Isla o cayo"]] }];
   const n = { all: rows.length, published: rows.filter((r) => r.status === "published").length, draft: rows.filter((r) => r.status !== "published").length };
   const noun = PLACE_NOUN[kind];
 
@@ -45,6 +54,7 @@ export function PlaceList({ kind, rows, onNew, onEdit, onDelete, busy }: {
             </span>
           ))}
         </nav>
+        <BulkBar resource={kind} ids={[...sel.checked]} actions={actions} onDelete={onDelete} onDone={sel.clear} busy={busy} />
         <div className="flex gap-2">
           <select aria-label="Filtrar por provincia" value={prov} onChange={(e) => setProv(e.target.value)} className="h-9 rounded border border-input bg-background px-2 text-sm">
             <option value="">Todas las provincias</option>
@@ -58,14 +68,16 @@ export function PlaceList({ kind, rows, onNew, onEdit, onDelete, busy }: {
         <table className="w-full min-w-[680px] text-sm">
           <thead className="border-b border-border text-left">
             <tr>
+              <th className="w-10 p-3"><input type="checkbox" aria-label="Seleccionar todas" className="h-4 w-4" checked={sel.all} onChange={sel.toggleAll} /></th>
               <th className="p-3 font-normal">Nombre</th><th className="p-3 font-normal">Provincia</th>
               {kind === "destinations" && <th className="p-3 font-normal">Municipio</th>}
               <th className="p-3 font-normal">Estado</th>
             </tr>
           </thead>
           <tbody>
-            {list.length === 0 ? <tr><td colSpan={4} className="p-6 text-muted-foreground">No hay {noun.many.toLowerCase()} que coincidan.</td></tr> : list.map((r, i) => (
+            {list.length === 0 ? <tr><td colSpan={5} className="p-6 text-muted-foreground">No hay {noun.many.toLowerCase()} que coincidan.</td></tr> : list.map((r, i) => (
               <tr key={r.id} className={`group align-top ${i % 2 ? "" : "bg-muted/40"}`}>
+                <td className="p-3"><input type="checkbox" aria-label={`Seleccionar ${s(r.name)}`} className="h-4 w-4" checked={sel.checked.has(r.id)} onChange={() => sel.toggle(r.id)} /></td>
                 <td className="p-3">
                   <button type="button" className="font-semibold text-primary hover:underline" onClick={() => onEdit(r)}>{s(r.name)}</button>
                   {r.is_capital ? <span className="ml-2 text-xs text-muted-foreground">— cabecera</span> : null}

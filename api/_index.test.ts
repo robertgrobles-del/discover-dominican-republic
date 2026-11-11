@@ -159,6 +159,25 @@ describe("territorio: provincias, municipios y destinos", () => {
   });
 });
 
+describe("edición en lote", () => {
+  it("cambia varias fichas a la vez, valida cada una y rechaza campos no permitidos", async () => {
+    const auth = bearer(await login("admin@x.do", "clave-segura-123"));
+    const munis = data<{ id: string; slug: string; province_id: string }[]>(await call("GET", "/admin/municipalities", undefined, auth));
+    const ids = munis.filter((m) => ["boca-chica", "guerra"].includes(m.slug)).map((m) => m.id);
+    const r = await call("POST", "/admin/municipalities/bulk", { ids, patch: { status: "published" } }, auth);
+    expect(data<{ updated: number }>(r).updated).toBe(ids.length);
+    const after = data<{ id: string; status: string }[]>(await call("GET", "/admin/municipalities", undefined, auth)).filter((m) => ids.includes(m.id));
+    expect(after.every((m) => m.status === "published")).toBe(true);
+
+    expect((await call("POST", "/admin/municipalities/bulk", { ids, patch: { name: "X" } }, auth)).status).toBe(422);
+    const wrong = await call("POST", "/admin/municipalities/bulk", { ids, patch: { province_id: "no-existe" } }, auth);
+    expect(data<{ updated: number; errors: unknown[] }>(wrong)).toMatchObject({ updated: 0 });
+    expect(data<{ errors: unknown[] }>(wrong).errors).toHaveLength(ids.length);
+    const tourist = bearer(await login("turista@x.do", "clave-segura-123"));
+    expect((await call("POST", "/admin/municipalities/bulk", { ids, patch: { status: "draft" } }, tourist)).status).toBe(403);
+  });
+});
+
 describe("provincias y noticias", () => {
   it("crea, edita, lista y borra; valida y detecta slugs repetidos", async () => {
     const auth = bearer(await login("admin@x.do", "clave-segura-123"));

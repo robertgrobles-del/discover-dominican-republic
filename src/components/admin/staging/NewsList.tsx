@@ -1,6 +1,7 @@
 // Lista de entradas al estilo de WordPress: filtros por estado, fecha, categoría y tipo, búsqueda,
 // acciones en lote, acciones por fila al pasar el ratón y paginación.
 import { useMemo, useState } from "react";
+import { BulkBar, STATUS_ACTIONS } from "./BulkBar";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { HttpError } from "@/lib/httpClient";
@@ -51,7 +52,6 @@ export function NewsList({ rows, onNew, onEdit, onDelete, busy }: {
   const [page, setPage] = useState(1);
   const [checked, setChecked] = useState<Set<string>>(new Set());
   const [quick, setQuick] = useState<string | null>(null);
-  const [bulk, setBulk] = useState("");
 
   const dateOf = (r: Row) => String(r.published_at ?? r.updated_at ?? r.created_at ?? "");
   const months = useMemo(() => [...new Set(rows.map((r) => monthKey(dateOf(r))).filter(Boolean))].sort().reverse(), [rows]);
@@ -132,12 +132,9 @@ export function NewsList({ rows, onNew, onEdit, onDelete, busy }: {
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-2">
-          <select aria-label="Acciones en lote" className={select} value={bulk} onChange={(e) => setBulk(e.target.value)}>
-            <option value="">Acciones en lote</option>
-            <option value="trash">Mover a la papelera</option>
-          </select>
-          <Button size="sm" variant="outline" className="h-9 border-primary text-primary" disabled={!bulk || !checked.size || busy}
-            onClick={() => remove([...checked])}>Aplicar</Button>
+          <BulkBar resource="news" ids={[...checked]} onDelete={remove} onDone={() => setChecked(new Set())} busy={busy} actions={[...STATUS_ACTIONS,
+            { key: "cat", label: "Cambiar categoría", field: "category_id", options: categories.map((c) => [String(c.id), String(c.name)] as [string, string]) },
+            { key: "feat", label: "Destacar en la portada", patch: { featured: true } }, { key: "unfeat", label: "Quitar de destacadas", patch: { featured: false } }]} />
           <select aria-label="Filtrar por fecha" className={select} value={draft.month} onChange={(e) => setDraft({ ...draft, month: e.target.value })}>
             <option value="">Todas las fechas</option>
             {months.map((m) => <option key={m} value={m}>{new Date(`${m}-15T12:00:00`).toLocaleDateString("es-DO", { month: "long", year: "numeric" })}</option>)}

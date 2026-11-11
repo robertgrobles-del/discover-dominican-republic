@@ -2,6 +2,8 @@
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { BulkBar, STATUS_ACTIONS, useChecked } from "./BulkBar";
+import { useTerritory } from "./LocationPicker";
 
 type Row = Record<string, unknown> & { id: string };
 const s = (v: unknown) => (v == null ? "" : String(v));
@@ -22,6 +24,8 @@ export function VenueList({ rows, onNew, onEdit, onDelete, busy }: {
   const list = useMemo(() => rows
     .filter((r) => (view === "all" || (view === "published") === (r.status === "published"))
       && (!cat || r.category === cat) && `${s(r.name)} ${s(r.city)} ${s(r.province)}`.toLowerCase().includes(q.trim().toLowerCase())), [rows, q, cat, view]);
+  const sel = useChecked(list);
+  const t = useTerritory();
   const n = { all: rows.length, published: rows.filter((r) => r.status === "published").length, draft: rows.filter((r) => r.status !== "published").length };
 
   return (
@@ -41,6 +45,9 @@ export function VenueList({ rows, onNew, onEdit, onDelete, busy }: {
             </span>
           ))}
         </nav>
+        <BulkBar resource="venues" ids={[...sel.checked]} onDelete={onDelete} onDone={sel.clear} busy={busy} actions={[...STATUS_ACTIONS,
+          { key: "cat", label: "Cambiar tipo", field: "category", options: Object.entries(VENUE_CATEGORY) },
+          { key: "prov", label: "Mover a la provincia", field: "province_id", options: t.provinces.map((p) => [p.id, s(p.name)] as [string, string]) }]} />
         <div className="flex gap-2">
           <select aria-label="Filtrar por tipo" value={cat} onChange={(e) => setCat(e.target.value)} className="h-9 rounded border border-input bg-background px-2 text-sm">
             <option value="">Todos los tipos</option>
@@ -54,13 +61,14 @@ export function VenueList({ rows, onNew, onEdit, onDelete, busy }: {
         <table className="w-full min-w-[760px] text-sm">
           <thead className="border-b border-border text-left">
             <tr>
-              <th className="p-3 font-normal">Recinto</th><th className="p-3 font-normal">Tipo</th><th className="p-3 font-normal">Ubicación</th>
+              <th className="w-10 p-3"><input type="checkbox" aria-label="Seleccionar todas" className="h-4 w-4" checked={sel.all} onChange={sel.toggleAll} /></th><th className="p-3 font-normal">Recinto</th><th className="p-3 font-normal">Tipo</th><th className="p-3 font-normal">Ubicación</th>
               <th className="p-3 font-normal">Capacidad</th><th className="p-3 font-normal">Estado</th>
             </tr>
           </thead>
           <tbody>
-            {list.length === 0 ? <tr><td colSpan={5} className="p-6 text-muted-foreground">No hay recintos que coincidan.</td></tr> : list.map((r, i) => (
+            {list.length === 0 ? <tr><td colSpan={6} className="p-6 text-muted-foreground">No hay recintos que coincidan.</td></tr> : list.map((r, i) => (
               <tr key={r.id} className={`group align-top ${i % 2 ? "" : "bg-muted/40"}`}>
+                <td className="p-3"><input type="checkbox" aria-label={`Seleccionar ${s(r.name)}`} className="h-4 w-4" checked={sel.checked.has(r.id)} onChange={() => sel.toggle(r.id)} /></td>
                 <td className="p-3">
                   <span className="flex items-center gap-3">
                     {r.image_url ? <img src={s(r.image_url)} alt="" className="h-10 w-14 shrink-0 rounded object-cover" loading="lazy" /> : null}

@@ -502,6 +502,44 @@ async function crud(db: Client, table: keyof typeof TABLES, method: string, id: 
   }
 }
 
+// ---------- edición en lote ----------
+// Solo estos campos se cambian a la vez en varias fichas; cada ficha pasa por la misma validación que al guardarla sola.
+const BULK_FIELDS = {
+  provinces: ["status", "region", "intro_layout"],
+  news: ["status", "category_id", "province_id", "featured", "post_type"],
+  events: ["status", "is_featured", "event_type", "province_id", "municipality_id", "destination_id"],
+  venues: ["status", "category", "province_id", "municipality_id", "destination_id"],
+  municipalities: ["status", "province_id", "kind", "is_capital"],
+  destinations: ["status", "province_id", "municipality_id", "kind", "is_popular"],
+} as const;
+type BulkTable = keyof typeof BULK_FIELDS;
+const MAX_BULK = 500;
+
+async function bulkEdit(db: Client, table: BulkTable, body: Fields, userId: string): Promise<ApiResponse> {
+  const ids = Array.isArray(body.ids) ? [...new Set(body.ids.filter((x): x is string => typeof x === "string" && x.length <= 64))] : [];
+  const patch = body.patch && typeof body.patch === "object" && !Array.isArray(body.patch) ? body.patch as Fields : null;
+  if (!ids.length || ids.length > MAX_BULK) return err(422, `Indica entre 1 y ${MAX_BULK} fichas`);
+  if (!patch || !Object.keys(patch).length) return err(422, "Indica qué cambiar");
+  const allowed: readonly string[] = BULK_FIELDS[table];
+  const bad = Object.keys(patch).find((k) => !allowed.includes(k));
+  if (bad) return err(422, `No se puede cambiar «${bad}» en lote`);
+  // Cambiar de provincia o municipio suelta los niveles de debajo que ya no encajarían.
+  const reset: Fields = {};
+  if ("province_id" in patch && !("municipality_id" in patch) && allowed.includes("municipality_id")) reset.municipality_id = null;
+  if (("province_id" in patch || "municipality_id" in patch) && !("destination_id" in patch) && allowed.includes("destination_id")) reset.destination_id = null;
+
+  const errors: { id: string; name: string; message: string }[] = [];
+  let updated = 0;
+  for (const id of ids) {
+    const row = (await db.execute({ sql: `SELECT * FROM ${table} WHERE id = ?`, args: [id] })).rows[0] as Fields | undefined;
+    if (!row) { errors.push({ id, name: id, message: "No existe" }); continue; }
+    const r = await crud(db, table, "PUT", id, { ...row, ...reset, ...patch }, userId);
+    if (r.status === 200) updated++;
+    else errors.push({ id, name: String(row.name ?? row.title ?? id), message: (r.body as { error?: { message?: string } })?.error?.message ?? "Error" });
+  }
+  return { status: 200, body: { data: { updated, errors } } };
+}
+
 /** Autor y colaborador: solo sus noticias; el colaborador no publica ni toca lo ya publicado. */
 async function ownNewsGuard(db: Client, method: string, id: string | undefined, body: Fields, userId: string, isAutor: boolean): Promise<ApiResponse | null> {
   if (!isAutor && body.status === "published") return err(403, "Un colaborador no puede publicar: guarda el borrador y un editor lo revisará");
@@ -1574,6 +1612,13 @@ export async function handle(req: ApiRequest, db: Client, secret: string, secure
   if (forms) {
     if (!roles.includes("admin")) return err(403, "Solo un administrador ve los datos de los formularios");
     return formsAdmin(db, forms[1] as FormResource, m, forms[2], body);
+  }
+
+  const bulk = path.match(/^\/admin\/(provinces|news|events|venues|municipalities|destinations)\/bulk$/);
+  if (bulk) {
+    if (m !== "POST") return err(405, "Método no permitido");
+    if (!manager) return err(403, "Solo un editor o administrador edita en lote");
+    return bulkEdit(db, bulk[1] as BulkTable, body, user.id);
   }
 
   const match = path.match(/^\/admin\/(provinces|news|news-categories|events|venues|municipalities|destinations)(?:\/([A-Za-z0-9-]+))?$/);

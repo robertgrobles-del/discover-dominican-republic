@@ -102,7 +102,8 @@ export function EventEditor({ row, onClose, onNew }: { row: Row | "new"; onClose
           </Box>
         </div>
 
-        <aside className="min-w-0 space-y-4">
+        {/* La barra lateral se queda fija y se desplaza por dentro: no crece más que la pantalla. */}
+        <aside className="min-w-0 space-y-4 lg:sticky lg:top-4 lg:max-h-[calc(100dvh-2rem)] lg:overflow-y-auto lg:overscroll-contain lg:pr-1">
           <Box title="Publicar">
             <p>Estado: <strong>{ended ? "Terminado" : f.status === "published" ? "Publicado" : "Borrador"}</strong></p>
             {ended && <p className="text-xs text-muted-foreground">Ya pasó su fecha de fin: no sale en la web.</p>}
