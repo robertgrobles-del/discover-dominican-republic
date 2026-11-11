@@ -15,6 +15,8 @@ Estas reglas valen desde ahora para todo el trabajo. Cada regla nueva que pida e
 - Las tablas de las bases 2, 3 y 4 guardan el `slug` del contenido, no solo el ID. No unir con JOIN tablas de bases distintas.
 - Turso (staging) usa migraciones en `staging/migrations/NNN_*.sql`. No renombrar migraciones ya aplicadas. Turso por HTTP no hace cumplir las claves foráneas: se comprueban a mano en `TABLES[...].refs`.
 - Supabase es histórico: todas sus tablas están en `backend/migrations` (Postgres).
+- **Ubicación del contenido:** toda tabla de contenido con lugar (playas, recintos, eventos, hoteles…) lleva `province_id`, `municipality_id` y `destination_id`, y su editor usa `<LocationPicker>`. Elegir el municipio o el destino completa la provincia, y la API (`checkLocation`) rechaza combinaciones que no encajan. Así el contenido sale en la página de la provincia, del municipio y del destino. Para activarlo en una tabla nueva: añadir `...locationSpec(b)` a su spec, `LOCATION_REFS` a sus refs y su nombre a `LOCATED` en `api/index.ts`.
+- **Página de provincia:** sus componentes se editan en el panel (Provincias). Los catálogos (monumentos, parques, hoteles, restaurantes, bares) no se cargan a mano: salen solos por provincia.
 
 ## Panel de administración
 - Todo contenido nuevo del panel usa el diseño tipo WordPress, como Noticias: una lista (Todos | Publicados | Borradores, búsqueda, acciones al pasar el ratón) y un editor de dos columnas. Plantillas: `ProvinceList`/`ProvinceEditor`, `EventList`/`EventEditor`, pasadas a `StagingCrudManager` con `renderList` y `renderEditor`.

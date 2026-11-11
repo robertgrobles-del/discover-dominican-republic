@@ -20,6 +20,8 @@ import { EventEditor } from "./EventEditor";
 import { EventList } from "./EventList";
 import { VenueEditor } from "./VenueEditor";
 import { VenueList } from "./VenueList";
+import { PlaceEditor } from "./PlaceEditor";
+import { PlaceList, PLACE_NOUN, type PlaceKind } from "./PlaceList";
 import { MediaPicker } from "./MediaLibrary";
 
 export type FieldDef = {
@@ -40,7 +42,7 @@ const toSlug = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLower
 const apiMessage = (e: unknown) => (e instanceof HttpError ? (e.details as { error?: { message?: string } } | null)?.error?.message : null) ?? (e instanceof Error ? e.message : "Error");
 
 export function StagingCrudManager({ resource, title, titleKey, fields, noun, renderEditor, renderList }: {
-  resource: "provinces" | "news" | "news-categories" | "events" | "venues";
+  resource: "provinces" | "news" | "news-categories" | "events" | "venues" | "municipalities" | "destinations";
   title: string;
   titleKey: string;           // campo que se muestra en la lista y del que sale el slug
   fields: FieldDef[];
@@ -332,6 +334,21 @@ export function StagingVenuesManager() {
       fields={[]}
       renderEditor={(row, close, openNew) => <VenueEditor row={row} onClose={close} onNew={openNew} />}
       renderList={(p) => <VenueList {...p} />}
+    />
+  );
+}
+
+/** Municipios o destinos: la misma lista y el mismo editor para los dos. */
+export function StagingPlacesManager({ kind }: { kind: PlaceKind }) {
+  return (
+    <StagingCrudManager
+      resource={kind}
+      title={PLACE_NOUN[kind].many}
+      titleKey="name"
+      noun={PLACE_NOUN[kind].one}
+      fields={[]}
+      renderEditor={(row, close, openNew) => <PlaceEditor kind={kind} row={row} onClose={close} onNew={openNew} />}
+      renderList={(p) => <PlaceList kind={kind} {...p} />}
     />
   );
 }

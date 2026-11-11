@@ -42,6 +42,19 @@ export function usePublicProvinces() {
 export interface CmsProvince extends PublicProvince {
   image_alt: string | null; hero_images: string | null; gallery: string | null; municipalities: string | null; places: string | null;
   color_primary: string | null; color_accent: string | null; seo_title: string | null; seo_description: string | null; status?: string;
+  latitude?: number | null; longitude?: number | null;
+  // Componentes editables de la página (016_province_page.sql); las listas y objetos llegan como texto JSON.
+  tagline?: string | null; intro?: string | null; population?: number | null; area_km2?: number | null; best_time?: string | null;
+  weather_info?: string | null; how_to_get_there?: string | null; highlights?: string | null; typical_dishes?: string | null;
+  categories?: string | null; slides?: string | null; about?: string | null; themes?: string | null; traveler_tags?: string | null;
+  itinerary?: string | null; airport?: string | null; transport?: string | null; blocks?: string | null; photo_credits?: string | null;
+  /** Municipios y destinos publicados (el equipo ve también los borradores). */
+  territory?: { municipalities: CmsPlace[]; destinations: CmsPlace[] };
+}
+
+export interface CmsPlace {
+  id: string; slug: string; name: string; short_description: string | null; highlights: string | null; image_url: string | null;
+  is_capital?: number; is_popular?: number; kind?: string; municipality_id?: string | null; province_id?: string; status?: string;
 }
 
 /** Lista JSON guardada como texto; vacía si falta o está mal. */
@@ -61,7 +74,12 @@ export function useCmsProvince(slug: string | undefined, staff: boolean) {
     staleTime: 60_000,
     queryFn: async (): Promise<CmsProvince | null> => {
       try {
-        if (staff) return (await fetchApi<{ data: CmsProvince[] }>("/admin/provinces")).data.find((p) => p.slug === slug) ?? null;
+        if (staff) {
+          const p = (await fetchApi<{ data: CmsProvince[] }>("/admin/provinces")).data.find((x) => x.slug === slug);
+          if (!p) return null;
+          const [m, d] = await Promise.all(["municipalities", "destinations"].map((r) => fetchApi<{ data: CmsPlace[] }>(`/admin/${r}`).then((x) => x.data.filter((y) => y.province_id === p.id))));
+          return { ...p, territory: { municipalities: m, destinations: d } };
+        }
         return (await fetchApi<{ data: CmsProvince }>(`/public/provinces/${encodeURIComponent(slug!)}${langQuery(locale)}`)).data;
       } catch { return null; }
     },

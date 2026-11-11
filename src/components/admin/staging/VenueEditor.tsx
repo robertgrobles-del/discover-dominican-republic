@@ -1,6 +1,7 @@
 // Ficha de recinto (venue) con la disposición del editor de noticias: contenido, servicios, cómo llegar y galería
 // a la izquierda; Publicar, Imagen, Tipo, Ubicación con mapa, Contacto y SEO a la derecha.
 import { useState } from "react";
+import { LocationPicker, locationLabel, useTerritory } from "./LocationPicker";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ArrowLeft, Loader2, MapPin, Plus, X } from "lucide-react";
@@ -27,7 +28,8 @@ const s = (v: unknown) => (v == null ? "" : String(v));
 const parse = <T,>(v: unknown, empty: T): T => { try { return v ? (JSON.parse(String(v)) as T) : empty; } catch { return empty; } };
 
 const TEXT = ["name", "slug", "category", "category_label", "short_description", "description", "image_url", "image_alt", "address", "city", "province",
-  "latitude", "longitude", "map_url", "capacity", "year_built", "accessibility", "schedule", "phone", "email", "website", "seo_title", "seo_description", "status"] as const;
+  "latitude", "longitude", "map_url", "capacity", "year_built", "accessibility", "schedule", "phone", "email", "website", "seo_title", "seo_description", "status",
+  "province_id", "municipality_id", "destination_id"] as const;
 type Key = (typeof TEXT)[number];
 
 function Field({ id, label, value, onChange, type = "text", placeholder, hint }: { id: string; label: string; value: string; onChange: (v: string) => void; type?: string; placeholder?: string; hint?: string }) {
@@ -78,6 +80,7 @@ export function VenueEditor({ row, onClose, onNew }: { row: Row | "new"; onClose
   const [how, setHow] = useState<Record<string, string>>(() => parse<Record<string, string>>(r.how_to_get, {}));
   const [slugTouched, setSlugTouched] = useState(row !== "new");
   const [locating, setLocating] = useState(false);
+  const territory = useTerritory();
   const set = (k: Key, v: string) => setF((x) => ({ ...x, [k]: v, ...(k === "name" && !slugTouched ? { slug: toSlug(v) } : {}) }));
 
   const lat = Number(f.latitude), lng = Number(f.longitude);
@@ -220,6 +223,8 @@ export function VenueEditor({ row, onClose, onNew }: { row: Row | "new"; onClose
           </Box>
 
           <Box title="Ubicación">
+            <LocationPicker idPrefix="v-loc" value={{ province_id: f.province_id, municipality_id: f.municipality_id, destination_id: f.destination_id }}
+              onChange={(v) => { const l = locationLabel(territory, v); setF((x) => ({ ...x, ...v, province: l.province || x.province, city: l.city || x.city })); }} />
             <Field id="v-addr" label="Dirección" value={f.address} onChange={(v) => set("address", v)} />
             <div className="grid grid-cols-2 gap-2">
               <Field id="v-city" label="Ciudad o sector" value={f.city} onChange={(v) => set("city", v)} />

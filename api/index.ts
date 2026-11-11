@@ -164,7 +164,95 @@ const provinceSpec = (b: Fields) => ({
   seo_title: () => str(b, "seo_title", 90),
   seo_description: () => str(b, "seo_description", 200),
   focus_keywords: () => str(b, "focus_keywords", 200),
+  // Componentes editables de la página (016_province_page.sql). Los catálogos se cargan solos, no van aquí.
+  tagline: () => str(b, "tagline", 160),
+  intro: () => str(b, "intro", 5000),
+  population: () => int(b, "population", 0, 10_000_000),
+  area_km2: () => num(b, "area_km2", 0, 100_000),
+  best_time: () => str(b, "best_time", 300),
+  weather_info: () => str(b, "weather_info", 500),
+  how_to_get_there: () => str(b, "how_to_get_there", 1000),
+  highlights: () => jsonList(b, "highlights", 20),
+  typical_dishes: () => jsonList(b, "typical_dishes", 20),
+  categories: () => jsonList(b, "categories", 12),
+  slides: () => jsonList(b, "slides", 10),
+  about: () => jsonTexts(b, "about", ["history", "geography", "artAndCulture", "politicalDivision", "economy", "demographics", "location"], 6000),
+  themes: () => jsonList(b, "themes", 12),
+  traveler_tags: () => jsonList(b, "traveler_tags", 12),
+  itinerary: () => jsonList(b, "itinerary", 14),
+  airport: () => jsonTexts(b, "airport", ["nombre", "codigo", "distancia"]),
+  transport: () => jsonList(b, "transport", 10),
+  blocks: () => jsonList(b, "blocks", 40),
+  photo_credits: () => jsonList(b, "photo_credits", 60),
 });
+
+const int = (o: Fields, key: string, min: number, max: number) => {
+  const n = num(o, key, min, max);
+  return n instanceof Error || n === null || Number.isInteger(n) ? n : new Error(`${key} debe ser un número entero`);
+};
+
+/** Ubicación normalizada: provincia y, si se sabe, municipio y destino (ver checkLocation). */
+const locationSpec = (b: Fields, provinceRequired = false) => ({
+  province_id: () => str(b, "province_id", 64, provinceRequired),
+  municipality_id: () => str(b, "municipality_id", 64),
+  destination_id: () => str(b, "destination_id", 64),
+});
+
+const placeSpec = (b: Fields) => ({
+  slug: slugOf(b, 120),
+  name: () => str(b, "name", 160, true),
+  short_description: () => str(b, "short_description", 300),
+  description: () => str(b, "description", 20000),
+  highlights: () => jsonList(b, "highlights", 20),
+  image_url: () => url(b, "image_url"),
+  image_alt: () => str(b, "image_alt", 300),
+  gallery: () => jsonList(b, "gallery", 60),
+  latitude: () => num(b, "latitude", -90, 90),
+  longitude: () => num(b, "longitude", -180, 180),
+  seo_title: () => str(b, "seo_title", 90),
+  seo_description: () => str(b, "seo_description", 200),
+  status: () => oneOf(b, "status", STATUSES, "draft"),
+});
+
+const municipalitySpec = (b: Fields) => ({
+  ...placeSpec(b),
+  province_id: () => str(b, "province_id", 64, true),
+  kind: () => oneOf(b, "kind", ["municipio", "distrito_municipal"], "municipio"),
+  is_capital: () => bool(b, "is_capital"),
+  population: () => int(b, "population", 0, 10_000_000),
+});
+
+const destinationSpec = (b: Fields) => {
+  const { destination_id: _d, ...loc } = locationSpec(b); // un destino no está dentro de otro; la provincia se exige en crud
+  return {
+    ...placeSpec(b), ...loc,
+    kind: () => oneOf(b, "kind", ["zona_turistica", "ciudad", "pueblo", "sector", "isla"], "zona_turistica"),
+    is_popular: () => bool(b, "is_popular"),
+  };
+};
+
+/**
+ * El municipio y el destino deben ser de la provincia indicada (y el destino, de su municipio). Si falta la provincia o
+ * el municipio, se completan con los del destino o el municipio: elegir «Boca Chica» basta para salir en Santo Domingo.
+ */
+async function checkLocation(db: Client, v: Record<string, InValue>): Promise<string | null> {
+  const one = async (sql: string, id: InValue) => (await db.execute({ sql, args: [id] })).rows[0] as Record<string, InValue> | undefined;
+  if (v.destination_id != null) {
+    const d = await one("SELECT province_id, municipality_id FROM destinations WHERE id = ?", v.destination_id);
+    if (!d) return "El destino indicado no existe";
+    v.province_id ??= d.province_id;
+    v.municipality_id ??= d.municipality_id;
+    if (d.province_id !== v.province_id) return "El destino no pertenece a esa provincia";
+    if (d.municipality_id != null && v.municipality_id !== d.municipality_id) return "El destino no pertenece a ese municipio";
+  }
+  if (v.municipality_id != null) {
+    const m = await one("SELECT province_id FROM municipalities WHERE id = ?", v.municipality_id);
+    if (!m) return "El municipio indicado no existe";
+    v.province_id ??= m.province_id;
+    if (m.province_id !== v.province_id) return "El municipio no pertenece a esa provincia";
+  }
+  return null;
+}
 
 /** Lista guardada como JSON (array o texto JSON de un array), con tope de elementos y de tamaño. */
 function jsonList(o: Fields, key: string, maxItems: number): string | null | Error {
@@ -230,13 +318,14 @@ const eventSpec = (b: Fields) => ({
   venue_id: () => str(b, "venue_id", 64),
   venue_type: () => oneOf(b, "venue_type", VENUE_CATEGORIES, null),
   venue_room: () => str(b, "venue_room", 160),
+  ...locationSpec(b),
 });
 
 export const VENUE_CATEGORIES = ["estadio", "arena", "teatro", "anfiteatro", "centro_convenciones", "golf", "mall", "discoteca", "parque", "museo", "playa",
   "plaza", "carretera", "montana", "rio", "hotel", "restaurante", "otro"];
 
 /** Objeto JSON pequeño con solo textos (p. ej. «cómo llegar»: byCar, byBus…). */
-function jsonTexts(o: Fields, key: string, keys: string[]): string | null | Error {
+function jsonTexts(o: Fields, key: string, keys: string[], maxLen = 1000): string | null | Error {
   let v = o[key];
   if (v === undefined || v === null || v === "") return null;
   if (typeof v === "string") { try { v = JSON.parse(v); } catch { return new Error(`${key} no es JSON válido`); } }
@@ -244,7 +333,7 @@ function jsonTexts(o: Fields, key: string, keys: string[]): string | null | Erro
   const out: Record<string, string> = {};
   for (const k of keys) {
     const t = (v as Fields)[k];
-    if (typeof t === "string" && t.trim()) out[k] = t.trim().slice(0, 1000);
+    if (typeof t === "string" && t.trim()) out[k] = t.trim().slice(0, maxLen);
   }
   return Object.keys(out).length ? JSON.stringify(out) : null;
 }
@@ -278,6 +367,7 @@ const venueSpec = (b: Fields) => ({
   seo_title: () => str(b, "seo_title", 90),
   seo_description: () => str(b, "seo_description", 200),
   status: () => oneOf(b, "status", STATUSES, "draft"),
+  ...locationSpec(b),
 });
 
 // ---------- usuarios ----------
@@ -303,13 +393,22 @@ function sessionFor(u: UserRow, secret: string, secure: boolean): ApiResponse {
 }
 
 // ---------- CRUD genérico ----------
+const LOCATION_REFS = {
+  province_id: ["provinces", "La provincia indicada no existe"],
+  municipality_id: ["municipalities", "El municipio indicado no existe"],
+  destination_id: ["destinations", "El destino indicado no existe"],
+} as const;
+const LOCATED = new Set<string>(["events", "venues", "destinations"]);
+
 // refs: columnas que apuntan a otra tabla. Se comprueban aquí porque Turso, por HTTP, no garantiza las claves foráneas.
 const TABLES = {
   provinces: { spec: provinceSpec, order: "name COLLATE NOCASE", refs: {} },
   news: { spec: newsSpec, order: "created_at DESC", refs: { province_id: ["provinces", "La provincia indicada no existe"], category_id: ["news_categories", "La categoría indicada no existe"] } },
   news_categories: { spec: categorySpec, order: "sort_order, name COLLATE NOCASE", refs: {} },
-  events: { spec: eventSpec, order: "start_date DESC, name COLLATE NOCASE", refs: { venue_id: ["venues", "El recinto indicado no existe"] } },
-  venues: { spec: venueSpec, order: "name COLLATE NOCASE", refs: {} },
+  events: { spec: eventSpec, order: "start_date DESC, name COLLATE NOCASE", refs: { venue_id: ["venues", "El recinto indicado no existe"], ...LOCATION_REFS } },
+  venues: { spec: venueSpec, order: "name COLLATE NOCASE", refs: LOCATION_REFS },
+  municipalities: { spec: municipalitySpec, order: "name COLLATE NOCASE", refs: { province_id: ["provinces", "La provincia indicada no existe"] } },
+  destinations: { spec: destinationSpec, order: "name COLLATE NOCASE", refs: LOCATION_REFS },
 } as const satisfies Record<string, { spec: (b: Fields) => Record<string, () => unknown>; order: string; refs: Record<string, readonly [string, string]> }>;
 
 async function crud(db: Client, table: keyof typeof TABLES, method: string, id: string | undefined, body: Fields, userId: string): Promise<ApiResponse> {
@@ -324,7 +423,18 @@ async function crud(db: Client, table: keyof typeof TABLES, method: string, id: 
       const n = Number((await db.execute({ sql: "SELECT COUNT(*) AS n FROM news WHERE category_id = ?", args: [id] })).rows[0]?.n ?? 0);
       if (n) return err(409, `No se puede eliminar: ${n} noticia${n === 1 ? " usa" : "s usan"} esta categoría`);
     }
-    if (table === "provinces") await db.execute({ sql: "UPDATE news SET province_id = NULL WHERE province_id = ?", args: [id] });
+    if (table === "provinces") {
+      const n = Number((await db.execute({ sql: "SELECT (SELECT COUNT(*) FROM municipalities WHERE province_id = ?) + (SELECT COUNT(*) FROM destinations WHERE province_id = ?) AS n", args: [id, id] })).rows[0]?.n ?? 0);
+      if (n) return err(409, `No se puede eliminar: tiene ${n} municipios o destinos. Elimínalos o muévelos antes`);
+      await db.execute({ sql: "UPDATE news SET province_id = NULL WHERE province_id = ?", args: [id] });
+      for (const t of ["events", "venues"]) await db.execute({ sql: `UPDATE ${t} SET province_id = NULL WHERE province_id = ?`, args: [id] });
+    }
+    if (table === "municipalities") {
+      for (const t of ["destinations", "events", "venues"]) await db.execute({ sql: `UPDATE ${t} SET municipality_id = NULL WHERE municipality_id = ?`, args: [id] });
+    }
+    if (table === "destinations") {
+      for (const t of ["events", "venues"]) await db.execute({ sql: `UPDATE ${t} SET destination_id = NULL WHERE destination_id = ?`, args: [id] });
+    }
     if (table === "venues") await db.execute({ sql: "UPDATE events SET venue_id = NULL WHERE venue_id = ?", args: [id] });
     await db.execute({ sql: "DELETE FROM content_translations WHERE entity = ? AND entity_id = ?", args: [table, id] });
     const r = await db.execute({ sql: `DELETE FROM ${table} WHERE id = ?`, args: [id] });
@@ -339,6 +449,16 @@ async function crud(db: Client, table: keyof typeof TABLES, method: string, id: 
     if (values[col] == null) continue;
     const found = await db.execute({ sql: `SELECT 1 FROM ${refTable} WHERE id = ?`, args: [values[col]] });
     if (!found.rows.length) return err(422, message);
+  }
+  if (table === "events" && values.venue_id != null && values.province_id == null && values.municipality_id == null && values.destination_id == null) {
+    // Sin ubicación propia, el evento hereda la de su recinto.
+    const v = (await db.execute({ sql: "SELECT province_id, municipality_id, destination_id FROM venues WHERE id = ?", args: [values.venue_id] })).rows[0];
+    if (v) Object.assign(values, { province_id: v.province_id, municipality_id: v.municipality_id, destination_id: v.destination_id });
+  }
+  if (LOCATED.has(table)) {
+    const bad = await checkLocation(db, values);
+    if (bad) return err(422, bad);
+    if (table === "destinations" && values.province_id == null) return err(422, "province_id es obligatorio: indica la provincia o el municipio");
   }
   if (table === "news") {
     // Fecha de publicación: la que se indique (puede ser pasada; si es futura, la noticia queda programada y no
@@ -463,6 +583,9 @@ const PUBLIC_CACHE = { "Cache-Control": "public, max-age=0, s-maxage=30, stale-w
 
 // Un evento deja de salir al llegar su fecha y hora de fin (hora de RD, UTC-4); sin hora de fin, al acabar el día.
 const EVENT_LIVE = "(COALESCE(end_date, start_date) IS NULL OR datetime(COALESCE(end_date, start_date) || ' ' || COALESCE(end_time, '23:59'), '+4 hours') > datetime('now'))";
+const PROVINCE_PAGE = "tagline, intro, population, area_km2, best_time, weather_info, how_to_get_there, highlights, typical_dishes, categories, "
+  + "slides, about, themes, traveler_tags, itinerary, airport, transport, blocks, photo_credits";
+const PLACE_PUBLIC = "id, slug, name, short_description, description, highlights, image_url, image_alt, gallery, latitude, longitude, seo_title, seo_description";
 // Sin los datos de contacto de quien lo envió ni la huella de IP.
 const EVENT_PUBLIC = "id, slug, name, event_type, short_description, description, image_url, start_date, end_date, start_time, end_time, venue, venue_type, venue_room, address, province, price_range, ticket_url, organizer, is_featured, updated_at";
 
@@ -476,10 +599,17 @@ async function publicApi(db: Client, path: string, lang?: Lang): Promise<ApiResp
   const pv = path.match(/^\/public\/provinces\/([^/]+)$/);
   if (pv) {
     const r = SLUG.test(pv[1]) ? await db.execute({ sql: `SELECT id, slug, name, region, capital, short_description, description, image_url, image_alt,
-      hero_images, gallery, municipalities, places, color_primary, color_accent, latitude, longitude, seo_title, seo_description, focus_keywords, updated_at
+      hero_images, gallery, municipalities, places, color_primary, color_accent, latitude, longitude, seo_title, seo_description, focus_keywords,
+      ${PROVINCE_PAGE}, updated_at
       FROM provinces WHERE status = 'published' AND slug = ?`, args: [pv[1]] }) : null;
     if (!r?.rows[0]) return err(404, "No encontrada");
-    return { status: 200, body: { data: (await overlay(db, "provinces", r.rows as unknown as Record<string, unknown>[], lang))[0] }, headers: PUBLIC_CACHE };
+    const province = (await overlay(db, "provinces", r.rows as unknown as Record<string, unknown>[], lang))[0];
+    // Municipios y destinos publicados de la provincia, para su sección y sus enlaces.
+    const [munis, dests] = await Promise.all([
+      db.execute({ sql: `SELECT ${PLACE_PUBLIC}, kind, is_capital, population FROM municipalities WHERE status = 'published' AND province_id = ? ORDER BY is_capital DESC, name COLLATE NOCASE`, args: [province.id as string] }),
+      db.execute({ sql: `SELECT ${PLACE_PUBLIC}, kind, is_popular, municipality_id FROM destinations WHERE status = 'published' AND province_id = ? ORDER BY is_popular DESC, name COLLATE NOCASE`, args: [province.id as string] }),
+    ]);
+    return { status: 200, body: { data: { ...province, territory: { municipalities: munis.rows, destinations: dests.rows } } }, headers: PUBLIC_CACHE };
   }
   const detail = path.match(/^\/public\/news\/([^/]+)$/);
   if (detail) {
@@ -1422,9 +1552,9 @@ export async function handle(req: ApiRequest, db: Client, secret: string, secure
     return formsAdmin(db, forms[1] as FormResource, m, forms[2], body);
   }
 
-  const match = path.match(/^\/admin\/(provinces|news|news-categories|events|venues)(?:\/([A-Za-z0-9-]+))?$/);
+  const match = path.match(/^\/admin\/(provinces|news|news-categories|events|venues|municipalities|destinations)(?:\/([A-Za-z0-9-]+))?$/);
   if (match && m !== "GET" && !manager) {
-    if (match[1] !== "news") return err(403, "Solo un editor o administrador modifica provincias, categorías, eventos y recintos");
+    if (match[1] !== "news") return err(403, "Solo un editor o administrador modifica provincias, municipios, destinos, categorías, eventos y recintos");
     const denied = await ownNewsGuard(db, m, match[2], body, user.id, roles.includes("autor"));
     if (denied) return denied;
   }

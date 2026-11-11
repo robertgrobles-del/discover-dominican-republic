@@ -16,12 +16,12 @@ import { MockDataNotice } from "@/components/MockDataNotice";
 import { Navigate, Link, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { adminDashboardApi } from "@/lib/adminDashboardApi";
-import { StagingEventsManager, StagingVenuesManager, StagingNewsCategoriesManager, StagingNewsManager, StagingProvincesManager } from "@/components/admin/staging/StagingCrudManager";
+import { StagingEventsManager, StagingVenuesManager, StagingPlacesManager, StagingNewsCategoriesManager, StagingNewsManager, StagingProvincesManager } from "@/components/admin/staging/StagingCrudManager";
 import { StagingContactMessagesManager, StagingEstablishmentRequestsManager, StagingLeadsManager } from "@/components/admin/staging/StagingFormsManagers";
 import { MediaLibrary } from "@/components/admin/staging/MediaLibrary";
 import { StagingUsersManager } from "@/components/admin/staging/StagingUsersManager";
 import { StagingDashboard } from "@/components/admin/staging/StagingDashboard";
-import { Shield, Loader2, Menu, X, ChevronRight, ExternalLink, LogOut, MapPin, Newspaper, Users, Tags, Gift, Building2, Moon, Sun, Image as ImageIcon, LayoutDashboard, Mail, CalendarDays, Landmark } from "lucide-react";
+import { Shield, Loader2, Menu, X, ChevronRight, ExternalLink, LogOut, MapPin, Newspaper, Users, Tags, Gift, Building2, Moon, Sun, Image as ImageIcon, LayoutDashboard, Mail, CalendarDays, Landmark, Map as MapIcon, Signpost } from "lucide-react";
 
 type TabCategory = "home" | "erp" | "crm" | "cms" | "system";
 
@@ -97,6 +97,8 @@ const CATEGORY_CONFIG: Record<TabCategory, { label: string; badge: string; descr
 const ADMIN_TABS: AdminTab[] = [
   { value: "dashboard", label: "Escritorio", category: "home", capability: "staging.panel", allowRoles: ["admin", "editor", "autor", "colaborador"], icon: LayoutDashboard, iconClass: "text-foreground", render: ({ tabs }) => <StagingDashboard sections={tabs.filter((t) => t.value !== "dashboard").map((t) => ({ ...t, group: CATEGORY_CONFIG[t.category as TabCategory]?.label ?? "" }))} /> },
   { value: "provincias", label: "Provincias", category: "cms", capability: "staging.panel", allowRoles: ["admin", "editor"], icon: MapPin, iconClass: "text-emerald-500", render: () => <StagingProvincesManager /> },
+  { value: "municipios", label: "Municipios", category: "cms", capability: "staging.panel", allowRoles: ["admin", "editor"], icon: MapIcon, iconClass: "text-emerald-600", render: () => <StagingPlacesManager kind="municipalities" /> },
+  { value: "destinos", label: "Destinos", category: "cms", capability: "staging.panel", allowRoles: ["admin", "editor"], icon: Signpost, iconClass: "text-teal-500", render: () => <StagingPlacesManager kind="destinations" /> },
   { value: "noticias", label: "Noticias", category: "cms", capability: "staging.panel", allowRoles: ["admin", "editor", "autor", "colaborador"], icon: Newspaper, iconClass: "text-primary", render: () => <StagingNewsManager /> },
   { value: "medios", label: "Biblioteca de medios", category: "cms", capability: "staging.panel", allowRoles: ["admin", "editor", "autor", "colaborador"], icon: ImageIcon, iconClass: "text-cyan-500", render: () => <MediaLibrary /> },
   { value: "categorias-noticias", label: "Categorías de noticias", category: "cms", capability: "staging.panel", allowRoles: ["admin", "editor"], icon: Tags, iconClass: "text-amber-500", render: () => <StagingNewsCategoriesManager /> },

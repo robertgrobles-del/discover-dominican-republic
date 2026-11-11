@@ -9,7 +9,7 @@ Fuentes revisadas (10-11-2026):
 
 **Regla para agrupar:** lo que se consulta junto (JOIN), se guarda en la misma operación, o depende de provincias y fichas, va en la misma base. Solo se separa lo que crece mucho, se escribe a cada clic, o debe estar aislado por seguridad o por dinero.
 
-Hoy en Turso: `news`, `news_categories`, `provinces`, `media`, `content_translations`, `events`, `venues`, `leads`, `contact_messages`, `establishment_requests`, `establishment_files` y usuarios. Todo lo demás está en Postgres (`backend/`), en Supabase o en `src/data`.
+Hoy en Turso: `news`, `news_categories`, `provinces` (con todos los componentes de su página), `municipalities`, `destinations`, `media`, `content_translations`, `events`, `venues`, `leads`, `contact_messages`, `establishment_requests`, `establishment_files` y usuarios. Todo lo demás está en Postgres (`backend/`), en Supabase o en `src/data`.
 
 ---
 

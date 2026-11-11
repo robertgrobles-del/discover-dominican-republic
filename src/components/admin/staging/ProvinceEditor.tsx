@@ -15,6 +15,32 @@ import { ImageField } from "./StagingCrudManager";
 import { MediaPicker } from "./MediaLibrary";
 import { SeoAnalysisBox } from "./SeoAnalysisBox";
 import { Box } from "./NewsEditor";
+import { useTerritory } from "./LocationPicker";
+
+// Secciones de la página de provincia, en el orden por defecto. Los catálogos (monumentos, parques, hoteles…) se
+// rellenan solos: aquí solo se decide si salen y en qué orden.
+const BLOCKS: [string, string][] = [
+  ["hero", "Portada (slider)"], ["identidad", "Identidad e introducción"], ["ficha", "Ficha técnica"], ["distancias", "Distancias"],
+  ["anuncio", "Anuncio"], ["acerca", "Acerca de (historia, geografía…)"], ["temas", "Temas"], ["municipios", "Municipios"],
+  ["viajero", "Según el viajero"], ["actividades", "Actividades"], ["destinos", "Destinos"], ["itinerario", "Itinerario"],
+  ["como-llegar", "Cómo llegar"], ["monumentos", "Monumentos (automático)"], ["anuncio-2", "Anuncio 2"], ["parques", "Parques (automático)"],
+  ["hoteles", "Hoteles (automático)"], ["gastronomia", "Restaurantes (automático)"], ["vida-nocturna", "Vida nocturna (automático)"],
+  ["panorama", "Banner panorámico"], ["blog", "Noticias relacionadas"], ["galeria", "Galería"], ["zonas", "Zonas"],
+  ["pasaporte", "Pasaporte"], ["creditos", "Créditos de fotos"], ["comentarios", "Comentarios"],
+];
+const DEFAULT_ON = ["hero", "ficha", "distancias", "anuncio", "acerca", "actividades", "destinos", "itinerario", "como-llegar", "monumentos",
+  "anuncio-2", "parques", "hoteles", "gastronomia", "vida-nocturna", "panorama", "blog", "galeria", "comentarios"];
+const CATEGORIES = ["playa", "montaña", "ecoturismo", "cultura", "aventura", "rios", "ciudad", "lujo"];
+const ABOUT: [string, string][] = [["history", "Historia"], ["geography", "Geografía"], ["artAndCulture", "Arte y cultura"],
+  ["politicalDivision", "División política"], ["economy", "Economía"], ["demographics", "Población"], ["location", "Ubicación"]];
+const TRANSPORT = [["carro", "Carro"], ["bus", "Autobús"], ["avion", "Avión"], ["barco", "Barco"]] as const;
+type Slide = { image: string; tag: string; title: string; subtitle: string; description: string; ctaText: string; ctaLink: string };
+type Theme = { eyebrow: string; title: string; text: string; facts: string[]; image: string };
+type Tag = { label: string; places: string[] };
+type Day = { titulo: string; lugar: string; desc: string };
+type Trip = { tipo: string; desde: string; duracion: string; descripcion: string; precio: string };
+const lines = (v: string) => v.split("\n").map((x) => x.trim()).filter(Boolean);
+const obj = <T,>(v: unknown, fb: T): T => { try { const o = JSON.parse(String(v ?? "")); return o && typeof o === "object" ? o : fb; } catch { return fb; } };
 
 type Row = Record<string, unknown> & { id: string };
 type Muni = { name: string; description: string };
@@ -83,11 +109,30 @@ export function ProvinceEditor({ row, onClose, onNew }: { row: Row | "new"; onCl
     description: s(r.description), image_url: s(r.image_url), image_alt: s(r.image_alt), latitude: s(r.latitude), longitude: s(r.longitude),
     status: s(r.status) || "draft", color_primary: s(r.color_primary) || "#0b7290", color_accent: s(r.color_accent) || "#f2b134",
     seo_title: s(r.seo_title), seo_description: s(r.seo_description), focus_keywords: s(r.focus_keywords),
+    tagline: s(r.tagline), intro: s(r.intro), population: s(r.population), area_km2: s(r.area_km2), best_time: s(r.best_time),
+    weather_info: s(r.weather_info), how_to_get_there: s(r.how_to_get_there),
   }));
+  const [highlights, setHighlights] = useState(() => parse<string>(r.highlights).join("\n"));
+  const [dishes, setDishes] = useState(() => parse<string>(r.typical_dishes).join("\n"));
+  const [credits, setCredits] = useState(() => parse<string>(r.photo_credits).join("\n"));
+  const [cats, setCats] = useState<string[]>(() => parse<string>(r.categories));
+  const [slides, setSlides] = useState<Slide[]>(() => parse<Slide>(r.slides));
+  const [about, setAbout] = useState<Record<string, string>>(() => obj(r.about, {}));
+  const [themes, setThemes] = useState<(Omit<Theme, "facts"> & { facts: string })[]>(() => parse<Theme>(r.themes).map((t) => ({ ...t, facts: (t.facts ?? []).join("\n") })));
+  const [tags, setTags] = useState<(Omit<Tag, "places"> & { places: string })[]>(() => parse<Tag>(r.traveler_tags).map((t) => ({ ...t, places: (t.places ?? []).join("\n") })));
+  const [days, setDays] = useState<Day[]>(() => parse<Day>(r.itinerary));
+  const [airport, setAirport] = useState<Record<string, string>>(() => obj(r.airport, {}));
+  const [trips, setTrips] = useState<Trip[]>(() => parse<Trip>(r.transport));
+  const [blocks, setBlocks] = useState<string[]>(() => { const b = parse<string>(r.blocks); return b.length ? b : DEFAULT_ON; });
+  const territory = useTerritory();
+  const ownMunis = id ? territory.municipalities.filter((m) => m.province_id === id) : [];
+  const ownDests = id ? territory.destinations.filter((d) => d.province_id === id) : [];
+  const moveBlock = (k: string, d: number) => setBlocks((b) => { const i = b.indexOf(k); const j = i + d; if (i < 0 || j < 0 || j >= b.length) return b; const a = [...b]; [a[i], a[j]] = [a[j], a[i]]; return a; });
   const [hero, setHero] = useState<Photo[]>(() => parse<string | Photo>(r.hero_images).map((h) => (typeof h === "string" ? { url: h, alt: "" } : h)));
   const [gallery, setGallery] = useState<Photo[]>(() => parse<Photo>(r.gallery));
-  const [munis, setMunis] = useState<Muni[]>(() => parse<Muni>(r.municipalities));
-  const [places, setPlaces] = useState<Place[]>(() => parse<Place>(r.places));
+  // Listas antiguas (antes de las tablas municipalities y del catálogo automático): se conservan al guardar.
+  const [munis] = useState<Muni[]>(() => parse<Muni>(r.municipalities));
+  const [places] = useState<Place[]>(() => parse<Place>(r.places));
   const [slugTouched, setSlugTouched] = useState(row !== "new");
   const set = (k: keyof typeof f, v: string) => setF((x) => ({ ...x, [k]: v, ...(k === "name" && !slugTouched ? { slug: toSlug(v) } : {}) }));
 
@@ -96,7 +141,13 @@ export function ProvinceEditor({ row, onClose, onNew }: { row: Row | "new"; onCl
       const num = (v: string) => (v.trim() === "" ? null : Number(v));
       const body = {
         ...Object.fromEntries(Object.entries(f).map(([k, v]) => [k, v || null])), status,
-        latitude: num(f.latitude), longitude: num(f.longitude),
+        latitude: num(f.latitude), longitude: num(f.longitude), population: num(f.population), area_km2: num(f.area_km2),
+        highlights: lines(highlights), typical_dishes: lines(dishes), photo_credits: lines(credits), categories: cats,
+        slides: slides.filter((x) => x.title.trim()), about, airport, blocks,
+        themes: themes.filter((x) => x.title.trim()).map((x) => ({ ...x, facts: lines(x.facts) })),
+        traveler_tags: tags.filter((x) => x.label.trim()).map((x) => ({ ...x, places: lines(x.places) })),
+        itinerary: days.filter((x) => x.titulo.trim() || x.lugar.trim()).map((x, i) => ({ ...x, dia: i + 1 })),
+        transport: trips.filter((x) => x.desde.trim()),
         hero_images: hero, gallery, municipalities: munis.filter((m) => m.name.trim()),
         places: places.filter((p) => p.name.trim()).map((p) => ({ ...p, lat: num(p.lat), lng: num(p.lng) })),
       };
@@ -139,36 +190,152 @@ export function ProvinceEditor({ row, onClose, onNew }: { row: Row | "new"; onCl
             <p className="text-xs text-muted-foreground">Una o dos frases; sale en las tarjetas de destinos y bajo el título.</p>
           </Box>
 
-          <Box title={`Municipios (${munis.length})`}>
-            <Repeater items={munis} onChange={setMunis} empty={{ name: "", description: "" }} add="Añadir municipio" render={(m, p) => (
+          <Box title="Lema e introducción">
+            <div className="space-y-1"><Label htmlFor="p-tag">Lema</Label>
+              <Input id="p-tag" value={f.tagline} onChange={(e) => set("tagline", e.target.value)} placeholder="La península verde y marina" /></div>
+            <div className="space-y-1"><Label htmlFor="p-intro">Introducción (bloque «Identidad»)</Label>
+              <Textarea id="p-intro" rows={4} value={f.intro} onChange={(e) => set("intro", e.target.value)} /></div>
+          </Box>
+
+          <Box title={`Slider de portada: textos (${slides.length}/10)`}>
+            <p className="text-xs text-muted-foreground">Cada diapositiva con su foto y su texto. Si no hay ninguna, se usan las fotos del «Slider de portada» de la derecha.</p>
+            <Repeater items={slides} onChange={setSlides} empty={{ image: "", tag: "", title: "", subtitle: "", description: "", ctaText: "", ctaLink: "" }} add="Añadir diapositiva" render={(x, p) => (
               <>
-                <Input value={m.name} onChange={(e) => p({ name: e.target.value })} placeholder="Nombre del municipio" aria-label="Municipio" />
-                <Textarea rows={2} value={m.description} onChange={(e) => p({ description: e.target.value })} placeholder="Qué lo distingue (opcional)" aria-label="Descripción del municipio" />
+                <ImageField id={`slide-${x.title}`} compact value={x.image} onChange={(v) => p({ image: v })} />
+                <div className="grid gap-2 sm:grid-cols-2">
+                  <Input value={x.tag} onChange={(e) => p({ tag: e.target.value })} placeholder="Etiqueta (p. ej. Temporada de ballenas)" aria-label="Etiqueta" />
+                  <Input value={x.title} onChange={(e) => p({ title: e.target.value })} placeholder="Título" aria-label="Título de la diapositiva" />
+                </div>
+                <Input value={x.subtitle} onChange={(e) => p({ subtitle: e.target.value })} placeholder="Subtítulo" aria-label="Subtítulo" />
+                <Textarea rows={2} value={x.description} onChange={(e) => p({ description: e.target.value })} placeholder="Descripción" aria-label="Descripción de la diapositiva" />
+                <div className="grid gap-2 sm:grid-cols-2">
+                  <Input value={x.ctaText} onChange={(e) => p({ ctaText: e.target.value })} placeholder="Texto del botón" aria-label="Texto del botón" />
+                  <Input value={x.ctaLink} onChange={(e) => p({ ctaLink: e.target.value })} placeholder="Enlace del botón (/eventos…)" aria-label="Enlace del botón" />
+                </div>
               </>
             )} />
           </Box>
 
-          <Box title={`Lugares y atractivos (${places.length})`}>
-            <Repeater items={places} onChange={setPlaces} empty={{ name: "", type: "Playa", description: "", image: "", lat: "", lng: "" }} add="Añadir lugar" render={(pl, p) => (
+          <Box title="Ficha técnica">
+            <div className="grid gap-2 sm:grid-cols-2">
+              <div className="space-y-1"><Label htmlFor="p-pop">Población</Label><Input id="p-pop" inputMode="numeric" value={f.population} onChange={(e) => set("population", e.target.value)} /></div>
+              <div className="space-y-1"><Label htmlFor="p-area">Superficie (km²)</Label><Input id="p-area" inputMode="decimal" value={f.area_km2} onChange={(e) => set("area_km2", e.target.value)} /></div>
+            </div>
+            <div className="space-y-1"><Label htmlFor="p-best">Mejor época para visitar</Label><Input id="p-best" value={f.best_time} onChange={(e) => set("best_time", e.target.value)} /></div>
+            <div className="space-y-1"><Label htmlFor="p-weather">Clima</Label><Textarea id="p-weather" rows={2} value={f.weather_info} onChange={(e) => set("weather_info", e.target.value)} /></div>
+            <div className="space-y-1"><Label htmlFor="p-how">Cómo llegar (resumen)</Label><Textarea id="p-how" rows={2} value={f.how_to_get_there} onChange={(e) => set("how_to_get_there", e.target.value)} /></div>
+            <div className="grid gap-2 sm:grid-cols-2">
+              <div className="space-y-1"><Label htmlFor="p-hl">Lo más destacado (uno por línea)</Label><Textarea id="p-hl" rows={4} value={highlights} onChange={(e) => setHighlights(e.target.value)} /></div>
+              <div className="space-y-1"><Label htmlFor="p-dish">Platos típicos (uno por línea)</Label><Textarea id="p-dish" rows={4} value={dishes} onChange={(e) => setDishes(e.target.value)} /></div>
+            </div>
+            <fieldset className="space-y-1">
+              <legend className="text-sm font-medium">Tipo de turismo (activa las actividades)</legend>
+              <div className="flex flex-wrap gap-3 text-sm">
+                {CATEGORIES.map((c) => (
+                  <label key={c} className="flex items-center gap-1.5">
+                    <input type="checkbox" checked={cats.includes(c)} onChange={(e) => setCats((x) => (e.target.checked ? [...x, c] : x.filter((y) => y !== c)))} />{c}
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+          </Box>
+
+          <Box title="Acerca de">
+            {ABOUT.map(([k, l]) => (
+              <div key={k} className="space-y-1"><Label htmlFor={`about-${k}`}>{l}</Label>
+                <Textarea id={`about-${k}`} rows={3} value={about[k] ?? ""} onChange={(e) => setAbout((x) => ({ ...x, [k]: e.target.value }))} /></div>
+            ))}
+          </Box>
+
+          <Box title={`Temas (${themes.length})`}>
+            <Repeater items={themes} onChange={setThemes} empty={{ eyebrow: "", title: "", text: "", facts: "", image: "" }} add="Añadir tema" render={(x, p) => (
               <>
-                <div className="grid gap-2 sm:grid-cols-[1fr_170px]">
-                  <Input value={pl.name} onChange={(e) => p({ name: e.target.value })} placeholder="Nombre (p. ej. Salto El Limón)" aria-label="Lugar" />
-                  <select value={pl.type} onChange={(e) => p({ type: e.target.value })} aria-label="Tipo de lugar" className="h-10 rounded-md border border-input bg-background px-2 text-sm">
-                    {PLACE_TYPES.map((t) => <option key={t}>{t}</option>)}
-                  </select>
+                <div className="grid gap-2 sm:grid-cols-[180px_1fr]">
+                  <Input value={x.eyebrow} onChange={(e) => p({ eyebrow: e.target.value })} placeholder="Antetítulo" aria-label="Antetítulo" />
+                  <Input value={x.title} onChange={(e) => p({ title: e.target.value })} placeholder="Título del tema" aria-label="Título del tema" />
                 </div>
-                <Textarea rows={2} value={pl.description} onChange={(e) => p({ description: e.target.value })} placeholder="Descripción breve" aria-label="Descripción del lugar" />
-                <div className="grid gap-2 sm:grid-cols-2">
-                  <Input value={String(pl.lat ?? "")} onChange={(e) => p({ lat: e.target.value })} placeholder="Latitud (19.17)" aria-label="Latitud del lugar" inputMode="decimal" />
-                  <Input value={String(pl.lng ?? "")} onChange={(e) => p({ lng: e.target.value })} placeholder="Longitud (-69.43)" aria-label="Longitud del lugar" inputMode="decimal" />
-                </div>
-                <ImageField id={`place-img-${pl.name}`} compact value={pl.image} onChange={(v) => p({ image: v })} />
+                <Textarea rows={3} value={x.text} onChange={(e) => p({ text: e.target.value })} placeholder="Texto" aria-label="Texto del tema" />
+                <Textarea rows={2} value={x.facts} onChange={(e) => p({ facts: e.target.value })} placeholder="Datos (uno por línea)" aria-label="Datos del tema" />
+                <ImageField id={`theme-${x.title}`} compact value={x.image} onChange={(v) => p({ image: v })} />
               </>
             )} />
+          </Box>
+
+          <Box title={`Según el viajero (${tags.length})`}>
+            <Repeater items={tags} onChange={setTags} empty={{ label: "", places: "" }} add="Añadir perfil" render={(x, p) => (
+              <>
+                <Input value={x.label} onChange={(e) => p({ label: e.target.value })} placeholder="Perfil (Familias, Aventura…)" aria-label="Perfil de viajero" />
+                <Textarea rows={2} value={x.places} onChange={(e) => p({ places: e.target.value })} placeholder="Lugares recomendados (uno por línea)" aria-label="Lugares recomendados" />
+              </>
+            )} />
+          </Box>
+
+          <Box title={`Itinerario (${days.length} días)`}>
+            <Repeater items={days} onChange={setDays} empty={{ titulo: "", lugar: "", desc: "" }} add="Añadir día" render={(x, p) => (
+              <>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  <Input value={x.titulo} onChange={(e) => p({ titulo: e.target.value })} placeholder="Título del día" aria-label="Título del día" />
+                  <Input value={x.lugar} onChange={(e) => p({ lugar: e.target.value })} placeholder="Lugar" aria-label="Lugar del día" />
+                </div>
+                <Textarea rows={2} value={x.desc} onChange={(e) => p({ desc: e.target.value })} placeholder="Qué hacer" aria-label="Descripción del día" />
+              </>
+            )} />
+          </Box>
+
+          <Box title="Cómo llegar">
+            <div className="grid gap-2 sm:grid-cols-[1fr_90px_120px]">
+              <Input value={airport.nombre ?? ""} onChange={(e) => setAirport((x) => ({ ...x, nombre: e.target.value }))} placeholder="Aeropuerto más cercano" aria-label="Aeropuerto" />
+              <Input value={airport.codigo ?? ""} onChange={(e) => setAirport((x) => ({ ...x, codigo: e.target.value }))} placeholder="Código" aria-label="Código del aeropuerto" />
+              <Input value={airport.distancia ?? ""} onChange={(e) => setAirport((x) => ({ ...x, distancia: e.target.value }))} placeholder="Distancia" aria-label="Distancia al aeropuerto" />
+            </div>
+            <Repeater items={trips} onChange={setTrips} empty={{ tipo: "carro", desde: "", duracion: "", descripcion: "", precio: "" }} add="Añadir forma de llegar" render={(x, p) => (
+              <>
+                <div className="grid gap-2 sm:grid-cols-[120px_1fr_120px]">
+                  <select value={x.tipo} onChange={(e) => p({ tipo: e.target.value })} aria-label="Medio" className="h-10 rounded-md border border-input bg-background px-2 text-sm">
+                    {TRANSPORT.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+                  </select>
+                  <Input value={x.desde} onChange={(e) => p({ desde: e.target.value })} placeholder="Desde" aria-label="Desde" />
+                  <Input value={x.duracion} onChange={(e) => p({ duracion: e.target.value })} placeholder="Duración" aria-label="Duración" />
+                </div>
+                <Textarea rows={2} value={x.descripcion} onChange={(e) => p({ descripcion: e.target.value })} placeholder="Detalles" aria-label="Detalles" />
+                <Input value={x.precio} onChange={(e) => p({ precio: e.target.value })} placeholder="Precio aproximado" aria-label="Precio" />
+              </>
+            )} />
+          </Box>
+
+          <Box title={`Municipios y destinos (${ownMunis.length} y ${ownDests.length})`}>
+            {id ? (
+              <>
+                <p className="text-xs text-muted-foreground">Se editan en las secciones Municipios y Destinos del panel. Solo salen en la página los publicados.</p>
+                <ul className="columns-2 text-sm">{ownMunis.map((m) => <li key={m.id}>{s(m.name)}{m.status === "published" ? "" : " (borrador)"}</li>)}</ul>
+                {ownDests.length > 0 && <p className="text-sm"><strong>Destinos:</strong> {ownDests.map((d) => s(d.name)).join(", ")}</p>}
+              </>
+            ) : <p className="text-xs text-muted-foreground">Guarda la provincia para poder asignarle municipios y destinos.</p>}
+          </Box>
+
+          <Box title="Secciones de la página">
+            <p className="text-xs text-muted-foreground">Marca las que salen y ordénalas. Las marcadas «automático» se rellenan solas con el catálogo de la provincia.</p>
+            <ul className="space-y-1 text-sm">
+              {[...blocks.map((k) => BLOCKS.find(([b]) => b === k)).filter(Boolean) as [string, string][], ...BLOCKS.filter(([k]) => !blocks.includes(k))].map(([k, l]) => {
+                const on = blocks.includes(k);
+                return (
+                  <li key={k} className="flex items-center gap-2">
+                    <input type="checkbox" id={`blk-${k}`} checked={on} onChange={(e) => setBlocks((b) => (e.target.checked ? [...b, k] : b.filter((x) => x !== k)))} />
+                    <label htmlFor={`blk-${k}`} className={`flex-1 ${on ? "" : "text-muted-foreground"}`}>{l}</label>
+                    {on && <>
+                      <Button type="button" size="icon" variant="ghost" className="h-7 w-7" aria-label={`Subir ${l}`} onClick={() => moveBlock(k, -1)}><ArrowUp className="h-3.5 w-3.5" /></Button>
+                      <Button type="button" size="icon" variant="ghost" className="h-7 w-7" aria-label={`Bajar ${l}`} onClick={() => moveBlock(k, 1)}><ArrowDown className="h-3.5 w-3.5" /></Button>
+                    </>}
+                  </li>
+                );
+              })}
+            </ul>
           </Box>
 
           <Box title={`Galería (${gallery.length})`}>
             <PhotoList items={gallery} onChange={setGallery} max={60} />
+            <div className="space-y-1"><Label htmlFor="p-credits">Créditos de las fotos (uno por línea)</Label>
+              <Textarea id="p-credits" rows={2} value={credits} onChange={(e) => setCredits(e.target.value)} placeholder="Autor (licencia)" /></div>
           </Box>
 
           <Box title="Buscadores (SEO)">

@@ -15,6 +15,7 @@ import { ImageField } from "./StagingCrudManager";
 import { Box } from "./NewsEditor";
 import { eventEnded } from "./EventList";
 import { EventPlacePicker } from "./EventPlacePicker";
+import { LocationPicker, locationLabel, useTerritory } from "./LocationPicker";
 
 type Row = Record<string, unknown> & { id: string };
 const EVENT_TYPES = ["Cultural", "Música", "Feria", "Regional", "Exposición", "Deporte", "Gastronomía", "Evento"];
@@ -24,7 +25,8 @@ const toSlug = (v: string) => v.normalize("NFD").replace(/[̀-ͯ]/g, "").toLower
 const s = (v: unknown) => (v == null ? "" : String(v));
 
 const FIELDS = ["name", "slug", "event_type", "short_description", "description", "image_url", "start_date", "end_date", "start_time", "end_time",
-  "venue", "address", "province", "price_range", "ticket_url", "organizer", "submitter_email", "submitter_phone", "status", "venue_id", "venue_type", "venue_room"] as const;
+  "venue", "address", "province", "price_range", "ticket_url", "organizer", "submitter_email", "submitter_phone", "status", "venue_id", "venue_type", "venue_room",
+  "province_id", "municipality_id", "destination_id"] as const;
 type Key = (typeof FIELDS)[number];
 
 function Field({ id, label, value, onChange, type = "text", placeholder }: { id: string; label: string; value: string; onChange: (v: string) => void; type?: string; placeholder?: string }) {
@@ -38,6 +40,7 @@ function Field({ id, label, value, onChange, type = "text", placeholder }: { id:
 
 export function EventEditor({ row, onClose, onNew }: { row: Row | "new"; onClose: () => void; onNew: () => void }) {
   const qc = useQueryClient();
+  const territory = useTerritory();
   const r: Record<string, unknown> = row === "new" ? {} : row;
   const [id, setId] = useState<string | null>(row === "new" ? null : row.id);
   const [f, setF] = useState(() => ({ ...Object.fromEntries(FIELDS.map((k) => [k, s(r[k])])), event_type: s(r.event_type) || "Evento" }) as Record<Key, string>);
@@ -140,6 +143,12 @@ export function EventEditor({ row, onClose, onNew }: { row: Row | "new"; onClose
           <Box title="Lugar">
             <EventPlacePicker value={{ venue_id: f.venue_id, venue_type: f.venue_type, venue: f.venue, venue_room: f.venue_room, address: f.address, province: f.province }}
               onChange={(p) => setF((x) => ({ ...x, ...p }))} />
+          </Box>
+
+          <Box title="Ubicación">
+            <LocationPicker idPrefix="ev-loc" value={{ province_id: f.province_id, municipality_id: f.municipality_id, destination_id: f.destination_id }}
+              onChange={(v) => { const l = locationLabel(territory, v); setF((x) => ({ ...x, ...v, province: l.province || x.province })); }} />
+            <p className="text-xs text-muted-foreground">Si el lugar es un recinto del catálogo y lo dejas vacío, se usa la ubicación del recinto.</p>
           </Box>
 
           <Box title="Entradas">

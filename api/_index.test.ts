@@ -119,19 +119,59 @@ describe("contenido público", () => {
   });
 });
 
+describe("territorio: provincias, municipios y destinos", () => {
+  it("la semilla carga las 32 provincias y sus municipios como borrador, sin publicar nada", async () => {
+    const auth = bearer(await login("admin@x.do", "clave-segura-123"));
+    const provs = data<{ slug: string; status: string }[]>(await call("GET", "/admin/provinces", undefined, auth));
+    expect(provs.filter((p) => p.status === "draft").length).toBeGreaterThanOrEqual(32);
+    const munis = data<{ slug: string; province_id: string }[]>(await call("GET", "/admin/municipalities", undefined, auth));
+    expect(munis.length).toBeGreaterThan(150);
+    expect(data<{ slug: string }[]>(await call("GET", "/public/provinces")).map((p) => p.slug)).not.toContain("santo-domingo");
+  });
+
+  it("elegir el municipio completa la provincia y rechaza combinaciones que no encajan", async () => {
+    const auth = bearer(await login("admin@x.do", "clave-segura-123"));
+    const provs = data<{ id: string; slug: string }[]>(await call("GET", "/admin/provinces", undefined, auth));
+    const sd = provs.find((p) => p.slug === "santo-domingo")!.id;
+    const samana = provs.find((p) => p.slug === "samana")!.id;
+
+    const v = await call("POST", "/admin/venues", { slug: "playa-boca-chica-prueba", name: "Playa de Boca Chica", municipality_id: "boca-chica" }, auth);
+    expect(v.status).toBe(201);
+    expect(data(v).province_id).toBe(sd);
+    expect((await call("POST", "/admin/venues", { slug: "mal-sitio", name: "X", province_id: samana, municipality_id: "boca-chica" }, auth)).status).toBe(422);
+
+    const d = await call("POST", "/admin/destinations", { slug: "destino-prueba", name: "Destino", municipality_id: "boca-chica" }, auth);
+    expect(d.status).toBe(201);
+    expect(data(d).province_id).toBe(sd);
+    const e = await call("POST", "/admin/events", { slug: "evento-ubicado", name: "Fiesta", destination_id: data(d).id }, auth);
+    expect(data(e).municipality_id).toBe("boca-chica");
+    expect(data(e).province_id).toBe(sd);
+
+    // Una provincia con municipios no se borra; un municipio borrado deja el contenido solo con la provincia.
+    expect((await call("DELETE", `/admin/provinces/${sd}`, undefined, auth)).status).toBe(409);
+    await call("PUT", `/admin/provinces/${sd}`, { slug: "santo-domingo", name: "Santo Domingo", region: "santo-domingo", status: "published", tagline: "La capital", highlights: ["Zona Colonial"] }, auth);
+    await call("PUT", "/admin/municipalities/boca-chica", { slug: "boca-chica", name: "Boca Chica", province_id: sd, status: "published" }, auth);
+    const pub = data<{ tagline: string; territory: { municipalities: { slug: string }[] } }>(await call("GET", "/public/provinces/santo-domingo"));
+    expect(pub.tagline).toBe("La capital");
+    expect(pub.territory.municipalities.map((m) => m.slug)).toEqual(["boca-chica"]);
+    expect((await call("DELETE", `/admin/destinations/${data(d).id}`, undefined, auth)).status).toBe(204);
+    expect(data(await call("GET", `/admin/events/${data(e).id}`, undefined, auth)).destination_id).toBeNull();
+  });
+});
+
 describe("provincias y noticias", () => {
   it("crea, edita, lista y borra; valida y detecta slugs repetidos", async () => {
     const auth = bearer(await login("admin@x.do", "clave-segura-123"));
-    const p = await call("POST", "/admin/provinces", { slug: "samana", name: "Samaná", region: "norte", latitude: 19.2 }, auth);
+    const p = await call("POST", "/admin/provinces", { slug: "samana-prueba", name: "Samaná", region: "norte", latitude: 19.2 }, auth);
     expect(p.status).toBe(201);
     const id = data(p).id as string;
 
-    expect((await call("POST", "/admin/provinces", { slug: "samana", name: "Otra", region: "norte" }, auth)).status).toBe(409);
+    expect((await call("POST", "/admin/provinces", { slug: "samana-prueba", name: "Otra", region: "norte" }, auth)).status).toBe(409);
     expect((await call("POST", "/admin/provinces", { slug: "Mal Slug", name: "X", region: "norte" }, auth)).status).toBe(422);
     expect((await call("POST", "/admin/provinces", { slug: "x", name: "X", region: "oeste" }, auth)).status).toBe(422);
     expect((await call("POST", "/admin/provinces", { slug: "x", name: "X", region: "sur", image_url: "javascript:alert(1)" }, auth)).status).toBe(422);
 
-    const upd = await call("PUT", `/admin/provinces/${id}`, { slug: "samana", name: "Samaná", region: "norte", status: "published" }, auth);
+    const upd = await call("PUT", `/admin/provinces/${id}`, { slug: "samana-prueba", name: "Samaná", region: "norte", status: "published" }, auth);
     expect(data(upd).status).toBe("published");
 
     const n = await call("POST", "/admin/news", { slug: "ballenas-2027", title: "Llegan las ballenas", province_id: id, status: "published" }, auth);

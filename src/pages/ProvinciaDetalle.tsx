@@ -41,6 +41,7 @@ import { useQuery } from "@tanstack/react-query";
 import { usePageContent } from "@/lib/pageContent";
 import { useAuth } from "@/hooks/useAuth";
 import { jsonList, useCmsProvince } from "@/lib/stagingContent";
+import { cmsAirport, cmsItinerary, cmsTransport, mergeIdentity, mergeProvince } from "@/lib/provinceCms";
 import { destinationTheme } from "@/lib/destinationTheme";
 import { DEFAULT_PROVINCE_BLOCKS, provinceIdentity, type ProvinceBlock } from "@/data/provinceIdentity";
 import { AtlanticRoute, PhotoCredits, ProvinceIdentityIntro, ProvinceMunicipalities, ProvinceThemes, ProvinceTravelerFilter } from "@/components/province/ProvinceIdentitySections";
@@ -54,17 +55,10 @@ export default function ProvinciaDetalle() {
   // Ficha del panel (Turso) sobre los datos locales: lo que se rellena en el panel manda; lo vacío sigue saliendo de src/data.
   const { data: cms } = useCmsProvince(slug, staff);
   const base = getDestinationBySlug(slug || "");
-  const province = useMemo(() => (base && cms ? {
-    ...base,
-    name: cms.name || base.name,
-    description: cms.description || base.description,
-    shortDescription: cms.short_description || base.shortDescription,
-    capital: cms.capital || (base as { capital?: string }).capital,
-    imageUrl: cms.image_url || base.imageUrl,
-  } : base), [base, cms]);
+  const province = useMemo(() => (base ? mergeProvince(base, cms) : base), [base, cms]);
   const cmsHero = jsonList<string | { url: string }>(cms?.hero_images).map((h) => (typeof h === "string" ? h : h.url)).filter(Boolean);
   const cmsGallery = jsonList<{ url: string; alt?: string }>(cms?.gallery).filter((g) => g.url);
-  const identity = slug ? provinceIdentity[slug] : undefined;
+  const identity = mergeIdentity(slug ? provinceIdentity[slug] : undefined, cms, cms?.territory?.municipalities ?? []);
 
   // Match corresponding static rich destination data if available (e.g., samana, puerto-plata)
   const staticDestino = destinosData[slug || ""] || (slug ? destinosData[provinceToDestinationMap[slug] || ""] : null);
@@ -244,13 +238,13 @@ export default function ProvinciaDetalle() {
     : [getSafeCoverImage(province?.imageUrl, "province", province?.slug)];
 
   // Suggested itinerary fallback
-  const displayItinerary = staticDestino?.rutaSugerida?.length
+  const displayItinerary = cmsItinerary(cms) ?? (staticDestino?.rutaSugerida?.length
     ? staticDestino.rutaSugerida
-    : enrichedData?.itinerary || [];
+    : enrichedData?.itinerary || []);
 
   // Transport & Airport fallback
-  const displayAirport = staticDestino?.aeropuerto || enrichedData?.airport;
-  const displayTransport = staticDestino?.transporte || enrichedData?.transport || [];
+  const displayAirport = cmsAirport(cms) || staticDestino?.aeropuerto || enrichedData?.airport;
+  const displayTransport = cmsTransport(cms) || staticDestino?.transporte || enrichedData?.transport || [];
 
   // Gallery items fallback
   const displayGallery = cmsGallery.length
@@ -568,7 +562,7 @@ export default function ProvinciaDetalle() {
       <Header />
 
       <main className={`min-h-screen bg-background ${theme.className ?? ""}`} style={theme.style}>
-        {(identity?.blocks ?? DEFAULT_PROVINCE_BLOCKS).map((k) => <Fragment key={k}>{blocks[k]}</Fragment>)}
+        {(identity?.blocks?.length ? identity.blocks : DEFAULT_PROVINCE_BLOCKS).map((k) => <Fragment key={k}>{blocks[k]}</Fragment>)}
       </main>
 
       <Footer />
