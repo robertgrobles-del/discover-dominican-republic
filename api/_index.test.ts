@@ -270,7 +270,15 @@ describe("SEO de noticias", () => {
     expect(html(miss)).toContain('content="noindex, follow"');
 
     expect(html(await render("/render/noticias"))).toContain('href="/noticias/ballenas-seo"');
+    const auth = bearer(await login("admin@x.do", "clave-segura-123"));
+    const fest = data(await call("POST", "/admin/events", { slug: "festival-sitemap", name: "Festival del sitemap", start_date: "2099-01-10", status: "published" }, auth)).id;
+    const hidden = data(await call("POST", "/admin/events", { slug: "evento-oculto", name: "Oculto", start_date: "2099-01-10" }, auth)).id;
     const map = html(await render("/sitemap.xml"));
+    expect(map).toContain("<loc>https://descubrerepdom.com/evento/festival-sitemap</loc>");
+    expect(map).not.toContain("evento-oculto");
+    expect(map).not.toContain("/provincia/"); // las provincias siguen ocultas al público
+    expect(html(await render("/llms.txt"))).toContain("[Festival del sitemap](https://descubrerepdom.com/evento/festival-sitemap)");
+    for (const id of [fest, hidden]) await call("DELETE", `/admin/events/${id}`, undefined, auth); // la base es compartida
     expect(map).toContain("<loc>https://descubrerepdom.com/noticias/ballenas-seo</loc>");
     expect(map).not.toContain("nota-borrador");
     expect(map).toContain("<loc>https://descubrerepdom.com/marina/cap-cana</loc>");
