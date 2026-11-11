@@ -276,7 +276,8 @@ describe("SEO de noticias", () => {
     const map = html(await render("/sitemap.xml"));
     expect(map).toContain("<loc>https://descubrerepdom.com/evento/festival-sitemap</loc>");
     expect(map).not.toContain("evento-oculto");
-    expect(map).not.toContain("/provincia/"); // las provincias siguen ocultas al público
+    expect(map).toContain("<loc>https://descubrerepdom.com/provincia/santo-domingo</loc>"); // publicada en la prueba de territorio
+    expect(map).not.toContain("/provincia/pedernales"); // borrador
     expect(html(await render("/llms.txt"))).toContain("[Festival del sitemap](https://descubrerepdom.com/evento/festival-sitemap)");
     for (const id of [fest, hidden]) await call("DELETE", `/admin/events/${id}`, undefined, auth); // la base es compartida
     expect(map).toContain("<loc>https://descubrerepdom.com/noticias/ballenas-seo</loc>");

@@ -898,21 +898,24 @@ const MARINAS = ["casa-de-campo", "cap-cana", "ocean-world", "marina-zar-par", "
 export const STATIC_PAGES = [
   "/eventos", "/requisitos-viaje", "/e-ticket", "/aeropuerto", ...AIRPORTS.map((x) => `/aeropuerto/${x}`),
   "/puertos-marinas", ...PORTS.map((x) => `/puerto/${x}`), ...MARINAS.map((x) => `/marina/${x}`),
-  "/negocios", "/anunciate", "/registra-tu-negocio", "/contacto", "/privacidad", "/terminos",
+  "/provincias", "/negocios", "/anunciate", "/registra-tu-negocio", "/contacto", "/privacidad", "/terminos",
 ];
 
 /** Fichas públicas que salen de Turso además de las noticias: eventos vigentes y negocios aprobados. */
 interface PublicExtras { events: { slug: string; name: string; short_description: string | null; start_date: string | null; province: string | null; image_url: string | null; updated_at: string | null }[];
-  businesses: { id: string; name: string; province: string | null; description: string | null; created_at: string | null }[] }
+  businesses: { id: string; name: string; province: string | null; description: string | null; created_at: string | null }[];
+  provinces: { slug: string; name: string; short_description: string | null; tagline: string | null; image_url: string | null; updated_at: string | null }[] }
 async function publicExtras(db: Client): Promise<PublicExtras> {
-  const [ev, biz] = await Promise.all([
+  const [ev, biz, prov] = await Promise.all([
     db.execute(`SELECT slug, name, short_description, start_date, province, image_url, updated_at FROM events WHERE status = 'published' AND ${EVENT_LIVE} ORDER BY start_date`),
     db.execute("SELECT id, name, province, description, created_at FROM establishment_requests WHERE status = 'approved' ORDER BY name COLLATE NOCASE"),
+    db.execute("SELECT slug, name, short_description, tagline, image_url, updated_at FROM provinces WHERE status = 'published' ORDER BY name COLLATE NOCASE"),
   ]);
-  return { events: ev.rows as unknown as PublicExtras["events"], businesses: biz.rows as unknown as PublicExtras["businesses"] };
+  return { events: ev.rows as unknown as PublicExtras["events"], businesses: biz.rows as unknown as PublicExtras["businesses"],
+    provinces: prov.rows as unknown as PublicExtras["provinces"] };
 }
 
-function sitemap(rows: NewsRow[], extras: PublicExtras = { events: [], businesses: [] }): string {
+function sitemap(rows: NewsRow[], extras: PublicExtras = { events: [], businesses: [], provinces: [] }): string {
   const url = (loc: string, lastmod?: string | null, extra = "") =>
     `<url><loc>${xmlEsc(`${siteUrl()}${loc}`)}</loc>${lastmod ? `<lastmod>${xmlEsc(lastmod)}</lastmod>` : ""}${extra}</url>`;
   const newest = rows.map((r) => r.updated_at).sort().at(-1);
@@ -923,6 +926,8 @@ function sitemap(rows: NewsRow[], extras: PublicExtras = { events: [], businesse
     + extras.events.map((e) => url(`/evento/${e.slug}`, e.updated_at,
       e.image_url ? `<image:image><image:loc>${xmlEsc(absolute(e.image_url))}</image:loc></image:image>` : "")).join("")
     + extras.businesses.map((b) => url(`/negocios/${b.id}`, b.created_at)).join("")
+    + extras.provinces.map((p) => url(`/provincia/${p.slug}`, p.updated_at,
+      p.image_url ? `<image:image><image:loc>${xmlEsc(absolute(p.image_url))}</image:loc></image:image>` : "")).join("")
     + "</urlset>";
 }
 
@@ -1032,12 +1037,13 @@ export function newsMarkdown(n: NewsRow): string {
   return `# ${n.title}\n\n${n.excerpt ? `> ${n.excerpt}\n\n` : ""}${meta}${cover}\n\n${absoluteMarkdown(n.body ?? "").trim()}\n`;
 }
 
-function llmsTxt(rows: NewsRow[], extras: PublicExtras = { events: [], businesses: [] }): string {
+function llmsTxt(rows: NewsRow[], extras: PublicExtras = { events: [], businesses: [], provinces: [] }): string {
   const items = rows.map((n) => `- [${n.title}](${siteUrl()}/noticias/${n.slug}.md): ${newsDescription(n)}`).join("\n");
   return `# ${SITE_NAME}\n\n> ${SITE_SUMMARY}\n\n`
     + "Contenido en español de República Dominicana. Cada noticia tiene una versión en Markdown (enlaces de abajo) "
     + `y una página web en ${siteUrl()}/noticias/<slug>. Los datos estructurados de cada página siguen schema.org (NewsArticle).\n\n`
     + `## Noticias\n\n${items || "- Todavía no hay noticias publicadas."}\n\n`
+    + (extras.provinces.length ? `## Provincias\n\n${extras.provinces.map((p) => `- [${p.name}](${siteUrl()}/provincia/${p.slug}): ${[p.tagline, p.short_description].filter(Boolean).join(". ")}`).join("\n")}\n\n` : "")
     + (extras.events.length ? `## Próximos eventos\n\n${extras.events.map((e) => `- [${e.name}](${siteUrl()}/evento/${e.slug}): ${[e.start_date, e.province, e.short_description].filter(Boolean).join(". ")}`).join("\n")}\n\n` : "")
     + (extras.businesses.length ? `## Negocios del directorio\n\n${extras.businesses.map((b) => `- [${b.name}](${siteUrl()}/negocios/${b.id})${b.province ? `: ${b.province}` : ""}`).join("\n")}\n\n` : "")
     + `## Guías\n\n- [E-Ticket de República Dominicana: guía del nuevo portal](${siteUrl()}/e-ticket.md): cómo hacer gratis el formulario de entrada y salida en eticket.gob.do.\n`

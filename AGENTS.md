@@ -4,11 +4,11 @@ Estas reglas valen desde ahora para todo el trabajo. Cada regla nueva que pida e
 
 ## Publicar y mostrar contenido
 - No publicar ni mostrar en la web nada nuevo sin que el dueño lo pida o lo apruebe antes: ni secciones, ni tarjetas, ni páginas. Los cambios dentro de `/admin` no cuentan.
-- Lo que se crea en Turso desde el panel sí sale en la web (noticias, eventos…), **excepto las provincias**: no salen hasta que el dueño diga cuándo y dónde. No usar `usePublicProvinces` ni datos de provincias de Turso en páginas públicas.
+- Lo que se crea en Turso desde el panel sale en la web al publicarse (noticias, eventos, provincias…). Las provincias se publicaron el 2026-11-10 en `/provincias` y `/provincia/<slug>`: solo salen las que están «Publicadas» en el panel.
 - **Sitemap y `llms.txt` siempre al día.** Cada página que se publique, desde el código o como contenido del panel, entra en el sitemap y en `llms.txt` en el mismo cambio:
   - **Página del código:** se añade a `STATIC_PAGES` en `api/index.ts` y al arreglo `PUBLISHED` de `src/App.tsx`. Si es una sección, también lleva su línea en «Guías» de `llmsTxt`.
   - **Tipo de contenido nuevo del panel** (playas, hoteles, municipios…): sus fichas publicadas se añaden en `publicExtras()` (`api/index.ts`), con su URL en `sitemap()` y su sección en `llmsTxt()`. Se suma una prueba que compruebe que la publicada sale y el borrador no.
-  - Lo que está en `<StaffPreview>` o en borrador **no** entra (hoy: provincias).
+  - Lo que está en `<StaffPreview>` o en borrador **no** entra.
 - `llms.txt`, `llms-full.txt` y `sitemap.xml` los genera la API con datos reales. No crear versiones fijas en `public/`, que taparían las dinámicas, y nunca publicar contenido de ejemplo o inventado como si fuera real.
 - El dominio canónico es `https://descubrerepdom.com`, sin `www`, porque `www` redirige a él.
 
@@ -29,7 +29,7 @@ Estas reglas valen desde ahora para todo el trabajo. Cada regla nueva que pida e
 ## Rutas y contenido
 - Todo cambio de URL lleva redirección de la ruta vieja a la nueva (`<Navigate replace>` en `src/App.tsx` o un redirect en `vercel.json`). Nunca borrar una ruta publicada sin redirigirla.
 - Al fusionar páginas, el contenido de la página eliminada (textos, datos, secciones) se pasa completo a la página destino.
-- Las páginas en preparación se envuelven en `<StaffPreview>` (`src/App.tsx`): solo las ven admin y editor con sesión, y el público recibe una 404. Así están hoy `/provincias` y `/provincia/:slug`.
+- Las páginas en preparación se envuelven en `<StaffPreview>` (`src/App.tsx`): solo las ven admin y editor con sesión, y el público recibe una 404. Hoy no hay ninguna en vista previa.
 - Las páginas que leen de Turso ponen la ficha del panel encima de los datos locales de `src/data`: lo que se rellena en el panel manda, y lo vacío sigue saliendo de `src/data`. Así se migra sección a sección sin dejar páginas vacías.
 - Fotos nuevas en `public/img`: el nombre del archivo indica el lugar y el fotógrafo. Sustituir con ellas las fotos de stock de la portada según el área, conservar el crédito del fotógrafo y optimizar el peso.
 

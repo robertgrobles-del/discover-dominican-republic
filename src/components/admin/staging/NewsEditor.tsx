@@ -40,7 +40,18 @@ const toLocalInput = (iso: unknown) => {
 };
 const fromLocalInput = (v: string) => (v ? new Date(v).toISOString() : null);
 
-export function Box({ title, children }: { title: string; children: ReactNode }) {
+/** Caja del editor. Con `collapsible` se pliega (abierta si `open`); con `id` se puede saltar a ella desde un índice. */
+export function Box({ title, children, id, collapsible, open }: { title: string; children: ReactNode; id?: string; collapsible?: boolean; open?: boolean }) {
+  if (collapsible) {
+    return (
+      <details id={id} open={open} className="group scroll-mt-20 rounded-md border border-border bg-card">
+        <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-2.5 text-sm font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary group-open:border-b group-open:border-border">
+          {title}<span aria-hidden="true" className="text-muted-foreground transition-transform group-open:rotate-90">›</span>
+        </summary>
+        <div className="space-y-3 p-4 text-sm">{children}</div>
+      </details>
+    );
+  }
   return (
     <section className="rounded-md border border-border bg-card">
       <h3 className="border-b border-border px-4 py-2.5 text-sm font-semibold">{title}</h3>

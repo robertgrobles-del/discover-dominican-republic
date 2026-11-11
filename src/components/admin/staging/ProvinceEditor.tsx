@@ -129,9 +129,33 @@ export function ProvinceEditor({ row, onClose, onNew }: { row: Row | "new"; onCl
   const territory = useTerritory();
   const ownMunis = id ? territory.municipalities.filter((m) => m.province_id === id) : [];
   const ownDests = id ? territory.destinations.filter((d) => d.province_id === id) : [];
-  const moveBlock = (k: string, d: number) => setBlocks((b) => { const i = b.indexOf(k); const j = i + d; if (i < 0 || j < 0 || j >= b.length) return b; const a = [...b]; [a[i], a[j]] = [a[j], a[i]]; return a; });
+  // Qué tiene rellenado la ficha: un índice en la barra lateral para saltar a lo que falta.
   const [hero, setHero] = useState<Photo[]>(() => parse<string | Photo>(r.hero_images).map((h) => (typeof h === "string" ? { url: h, alt: "" } : h)));
   const [gallery, setGallery] = useState<Photo[]>(() => parse<Photo>(r.gallery));
+  const checks: [string, string, boolean][] = [
+    ["pe-resumen", "Resumen", Boolean(f.short_description.trim())],
+    ["pe-portada", "Imagen de portada", Boolean(f.image_url)],
+    ["pe-fotos", "Fotos del slider", hero.length > 0 || slides.length > 0],
+    ["pe-lema", "Lema e introducción", Boolean(f.tagline.trim() && f.intro.trim())],
+    ["pe-presentacion", "Presentación", cards.length > 0 || Boolean(f.intro.trim())],
+    ["pe-ficha", "Ficha técnica", Boolean(f.population && f.best_time && f.weather_info)],
+    ["pe-acerca", "Acerca de", Object.values(about).filter((v) => v?.trim()).length >= 2],
+    ["pe-temas", "Temas", themes.length > 0],
+    ["pe-viajero", "Según el viajero", tags.length > 0],
+    ["pe-itinerario", "Itinerario", days.length > 0],
+    ["pe-llegar", "Cómo llegar", Boolean(airport.nombre) || trips.length > 0],
+    ["pe-territorio", "Municipios publicados", ownMunis.some((m) => m.status === "published")],
+    ["pe-galeria", "Galería", gallery.length >= 4],
+    ["pe-seo", "Buscadores (SEO)", Boolean(f.seo_title.trim() && f.seo_description.trim())],
+  ];
+  const done = checks.filter(([, , ok]) => ok).length;
+  const goTo = (anchor: string) => {
+    const el = document.getElementById(anchor);
+    if (el instanceof HTMLDetailsElement) el.open = true;
+    el?.scrollIntoView({ behavior: "smooth", block: "start" });
+    el?.querySelector<HTMLElement>("summary, input, textarea, select")?.focus({ preventScroll: true });
+  };
+  const moveBlock = (k: string, d: number) => setBlocks((b) => { const i = b.indexOf(k); const j = i + d; if (i < 0 || j < 0 || j >= b.length) return b; const a = [...b]; [a[i], a[j]] = [a[j], a[i]]; return a; });
   // Listas antiguas (antes de las tablas municipalities y del catálogo automático): se conservan al guardar.
   const [munis] = useState<Muni[]>(() => parse<Muni>(r.municipalities));
   const [places] = useState<Place[]>(() => parse<Place>(r.places));
@@ -188,19 +212,19 @@ export function ProvinceEditor({ row, onClose, onNew }: { row: Row | "new"; onCl
 
           <ClassicEditor id="province-body" value={f.description} onChange={(v) => set("description", v)} />
 
-          <Box title="Resumen">
+          <Box id="pe-resumen" title="Resumen">
             <Textarea rows={3} value={f.short_description} onChange={(e) => set("short_description", e.target.value)} aria-label="Resumen" />
             <p className="text-xs text-muted-foreground">Una o dos frases; sale en las tarjetas de destinos y bajo el título.</p>
           </Box>
 
-          <Box title="Lema e introducción">
+          <Box id="pe-lema" collapsible open title="Lema e introducción">
             <div className="space-y-1"><Label htmlFor="p-tag">Lema</Label>
               <Input id="p-tag" value={f.tagline} onChange={(e) => set("tagline", e.target.value)} placeholder="La península verde y marina" /></div>
             <div className="space-y-1"><Label htmlFor="p-intro">Introducción (bloque «Identidad»)</Label>
               <Textarea id="p-intro" rows={4} value={f.intro} onChange={(e) => set("intro", e.target.value)} /></div>
           </Box>
 
-          <Box title="Presentación (bajo la portada)">
+          <Box id="pe-presentacion" collapsible title="Presentación (bajo la portada)">
             <p className="text-xs text-muted-foreground">Usa el lema como título, el resumen como entrada y la introducción como texto (un párrafo por línea).</p>
             <div className="space-y-1"><Label htmlFor="p-layout">Composición</Label>
               <select id="p-layout" value={f.intro_layout} onChange={(e) => set("intro_layout", e.target.value)} className="flex h-9 w-full rounded-md border border-input bg-background px-2 text-sm">
@@ -221,7 +245,7 @@ export function ProvinceEditor({ row, onClose, onNew }: { row: Row | "new"; onCl
               )} />
           </Box>
 
-          <Box title={`Slider de portada: textos (${slides.length}/10)`}>
+          <Box id="pe-slider" collapsible title={`Slider de portada: textos (${slides.length}/10)`}>
             <p className="text-xs text-muted-foreground">Cada diapositiva con su foto y su texto. Si no hay ninguna, se usan las fotos del «Slider de portada» de la derecha.</p>
             <Repeater items={slides} onChange={setSlides} empty={{ image: "", tag: "", title: "", subtitle: "", description: "", ctaText: "", ctaLink: "" }} add="Añadir diapositiva" render={(x, p) => (
               <>
@@ -240,7 +264,7 @@ export function ProvinceEditor({ row, onClose, onNew }: { row: Row | "new"; onCl
             )} />
           </Box>
 
-          <Box title="Ficha técnica">
+          <Box id="pe-ficha" collapsible title="Ficha técnica">
             <div className="grid gap-2 sm:grid-cols-2">
               <div className="space-y-1"><Label htmlFor="p-pop">Población</Label><Input id="p-pop" inputMode="numeric" value={f.population} onChange={(e) => set("population", e.target.value)} /></div>
               <div className="space-y-1"><Label htmlFor="p-area">Superficie (km²)</Label><Input id="p-area" inputMode="decimal" value={f.area_km2} onChange={(e) => set("area_km2", e.target.value)} /></div>
@@ -264,14 +288,14 @@ export function ProvinceEditor({ row, onClose, onNew }: { row: Row | "new"; onCl
             </fieldset>
           </Box>
 
-          <Box title="Acerca de">
+          <Box id="pe-acerca" collapsible title="Acerca de">
             {ABOUT.map(([k, l]) => (
               <div key={k} className="space-y-1"><Label htmlFor={`about-${k}`}>{l}</Label>
                 <Textarea id={`about-${k}`} rows={3} value={about[k] ?? ""} onChange={(e) => setAbout((x) => ({ ...x, [k]: e.target.value }))} /></div>
             ))}
           </Box>
 
-          <Box title={`Temas (${themes.length})`}>
+          <Box id="pe-temas" collapsible title={`Temas (${themes.length})`}>
             <Repeater items={themes} onChange={setThemes} empty={{ eyebrow: "", title: "", text: "", facts: "", image: "" }} add="Añadir tema" render={(x, p) => (
               <>
                 <div className="grid gap-2 sm:grid-cols-[180px_1fr]">
@@ -285,7 +309,7 @@ export function ProvinceEditor({ row, onClose, onNew }: { row: Row | "new"; onCl
             )} />
           </Box>
 
-          <Box title={`Según el viajero (${tags.length})`}>
+          <Box id="pe-viajero" collapsible title={`Según el viajero (${tags.length})`}>
             <Repeater items={tags} onChange={setTags} empty={{ label: "", places: "" }} add="Añadir perfil" render={(x, p) => (
               <>
                 <Input value={x.label} onChange={(e) => p({ label: e.target.value })} placeholder="Perfil (Familias, Aventura…)" aria-label="Perfil de viajero" />
@@ -294,7 +318,7 @@ export function ProvinceEditor({ row, onClose, onNew }: { row: Row | "new"; onCl
             )} />
           </Box>
 
-          <Box title={`Itinerario (${days.length} días)`}>
+          <Box id="pe-itinerario" collapsible title={`Itinerario (${days.length} días)`}>
             <Repeater items={days} onChange={setDays} empty={{ titulo: "", lugar: "", desc: "" }} add="Añadir día" render={(x, p) => (
               <>
                 <div className="grid gap-2 sm:grid-cols-2">
@@ -306,7 +330,7 @@ export function ProvinceEditor({ row, onClose, onNew }: { row: Row | "new"; onCl
             )} />
           </Box>
 
-          <Box title="Cómo llegar">
+          <Box id="pe-llegar" collapsible title="Cómo llegar">
             <div className="grid gap-2 sm:grid-cols-[1fr_90px_120px]">
               <Input value={airport.nombre ?? ""} onChange={(e) => setAirport((x) => ({ ...x, nombre: e.target.value }))} placeholder="Aeropuerto más cercano" aria-label="Aeropuerto" />
               <Input value={airport.codigo ?? ""} onChange={(e) => setAirport((x) => ({ ...x, codigo: e.target.value }))} placeholder="Código" aria-label="Código del aeropuerto" />
@@ -327,7 +351,7 @@ export function ProvinceEditor({ row, onClose, onNew }: { row: Row | "new"; onCl
             )} />
           </Box>
 
-          <Box title={`Municipios y destinos (${ownMunis.length} y ${ownDests.length})`}>
+          <Box id="pe-territorio" collapsible title={`Municipios y destinos (${ownMunis.length} y ${ownDests.length})`}>
             {id ? (
               <>
                 <p className="text-xs text-muted-foreground">Se editan en las secciones Municipios y Destinos del panel. Solo salen en la página los publicados.</p>
@@ -337,7 +361,7 @@ export function ProvinceEditor({ row, onClose, onNew }: { row: Row | "new"; onCl
             ) : <p className="text-xs text-muted-foreground">Guarda la provincia para poder asignarle municipios y destinos.</p>}
           </Box>
 
-          <Box title="Secciones de la página">
+          <Box id="pe-secciones" collapsible title="Secciones de la página">
             <p className="text-xs text-muted-foreground">Marca las que salen y ordénalas. Las marcadas «automático» se rellenan solas con el catálogo de la provincia.</p>
             <ul className="space-y-1 text-sm">
               {[...blocks.map((k) => BLOCKS.find(([b]) => b === k)).filter(Boolean) as [string, string][], ...BLOCKS.filter(([k]) => !blocks.includes(k))].map(([k, l]) => {
@@ -356,13 +380,13 @@ export function ProvinceEditor({ row, onClose, onNew }: { row: Row | "new"; onCl
             </ul>
           </Box>
 
-          <Box title={`Galería (${gallery.length})`}>
+          <Box id="pe-galeria" collapsible title={`Galería (${gallery.length})`}>
             <PhotoList items={gallery} onChange={setGallery} max={60} />
             <div className="space-y-1"><Label htmlFor="p-credits">Créditos de las fotos (uno por línea)</Label>
               <Textarea id="p-credits" rows={2} value={credits} onChange={(e) => setCredits(e.target.value)} placeholder="Autor (licencia)" /></div>
           </Box>
 
-          <Box title="Buscadores (SEO)">
+          <Box id="pe-seo" collapsible title="Buscadores (SEO)">
             {([["seo_title", "Título para buscadores", 60, "Si lo dejas vacío se usa el nombre."], ["seo_description", "Descripción para buscadores", 155, "Si la dejas vacía se usa el resumen."]] as const).map(([k, label, max, hint]) => (
               <div key={k} className="space-y-1">
                 <Label htmlFor={`pseo-${k}`}>{label}</Label>
@@ -380,8 +404,31 @@ export function ProvinceEditor({ row, onClose, onNew }: { row: Row | "new"; onCl
         </div>
 
         <aside className="min-w-0 space-y-4">
+          <Box title={`Ficha completa: ${done} de ${checks.length}`}>
+            <div className="h-2 overflow-hidden rounded-full bg-muted" role="progressbar" aria-valuemin={0} aria-valuemax={checks.length} aria-valuenow={done} aria-label="Ficha completa">
+              <div className="h-full bg-primary transition-[width]" style={{ width: `${(done / checks.length) * 100}%` }} />
+            </div>
+            <ul className="space-y-1">
+              {checks.map(([anchor, label, ok]) => (
+                <li key={anchor}>
+                  <button type="button" onClick={() => goTo(anchor)} className="flex w-full items-center gap-2 rounded px-1 py-0.5 text-left hover:bg-muted">
+                    <span aria-hidden="true" className={ok ? "text-primary" : "text-muted-foreground"}>{ok ? "✓" : "○"}</span>
+                    <span className={ok ? "" : "text-muted-foreground"}>{label}</span>
+                    <span className="sr-only">{ok ? "(completo)" : "(falta)"}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+            <p className="text-xs text-muted-foreground">Lo que falte se rellena con los datos locales del sitio.</p>
+          </Box>
+
           <Box title="Publicar">
             <p>Estado: <strong>{f.status === "published" ? "Publicada" : "Borrador"}</strong></p>
+            {id && f.slug && (
+              <a href={`/provincia/${f.slug}`} target="_blank" rel="noopener noreferrer" className="inline-block text-sm text-primary underline underline-offset-2">
+                {f.status === "published" ? "Ver la página" : "Vista previa"}<span className="sr-only"> (se abre en otra pestaña)</span>
+              </a>
+            )}
             <Button variant="outline" size="sm" disabled={busy || !f.name || !f.slug} onClick={() => save.mutate("draft")}>Guardar borrador</Button>
             <div className="flex items-center justify-between gap-2 border-t border-border pt-3">
               {id ? <button type="button" className="text-sm text-destructive underline underline-offset-2" disabled={busy}
@@ -392,13 +439,13 @@ export function ProvinceEditor({ row, onClose, onNew }: { row: Row | "new"; onCl
             </div>
           </Box>
 
-          <Box title="Imagen de portada">
+          <Box id="pe-portada" title="Imagen de portada">
             <ImageField id="province-cover" compact value={f.image_url} onChange={(v) => set("image_url", v)} />
             <div className="space-y-1"><Label htmlFor="p-alt">Texto alternativo</Label>
               <Input id="p-alt" value={f.image_alt} onChange={(e) => set("image_alt", e.target.value)} placeholder="Describe la imagen" /></div>
           </Box>
 
-          <Box title={`Slider de portada (${hero.length}/10)`}>
+          <Box id="pe-fotos" title={`Slider de portada (${hero.length}/10)`}>
             <p className="text-xs text-muted-foreground">Si añades fotos aquí, la portada pasa a ser un slider; si no, se usa la imagen de portada.</p>
             <PhotoList items={hero} onChange={setHero} max={10} />
           </Box>

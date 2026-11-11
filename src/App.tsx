@@ -51,7 +51,7 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 const PUBLISHED = [
   "/noticias", "/eventos", "/evento", "/requisitos-viaje", "/e-ticket",
   "/privacidad", "/terminos", "/contacto", "/anunciate", "/registra-tu-negocio",
-  "/aeropuerto", "/aeropuertos", "/puertos-marinas", "/puerto", "/marina", "/negocios", "/negocio", "/empresa", "/empresas", "/404"
+  "/aeropuerto", "/aeropuertos", "/puertos-marinas", "/puerto", "/marina", "/provincias", "/provincia", "/negocios", "/negocio", "/empresa", "/empresas", "/404"
 ];
 const isPublishedPath = (path: string) => path === "/" || PUBLISHED.some((p) => path === p || path.startsWith(`${p}/`));
 
@@ -78,7 +78,7 @@ function ExternalLinksNewTab() {
 
 /**
  * Páginas en preparación: solo las ve el equipo (admin o editor) con sesión; el público recibe la 404.
- * Las provincias siguen así hasta que el dueño diga cuándo y dónde se publican (AGENTS.md).
+ * Hoy no hay ninguna; se deja para la próxima sección que se prepare (AGENTS.md).
  */
 function StaffPreview({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -176,8 +176,8 @@ function AnimatedRoutes() {
             <Route path="/puertos-marinas" element={<PuertosMarinas />} />
             <Route path="/puerto/:slug" element={<PuertoDetalle />} />
             <Route path="/marina/:slug" element={<MarinaDetalle />} />
-            <Route path="/provincias" element={<StaffPreview><Provincias /></StaffPreview>} />
-            <Route path="/provincia/:slug" element={<StaffPreview><ProvinciaDetalle /></StaffPreview>} />
+            <Route path="/provincias" element={<Provincias />} />
+            <Route path="/provincia/:slug" element={<ProvinciaDetalle />} />
             <Route path="/contacto" element={<Contacto />} />
             <Route path="/privacidad" element={<Privacidad />} />
             <Route path="/terminos" element={<Terminos />} />
