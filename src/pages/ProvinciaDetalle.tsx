@@ -39,6 +39,8 @@ import { bars } from "@/data/bars";
 import { CatalogService } from "@/services/catalogService";
 import { useQuery } from "@tanstack/react-query";
 import { usePageContent } from "@/lib/pageContent";
+import { useAuth } from "@/hooks/useAuth";
+import { jsonList, useCmsProvince } from "@/lib/stagingContent";
 import { destinationTheme } from "@/lib/destinationTheme";
 import { DEFAULT_PROVINCE_BLOCKS, provinceIdentity, type ProvinceBlock } from "@/data/provinceIdentity";
 import { AtlanticRoute, PhotoCredits, ProvinceIdentityIntro, ProvinceMunicipalities, ProvinceThemes, ProvinceTravelerFilter } from "@/components/province/ProvinceIdentitySections";
@@ -47,7 +49,21 @@ import { AtlanticRoute, PhotoCredits, ProvinceIdentityIntro, ProvinceMunicipalit
 export default function ProvinciaDetalle() {
   const pc = usePageContent("provincia-detalle");
   const { slug } = useParams<{ slug: string }>();
-  const province = getDestinationBySlug(slug || "");
+  const { user } = useAuth();
+  const staff = ((user?.app_metadata?.roles as string[] | undefined) ?? []).some((r) => r === "admin" || r === "editor");
+  // Ficha del panel (Turso) sobre los datos locales: lo que se rellena en el panel manda; lo vacío sigue saliendo de src/data.
+  const { data: cms } = useCmsProvince(slug, staff);
+  const base = getDestinationBySlug(slug || "");
+  const province = useMemo(() => (base && cms ? {
+    ...base,
+    name: cms.name || base.name,
+    description: cms.description || base.description,
+    shortDescription: cms.short_description || base.shortDescription,
+    capital: cms.capital || (base as { capital?: string }).capital,
+    imageUrl: cms.image_url || base.imageUrl,
+  } : base), [base, cms]);
+  const cmsHero = jsonList<string | { url: string }>(cms?.hero_images).map((h) => (typeof h === "string" ? h : h.url)).filter(Boolean);
+  const cmsGallery = jsonList<{ url: string; alt?: string }>(cms?.gallery).filter((g) => g.url);
   const identity = slug ? provinceIdentity[slug] : undefined;
 
   // Match corresponding static rich destination data if available (e.g., samana, puerto-plata)
@@ -221,7 +237,7 @@ export default function ProvinciaDetalle() {
     }));
   }, [province]);
 
-  const heroImages = staticDestino?.galeria?.length
+  const heroImages = cmsHero.length ? cmsHero : staticDestino?.galeria?.length
     ? staticDestino.galeria.map(g => g.src)
     : province?.gallery?.length
     ? province.gallery.map(img => getSafeCoverImage(img, "province", province.slug))
@@ -237,7 +253,9 @@ export default function ProvinciaDetalle() {
   const displayTransport = staticDestino?.transporte || enrichedData?.transport || [];
 
   // Gallery items fallback
-  const displayGallery = staticDestino?.galeria?.length
+  const displayGallery = cmsGallery.length
+    ? cmsGallery.map((g, i) => ({ src: g.url, alt: g.alt || `${province?.name} - Vista ${i + 1}`, caption: g.alt || "" }))
+    : staticDestino?.galeria?.length
     ? staticDestino.galeria
     : (province?.gallery && province.gallery.length > 0)
     ? province.gallery.map((img, i) => ({
@@ -533,15 +551,17 @@ export default function ProvinciaDetalle() {
   return (
     <PageTransition>
       <SEOHead
-        title={`${province.name} - Guía Turística Completa de la República Dominicana`}
-        description={province.description || province.shortDescription}
+        title={cms?.seo_title || `${province.name} - Guía Turística Completa de la República Dominicana`}
+        description={cms?.seo_description || province.description || province.shortDescription}
+        url={`/provincia/${province.slug}`}
+        noindex={cms?.status !== undefined && cms.status !== "published"}
         keywords={`${province.name}, turismo, República Dominicana, qué hacer en ${province.name}, hoteles, restaurantes, monumentos, parques`}
         image={heroImages[0]}
         jsonLd={generateDestinationSchema({
           name: province.name,
           description: province.description || province.shortDescription,
-          image: heroImages[0] || "https://descubrerd.com/og-image.jpg",
-          url: `https://descubrerd.com/provincias/${province.slug}`,
+          image: heroImages[0] || "https://descubrerepdom.com/og-default.jpg",
+          url: `https://descubrerepdom.com/provincia/${province.slug}`,
         })}
       />
 

@@ -3,7 +3,10 @@ import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { MapPin, Users, Search, ChevronRight, Map } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { fetchApi } from "@/lib/fastifyClient";
+import { useAuth } from "@/hooks/useAuth";
+import { destinations } from "@/data/destinations";
+import type { CmsProvince } from "@/lib/stagingContent";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { SEOHead } from "@/components/SEOHead";
@@ -32,15 +35,22 @@ export default function Provincias() {
     { id: "santo-domingo", name: t("provincias.regionSD") },
   ];
 
+  const { user } = useAuth();
+  const staff = ((user?.app_metadata?.roles as string[] | undefined) ?? []).some((r) => r === "admin" || r === "editor");
+  // Las 32 provincias de src/data, con lo que el panel (Turso) tenga rellenado encima. El equipo ve también los borradores.
   const { data: provinces, isLoading } = useQuery({
-    queryKey: ["provinces"],
+    queryKey: ["provinces", staff],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("provinces")
-        .select("*")
-        .order("name");
-      if (error) throw error;
-      return data;
+      const cms = await fetchApi<{ data: CmsProvince[] }>(staff ? "/admin/provinces" : "/public/provinces").then((r) => r.data).catch(() => [] as CmsProvince[]);
+      const bySlug = new globalThis.Map(cms.map((p) => [p.slug, p]));
+      return destinations.filter((d) => d.type === "provincia").map((d) => {
+        const c = bySlug.get(d.slug);
+        const extra = d as { capital?: string; population?: number; areaKm2?: number };
+        return {
+          id: d.id, slug: d.slug, region: c?.region || d.region, name: c?.name || d.name, capital: c?.capital || extra.capital,
+          image_url: c?.image_url || d.imageUrl, population: extra.population, area_km2: extra.areaKm2, highlights: d.highlights,
+        };
+      }).sort((a, b) => a.name.localeCompare(b.name, "es"));
     },
   });
 

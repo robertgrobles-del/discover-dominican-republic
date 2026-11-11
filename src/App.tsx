@@ -12,7 +12,7 @@ import { RouteErrorBoundary } from "@/components/RouteErrorBoundary";
 import { SessionExpiryGuard } from "@/components/SessionExpiryGuard";
 import { AffiliateReferralCapture } from "@/components/AffiliateReferralCapture";
 import { FavoritesProvider } from "@/hooks/useFavorites";
-import { AuthProvider } from "@/hooks/useAuth";
+import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { I18nProvider } from "@/hooks/useI18n";
 import { CartProvider } from "@/hooks/useCart";
 import { queryClient } from "@/lib/fastifyClient";
@@ -36,6 +36,8 @@ const AeropuertoDetalle = lazy(() => import("./pages/AeropuertoDetalle"));
 const PuertosMarinas = lazy(() => import("./pages/PuertosMarinas"));
 const PuertoDetalle = lazy(() => import("./pages/PuertoDetalle"));
 const MarinaDetalle = lazy(() => import("./pages/MarinaDetalle"));
+const Provincias = lazy(() => import("./pages/Provincias"));
+const ProvinciaDetalle = lazy(() => import("./pages/ProvinciaDetalle"));
 const Contacto = lazy(() => import("./pages/staging/Contacto"));
 const Privacidad = lazy(() => import("./pages/staging/Privacidad"));
 const Terminos = lazy(() => import("./pages/staging/Terminos"));
@@ -72,6 +74,17 @@ function ExternalLinksNewTab() {
     return () => { document.removeEventListener("click", mark, true); document.removeEventListener("auxclick", mark, true); };
   }, []);
   return null;
+}
+
+/**
+ * Páginas en preparación: solo las ve el equipo (admin o editor) con sesión; el público recibe la 404.
+ * Las provincias siguen así hasta que el dueño diga cuándo y dónde se publican (AGENTS.md).
+ */
+function StaffPreview({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useAuth();
+  if (loading) return null;
+  const roles = (user?.app_metadata?.roles as string[] | undefined) ?? [];
+  return roles.includes("admin") || roles.includes("editor") ? <>{children}</> : <NotFound />;
 }
 
 function DisableUnpublishedLinks() {
@@ -163,6 +176,8 @@ function AnimatedRoutes() {
             <Route path="/puertos-marinas" element={<PuertosMarinas />} />
             <Route path="/puerto/:slug" element={<PuertoDetalle />} />
             <Route path="/marina/:slug" element={<MarinaDetalle />} />
+            <Route path="/provincias" element={<StaffPreview><Provincias /></StaffPreview>} />
+            <Route path="/provincia/:slug" element={<StaffPreview><ProvinciaDetalle /></StaffPreview>} />
             <Route path="/contacto" element={<Contacto />} />
             <Route path="/privacidad" element={<Privacidad />} />
             <Route path="/terminos" element={<Terminos />} />

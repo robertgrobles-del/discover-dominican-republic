@@ -105,6 +105,8 @@ describe("contenido público", () => {
     const p = await call("GET", "/public/provinces");
     expect(p.headers?.["Cache-Control"]).toContain("s-maxage");
     expect(data<{ slug: string }[]>(p).map((r) => r.slug)).toEqual(["publica"]);
+    expect(data<{ name: string }>(await call("GET", "/public/provinces/publica")).name).toBe("Pública");
+    expect((await call("GET", "/public/provinces/borrador")).status).toBe(404);
     expect(data<{ slug: string }[]>(await call("GET", "/public/news")).map((r) => r.slug)).toEqual(["nota-publica"]);
   });
 

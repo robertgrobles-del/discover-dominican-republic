@@ -472,6 +472,15 @@ async function publicApi(db: Client, path: string, lang?: Lang): Promise<ApiResp
       FROM provinces WHERE status = 'published' ORDER BY name COLLATE NOCASE`);
     return { status: 200, body: { data: await overlay(db, "provinces", r.rows as unknown as Record<string, unknown>[], lang) }, headers: PUBLIC_CACHE };
   }
+  // Ficha completa (portada en slider, galería, municipios, lugares, colores y SEO) de una provincia publicada.
+  const pv = path.match(/^\/public\/provinces\/([^/]+)$/);
+  if (pv) {
+    const r = SLUG.test(pv[1]) ? await db.execute({ sql: `SELECT id, slug, name, region, capital, short_description, description, image_url, image_alt,
+      hero_images, gallery, municipalities, places, color_primary, color_accent, latitude, longitude, seo_title, seo_description, focus_keywords, updated_at
+      FROM provinces WHERE status = 'published' AND slug = ?`, args: [pv[1]] }) : null;
+    if (!r?.rows[0]) return err(404, "No encontrada");
+    return { status: 200, body: { data: (await overlay(db, "provinces", r.rows as unknown as Record<string, unknown>[], lang))[0] }, headers: PUBLIC_CACHE };
+  }
   const detail = path.match(/^\/public\/news\/([^/]+)$/);
   if (detail) {
     const n = SLUG.test(detail[1]) ? await findNews(db, detail[1]) : null;

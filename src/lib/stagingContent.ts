@@ -38,6 +38,36 @@ export function usePublicProvinces() {
   return useQuery({ queryKey: ["staging-public", "provinces", locale], queryFn: () => load<PublicProvince>(`/public/provinces${langQuery(locale)}`), staleTime: 60_000 });
 }
 
+/** Ficha de provincia del panel, tal como la guarda ProvinceEditor (las listas llegan como texto JSON). */
+export interface CmsProvince extends PublicProvince {
+  image_alt: string | null; hero_images: string | null; gallery: string | null; municipalities: string | null; places: string | null;
+  color_primary: string | null; color_accent: string | null; seo_title: string | null; seo_description: string | null; status?: string;
+}
+
+/** Lista JSON guardada como texto; vacía si falta o está mal. */
+export const jsonList = <T,>(v: string | null | undefined): T[] => {
+  try { const x = JSON.parse(v ?? "[]"); return Array.isArray(x) ? x : []; } catch { return []; }
+};
+
+/**
+ * Provincia de Turso por slug. El equipo (staff) la ve aunque sea borrador, para previsualizarla;
+ * el público, solo si está publicada. null si no hay ficha: la página usa entonces sus datos locales.
+ */
+export function useCmsProvince(slug: string | undefined, staff: boolean) {
+  const { locale } = useI18n();
+  return useQuery({
+    queryKey: ["staging-public", "province", slug, staff, locale],
+    enabled: Boolean(slug),
+    staleTime: 60_000,
+    queryFn: async (): Promise<CmsProvince | null> => {
+      try {
+        if (staff) return (await fetchApi<{ data: CmsProvince[] }>("/admin/provinces")).data.find((p) => p.slug === slug) ?? null;
+        return (await fetchApi<{ data: CmsProvince }>(`/public/provinces/${encodeURIComponent(slug!)}${langQuery(locale)}`)).data;
+      } catch { return null; }
+    },
+  });
+}
+
 export function usePublicNewsList() {
   const { locale } = useI18n();
   return useQuery({ queryKey: ["staging-public", "news", locale], queryFn: () => loadPublicNews(locale), staleTime: 60_000 });
