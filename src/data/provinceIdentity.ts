@@ -10,7 +10,7 @@ export const DEFAULT_PROVINCE_BLOCKS = [
   "como-llegar", "monumentos", "anuncio-2", "parques", "hoteles", "gastronomia", "vida-nocturna",
   "panorama", "blog", "galeria", "comentarios",
 ] as const;
-export type ProvinceBlock = (typeof DEFAULT_PROVINCE_BLOCKS)[number] | "identidad" | "municipios" | "temas" | "viajero" | "ruta-atlantico" | "creditos" | "zonas" | "pasaporte";
+export type ProvinceBlock = (typeof DEFAULT_PROVINCE_BLOCKS)[number] | "identidad" | "municipios" | "temas" | "viajero" | "ruta-atlantico" | "creditos" | "zonas" | "pasaporte" | "introduccion";
 
 export interface IdentityMunicipality {
   name: string;

@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
 import { ProvinceHero } from "@/components/province/ProvinceHero";
+import { ProvinceIntroSection, layoutFor, type IntroCard } from "@/components/province/ProvinceIntroSection";
 import { ProvinceTechCard } from "@/components/province/ProvinceTechCard";
 import { ProvinceActivities } from "@/components/province/ProvinceActivities";
 import { ProvinceDestinations } from "@/components/province/ProvinceDestinations";
@@ -279,6 +280,16 @@ export default function ProvinciaDetalle() {
   }
 
   const theme = destinationTheme(province.slug);
+  // Tarjetas de la presentación: las del panel; si no hay, destinos con foto y, al final, la galería de la provincia.
+  const introCards: IntroCard[] = (jsonList<IntroCard>(cms?.intro_cards).filter((c) => c.image && c.title).length
+    ? jsonList<IntroCard>(cms?.intro_cards).filter((c) => c.image && c.title)
+    : [
+      ...provinceDestinations.filter((d) => d.imageUrl).map((d) => ({ image: d.imageUrl, title: d.name, location: province.name })),
+      ...displayGallery.map((g) => ({ image: g.src, title: g.alt || province.name, location: province.name })),
+    ]).slice(0, 3);
+  // La presentación va justo después de la portada, salvo que el panel haya fijado otro orden.
+  const order: ProvinceBlock[] = identity?.blocks?.length ? [...identity.blocks] : [...DEFAULT_PROVINCE_BLOCKS];
+  if (!cms?.blocks && !order.includes("introduccion")) order.splice(order.indexOf("hero") + 1, 0, "introduccion");
   const blocks: Partial<Record<ProvinceBlock, React.ReactNode>> = {
     "hero": (
       <>
@@ -298,6 +309,16 @@ export default function ProvinciaDetalle() {
           hotels={provinceHotels}
         />
       </>
+    ),
+    "introduccion": (
+      <ProvinceIntroSection
+        name={province.name}
+        tagline={identity?.tagline}
+        lead={province.shortDescription}
+        paragraphs={(identity?.intro || "").split(/\n\s*\n|\n/).map((x) => x.trim()).filter(Boolean)}
+        cards={introCards}
+        layout={layoutFor(province.slug, cms?.intro_layout)}
+      />
     ),
     "ficha": (
       <>
@@ -562,7 +583,7 @@ export default function ProvinciaDetalle() {
       <Header />
 
       <main className={`min-h-screen bg-background ${theme.className ?? ""}`} style={theme.style}>
-        {(identity?.blocks?.length ? identity.blocks : DEFAULT_PROVINCE_BLOCKS).map((k) => <Fragment key={k}>{blocks[k]}</Fragment>)}
+        {order.map((k) => <Fragment key={k}>{blocks[k]}</Fragment>)}
       </main>
 
       <Footer />

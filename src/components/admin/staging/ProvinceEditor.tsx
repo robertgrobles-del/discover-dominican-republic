@@ -16,11 +16,12 @@ import { MediaPicker } from "./MediaLibrary";
 import { SeoAnalysisBox } from "./SeoAnalysisBox";
 import { Box } from "./NewsEditor";
 import { useTerritory } from "./LocationPicker";
+import { INTRO_LAYOUTS } from "@/components/province/ProvinceIntroSection";
 
 // Secciones de la página de provincia, en el orden por defecto. Los catálogos (monumentos, parques, hoteles…) se
 // rellenan solos: aquí solo se decide si salen y en qué orden.
 const BLOCKS: [string, string][] = [
-  ["hero", "Portada (slider)"], ["identidad", "Identidad e introducción"], ["ficha", "Ficha técnica"], ["distancias", "Distancias"],
+  ["hero", "Portada (slider)"], ["introduccion", "Presentación de la provincia"], ["identidad", "Identidad e introducción"], ["ficha", "Ficha técnica"], ["distancias", "Distancias"],
   ["anuncio", "Anuncio"], ["acerca", "Acerca de (historia, geografía…)"], ["temas", "Temas"], ["municipios", "Municipios"],
   ["viajero", "Según el viajero"], ["actividades", "Actividades"], ["destinos", "Destinos"], ["itinerario", "Itinerario"],
   ["como-llegar", "Cómo llegar"], ["monumentos", "Monumentos (automático)"], ["anuncio-2", "Anuncio 2"], ["parques", "Parques (automático)"],
@@ -28,7 +29,7 @@ const BLOCKS: [string, string][] = [
   ["panorama", "Banner panorámico"], ["blog", "Noticias relacionadas"], ["galeria", "Galería"], ["zonas", "Zonas"],
   ["pasaporte", "Pasaporte"], ["creditos", "Créditos de fotos"], ["comentarios", "Comentarios"],
 ];
-const DEFAULT_ON = ["hero", "ficha", "distancias", "anuncio", "acerca", "actividades", "destinos", "itinerario", "como-llegar", "monumentos",
+const DEFAULT_ON = ["hero", "introduccion", "ficha", "distancias", "anuncio", "acerca", "actividades", "destinos", "itinerario", "como-llegar", "monumentos",
   "anuncio-2", "parques", "hoteles", "gastronomia", "vida-nocturna", "panorama", "blog", "galeria", "comentarios"];
 const CATEGORIES = ["playa", "montaña", "ecoturismo", "cultura", "aventura", "rios", "ciudad", "lujo"];
 const ABOUT: [string, string][] = [["history", "Historia"], ["geography", "Geografía"], ["artAndCulture", "Arte y cultura"],
@@ -110,8 +111,9 @@ export function ProvinceEditor({ row, onClose, onNew }: { row: Row | "new"; onCl
     status: s(r.status) || "draft", color_primary: s(r.color_primary) || "#0b7290", color_accent: s(r.color_accent) || "#f2b134",
     seo_title: s(r.seo_title), seo_description: s(r.seo_description), focus_keywords: s(r.focus_keywords),
     tagline: s(r.tagline), intro: s(r.intro), population: s(r.population), area_km2: s(r.area_km2), best_time: s(r.best_time),
-    weather_info: s(r.weather_info), how_to_get_there: s(r.how_to_get_there),
+    weather_info: s(r.weather_info), how_to_get_there: s(r.how_to_get_there), intro_layout: s(r.intro_layout),
   }));
+  const [cards, setCards] = useState<{ image: string; title: string; location: string; tag: string }[]>(() => parse(r.intro_cards));
   const [highlights, setHighlights] = useState(() => parse<string>(r.highlights).join("\n"));
   const [dishes, setDishes] = useState(() => parse<string>(r.typical_dishes).join("\n"));
   const [credits, setCredits] = useState(() => parse<string>(r.photo_credits).join("\n"));
@@ -144,6 +146,7 @@ export function ProvinceEditor({ row, onClose, onNew }: { row: Row | "new"; onCl
         latitude: num(f.latitude), longitude: num(f.longitude), population: num(f.population), area_km2: num(f.area_km2),
         highlights: lines(highlights), typical_dishes: lines(dishes), photo_credits: lines(credits), categories: cats,
         slides: slides.filter((x) => x.title.trim()), about, airport, blocks,
+        intro_cards: cards.filter((x) => x.image && x.title.trim()),
         themes: themes.filter((x) => x.title.trim()).map((x) => ({ ...x, facts: lines(x.facts) })),
         traveler_tags: tags.filter((x) => x.label.trim()).map((x) => ({ ...x, places: lines(x.places) })),
         itinerary: days.filter((x) => x.titulo.trim() || x.lugar.trim()).map((x, i) => ({ ...x, dia: i + 1 })),
@@ -195,6 +198,27 @@ export function ProvinceEditor({ row, onClose, onNew }: { row: Row | "new"; onCl
               <Input id="p-tag" value={f.tagline} onChange={(e) => set("tagline", e.target.value)} placeholder="La península verde y marina" /></div>
             <div className="space-y-1"><Label htmlFor="p-intro">Introducción (bloque «Identidad»)</Label>
               <Textarea id="p-intro" rows={4} value={f.intro} onChange={(e) => set("intro", e.target.value)} /></div>
+          </Box>
+
+          <Box title="Presentación (bajo la portada)">
+            <p className="text-xs text-muted-foreground">Usa el lema como título, el resumen como entrada y la introducción como texto (un párrafo por línea).</p>
+            <div className="space-y-1"><Label htmlFor="p-layout">Composición</Label>
+              <select id="p-layout" value={f.intro_layout} onChange={(e) => set("intro_layout", e.target.value)} className="flex h-9 w-full rounded-md border border-input bg-background px-2 text-sm">
+                <option value="">Automática (cambia según la provincia)</option>
+                {INTRO_LAYOUTS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+              </select></div>
+            <p className="text-sm font-medium">Tarjetas con foto ({cards.length}/3)</p>
+            <p className="text-xs text-muted-foreground">Si no pones ninguna, salen los destinos con foto y la galería.</p>
+              <Repeater items={cards} onChange={(v) => setCards(v.slice(0, 3))} empty={{ image: "", title: "", location: "", tag: "" }} add="Añadir tarjeta" render={(x, p) => (
+                <>
+                  <ImageField id={`card-${x.title}`} compact value={x.image} onChange={(v) => p({ image: v })} />
+                  <div className="grid gap-2 sm:grid-cols-3">
+                    <Input value={x.title} onChange={(e) => p({ title: e.target.value })} placeholder="Título (Cayo Levantado)" aria-label="Título de la tarjeta" />
+                    <Input value={x.location} onChange={(e) => p({ location: e.target.value })} placeholder="Lugar (Santa Bárbara)" aria-label="Lugar de la tarjeta" />
+                    <Input value={x.tag} onChange={(e) => p({ tag: e.target.value })} placeholder="Etiqueta (Isla de postal)" aria-label="Etiqueta de la tarjeta" />
+                  </div>
+                </>
+              )} />
           </Box>
 
           <Box title={`Slider de portada: textos (${slides.length}/10)`}>

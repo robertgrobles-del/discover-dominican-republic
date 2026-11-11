@@ -184,6 +184,8 @@ const provinceSpec = (b: Fields) => ({
   transport: () => jsonList(b, "transport", 10),
   blocks: () => jsonList(b, "blocks", 40),
   photo_credits: () => jsonList(b, "photo_credits", 60),
+  intro_layout: () => oneOf(b, "intro_layout", ["abanico", "espejo", "mosaico"], null),
+  intro_cards: () => jsonList(b, "intro_cards", 3),
 });
 
 const int = (o: Fields, key: string, min: number, max: number) => {
@@ -584,7 +586,7 @@ const PUBLIC_CACHE = { "Cache-Control": "public, max-age=0, s-maxage=30, stale-w
 // Un evento deja de salir al llegar su fecha y hora de fin (hora de RD, UTC-4); sin hora de fin, al acabar el día.
 const EVENT_LIVE = "(COALESCE(end_date, start_date) IS NULL OR datetime(COALESCE(end_date, start_date) || ' ' || COALESCE(end_time, '23:59'), '+4 hours') > datetime('now'))";
 const PROVINCE_PAGE = "tagline, intro, population, area_km2, best_time, weather_info, how_to_get_there, highlights, typical_dishes, categories, "
-  + "slides, about, themes, traveler_tags, itinerary, airport, transport, blocks, photo_credits";
+  + "slides, about, themes, traveler_tags, itinerary, airport, transport, blocks, photo_credits, intro_layout, intro_cards";
 const PLACE_PUBLIC = "id, slug, name, short_description, description, highlights, image_url, image_alt, gallery, latitude, longitude, seo_title, seo_description";
 // Sin los datos de contacto de quien lo envió ni la huella de IP.
 const EVENT_PUBLIC = "id, slug, name, event_type, short_description, description, image_url, start_date, end_date, start_time, end_time, venue, venue_type, venue_room, address, province, price_range, ticket_url, organizer, is_featured, updated_at";

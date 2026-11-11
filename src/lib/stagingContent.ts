@@ -48,6 +48,7 @@ export interface CmsProvince extends PublicProvince {
   weather_info?: string | null; how_to_get_there?: string | null; highlights?: string | null; typical_dishes?: string | null;
   categories?: string | null; slides?: string | null; about?: string | null; themes?: string | null; traveler_tags?: string | null;
   itinerary?: string | null; airport?: string | null; transport?: string | null; blocks?: string | null; photo_credits?: string | null;
+  intro_layout?: string | null; intro_cards?: string | null;
   /** Municipios y destinos publicados (el equipo ve también los borradores). */
   territory?: { municipalities: CmsPlace[]; destinations: CmsPlace[] };
 }
