@@ -57,8 +57,10 @@ function loadScript(src: string, id?: string): void {
 function loadGA(gaId: string): void {
   if (window.gtag) return;
   window.dataLayer = window.dataLayer || [];
-  function gtag(...args: unknown[]) {
-    window.dataLayer?.push(args);
+  // gtag.js solo procesa objetos `arguments`; un array normal (...args) se ignora y no se envía nada.
+  function gtag(..._args: unknown[]) {
+    // eslint-disable-next-line prefer-rest-params
+    window.dataLayer?.push(arguments);
   }
   window.gtag = gtag;
 
