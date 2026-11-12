@@ -60,8 +60,8 @@ const TAB_DESCRIPTIONS: Record<string, string> = {
 
 const CATEGORY_CONFIG: Record<TabCategory, { label: string; description: string; order: number }> = {
   home: { label: "Resumen", description: "Visión general del portal", order: 0 },
-  editorial: { label: "Editorial", description: "Noticias, categorías y biblioteca de medios", order: 1 },
-  catalog: { label: "Guía y lugares", description: "Provincias, municipios, destinos, playas, eventos y recintos", order: 2 },
+  editorial: { label: "Editorial", description: "Noticias, eventos, categorías y biblioteca de medios", order: 1 },
+  catalog: { label: "Guía y lugares", description: "Provincias, municipios, destinos, playas y recintos", order: 2 },
   crm: { label: "Comunidad", description: "Solicitudes, mensajes y participantes", order: 3 },
   system: { label: "Equipo", description: "Usuarios y permisos", order: 4 },
 };
@@ -79,7 +79,7 @@ const ADMIN_TABS: AdminTab[] = [
   { value: "municipios", label: "Municipios", category: "catalog", capability: "staging.panel", allowRoles: ["admin", "editor"], icon: MapIcon, iconClass: "text-emerald-600", render: () => <StagingPlacesManager kind="municipalities" /> },
   { value: "destinos", label: "Destinos", category: "catalog", capability: "staging.panel", allowRoles: ["admin", "editor"], icon: Signpost, iconClass: "text-teal-500", render: () => <StagingPlacesManager kind="destinations" /> },
   { value: "playas", label: "Playas", category: "catalog", capability: "staging.panel", allowRoles: ["admin", "editor"], icon: Waves, iconClass: "text-cyan-600", render: () => <StagingBeachesManager /> },
-  { value: "eventos", label: "Eventos", category: "catalog", capability: "staging.panel", allowRoles: ["admin", "editor"], icon: CalendarDays, iconClass: "text-rose-500", render: () => <StagingEventsManager /> },
+  { value: "eventos", label: "Eventos", category: "editorial", capability: "staging.panel", allowRoles: ["admin", "editor"], icon: CalendarDays, iconClass: "text-rose-500", render: () => <StagingEventsManager /> },
   { value: "recintos", label: "Recintos", category: "catalog", capability: "staging.panel", allowRoles: ["admin", "editor"], icon: Landmark, iconClass: "text-indigo-500", render: () => <StagingVenuesManager /> },
   { value: "solicitudes-negocios", label: "Solicitudes de negocios", category: "crm", capability: "staging.panel", allowRoles: ["admin"], icon: Building2, iconClass: "text-orange-500", render: () => <StagingEstablishmentRequestsManager /> },
   { value: "mensajes", label: "Mensajes de contacto", category: "crm", capability: "staging.panel", allowRoles: ["admin"], icon: Mail, iconClass: "text-violet-500", render: () => <StagingContactMessagesManager /> },

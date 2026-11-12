@@ -23,6 +23,8 @@ Estas reglas valen desde ahora para todo el trabajo. Cada regla nueva que pida e
 
 ## Panel de administración
 - Todo contenido nuevo del panel usa el diseño tipo WordPress, como Noticias: una lista (Todos | Publicados | Borradores, búsqueda, acciones al pasar el ratón) y un editor de dos columnas. Plantillas: `ProvinceList`/`ProvinceEditor`, `EventList`/`EventEditor`, pasadas a `StagingCrudManager` con `renderList` y `renderEditor`.
+- **Todo lo que se crea, cambia o borra desde el panel tiene las mismas opciones que el editor de Noticias:** idiomas (traducciones en `content_translations`), SEO con palabra clave y análisis (`SeoAnalysisBox`), vista previa, programar publicación, borrador con guardado automático, imagen destacada y edición en lote. Las traducciones con IA se guardan como borrador para revisar; nada se publica traducido sin revisión.
+- Eventos van en el grupo **Editorial** del panel, junto a Noticias.
 - Diseño general: seguir `DESIGN.md`.
 - Todo formulario público lleva el campo trampa `<Honeypot />` y pasa por `formGuard()` en la API.
 
