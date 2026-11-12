@@ -1013,9 +1013,20 @@ async function publicExtras(db: Client): Promise<PublicExtras> {
     provinces: prov.rows as unknown as PublicExtras["provinces"], beaches: bch.rows as unknown as PublicExtras["beaches"] };
 }
 
+/**
+ * Fecha W3C para <lastmod>. SQLite guarda a veces "AAAA-MM-DD HH:MM:SS" (datetime('now'), en UTC), que Google rechaza:
+ * se pasa a ISO con zona. Lo que no sea una fecha válida no lleva <lastmod>.
+ */
+export function w3cDate(v: string | null | undefined): string | null {
+  if (!v) return null;
+  const s = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}(:\d{2}(\.\d+)?)?$/.test(v) ? `${v.replace(" ", "T")}Z` : v;
+  const d = new Date(s);
+  return Number.isNaN(d.getTime()) ? null : d.toISOString();
+}
+
 function sitemap(rows: NewsRow[], extras: PublicExtras = { events: [], businesses: [], provinces: [], beaches: [] }): string {
   const url = (loc: string, lastmod?: string | null, extra = "") =>
-    `<url><loc>${xmlEsc(`${siteUrl()}${loc}`)}</loc>${lastmod ? `<lastmod>${xmlEsc(lastmod)}</lastmod>` : ""}${extra}</url>`;
+    `<url><loc>${xmlEsc(`${siteUrl()}${loc}`)}</loc>${w3cDate(lastmod) ? `<lastmod>${w3cDate(lastmod)}</lastmod>` : ""}${extra}</url>`;
   const newest = rows.map((r) => r.updated_at).sort().at(-1);
   return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">`
     + url("/") + url("/noticias", newest) + STATIC_PAGES.map((p) => url(p)).join("")

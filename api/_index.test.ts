@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createClient, type Client } from "@libsql/client";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { eticketPage, handle, hashPassword, type ApiRequest } from "./index";
+import { eticketPage, handle, hashPassword, w3cDate, type ApiRequest } from "./index";
 
 const SECRET = "x".repeat(40);
 const dir = mkdtempSync(join(tmpdir(), "staging-api-"));
@@ -156,6 +156,15 @@ describe("territorio: provincias, municipios y destinos", () => {
     expect(pub.territory.municipalities.map((m) => m.slug)).toEqual(["boca-chica"]);
     expect((await call("DELETE", `/admin/destinations/${data(d).id}`, undefined, auth)).status).toBe(204);
     expect(data(await call("GET", `/admin/events/${data(e).id}`, undefined, auth)).destination_id).toBeNull();
+  });
+});
+
+describe("fechas del sitemap", () => {
+  it("pasa las fechas de SQLite a W3C y descarta las no válidas", () => {
+    expect(w3cDate("2026-11-11 22:48:38")).toBe("2026-11-11T22:48:38.000Z");
+    expect(w3cDate("2026-11-10T08:00:00.123Z")).toBe("2026-11-10T08:00:00.123Z");
+    expect(w3cDate("ayer")).toBeNull();
+    expect(w3cDate(null)).toBeNull();
   });
 });
 
