@@ -370,6 +370,9 @@ export function BannerAd({
   if (isPremiumListing) {
     return null;
   }
+  // Sólo anuncios reales: los del admin de anuncios o una imagen pasada a mano. Sin ellos no se pinta nada
+  // (ni demos, ni marcas de ejemplo, ni el hueco «Espacio disponible»).
+  if (!activeBanner && !imageUrl) return null;
 
   const handleBannerClick = () => {
     if (activeBanner?.id && activeBanner.id !== "preview-id") {

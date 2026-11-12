@@ -162,7 +162,7 @@ export function DestinationsSection() {
             {destinations.map((destination, index) => (
               <>
                 {/* Insert Sponsored Resort Carousel Banner at index 1 */}
-                {index === 1 && (
+                {index === 1 && ad && (
                   <motion.div
                     key="sponsored-destination-resort-ad"
                     initial={{ opacity: 0, y: 20 }}

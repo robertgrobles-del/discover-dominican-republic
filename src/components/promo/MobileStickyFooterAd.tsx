@@ -17,7 +17,8 @@ export function MobileStickyFooterAd({ className, showDemo = false }: MobileStic
   return (
     <div 
       className={cn(
-        "lg:hidden fixed bottom-0 inset-x-0 z-40 bg-background/95 backdrop-blur-md border-t border-border/80 shadow-2xl pb-safe",
+        // Sin anuncio real BannerAd no pinta nada: la barra fija se oculta en vez de quedar vacía con su botón de cerrar.
+        "lg:hidden fixed bottom-0 inset-x-0 z-40 bg-background/95 backdrop-blur-md border-t border-border/80 shadow-2xl pb-safe [&:not(:has(img,iframe,ins))]:hidden",
         className
       )}
     >

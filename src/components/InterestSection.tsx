@@ -121,7 +121,7 @@ export function InterestSection() {
           {interests.map((interest, index) => (
             <div key={`interest-wrapper-${interest.link || index}`} className="flex gap-5">
               {/* Insert Sponsored Slider Banner Ad at index 2 */}
-              {index === 2 && (
+              {index === 2 && ad && (
                 <div
                   key="sponsored-slider-ad-interest"
                   className="flex-shrink-0 w-[220px] sm:w-[270px] md:w-[300px] h-[380px] snap-start"

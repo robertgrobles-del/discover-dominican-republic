@@ -65,7 +65,7 @@ const slidesData: SlideData[] = [
       image: whaleSamanaImg,
       title: "Avistamiento de Ballenas",
       location: "Bahía de Samaná",
-      rating: 4.9,
+      rating: 0, // sin valoraciones reales todavía
       season: "Ene - Mar",
     },
     stats: [
@@ -76,76 +76,24 @@ const slidesData: SlideData[] = [
     ]
   },
   {
-    id: 2,
-    image: capCanaImg, // Marina de Cap Cana (foto: Joel Severino)
-    tag: "Establecimiento Destacado",
-    title: "Sanctuary Cap Cana",
-    subtitle: "Resort de Lujo Frente al Caribe",
-    description: "Villas exclusivas con servicio de mayordomo privado, suites sobre acantilados, 5 piscinas y acceso directo al campo de golf Punta Espada PGA.",
-    isSponsored: true,
-    sponsorBadge: "Hotel Patrocinado",
-    ctaText: "Ver Habitaciones & Tarifas",
-    ctaLink: "/alojamientos",
-    card: {
-      image: adLuxuryHotelImg,
-      title: "Sanctuary Cap Cana",
-      location: "Cap Cana, Punta Cana",
-      rating: 4.9,
-      season: "Todo el año",
-      badge: "5 Estrellas Luxury"
-    },
-    stats: [
-      { icon: Hotel, value: "5 Diamantes", label: "Categoría Luxury" },
-      { icon: Star, value: "4.9 / 5", label: "Satisfacción Huéspedes" },
-      { icon: Building2, value: "324", label: "Suites & Villas" },
-      { icon: Award, value: "100%", label: "Playa Privada" },
-    ]
-  },
-  {
     id: 3,
     image: puntaCanaImg,
     tag: "Polo Turístico Líder",
     title: "Punta Cana y Bávaro",
     subtitle: "Playas de Arena Blanca y Lujo",
-    description: "Más de 48 kilómetros de costa continua de arena de coralina blanca, aguas turquesas y la mayor oferta hotelera de clase mundial en el Caribe.",
+    description: "Kilómetros de costa continua de arena blanca y aguas turquesas, con el aeropuerto más transitado del país y una de las mayores ofertas hoteleras del Caribe.",
     card: {
       image: puntaCanaImg,
       title: "Playas de Punta Cana",
       location: "La Altagracia",
-      rating: 4.8,
+      rating: 0, // sin valoraciones reales todavía
       season: "Todo el año",
     },
     stats: [
-      { icon: Ruler, value: "1,600 km", label: "Costas y Playas" },
-      { icon: Sun, value: "28°C", label: "Temperatura Promedio" },
-      { icon: Users, value: "8.9M", label: "Turistas por Vía Aérea (2025)" },
-      { icon: Award, value: "128", label: "Áreas Protegidas" },
-    ]
-  },
-  {
-    id: 4,
-    image: adGastronomyImg,
-    tag: "Experiencia Culinaria Oficial",
-    title: "Restaurante La Yola",
-    subtitle: "Alta Cocina Mediterránea y Mariscos",
-    description: "Galardonado con tres diamantes AAA, situado sobre pilotes en la Marina de Cap Cana. Pescados frescos del día y maridaje internacional con vistas panorámicas al mar.",
-    isSponsored: true,
-    sponsorBadge: "Restaurante Patrocinado",
-    ctaText: "Reservar Mesa",
-    ctaLink: "/guia-gastronomica",
-    card: {
-      image: adGastronomyImg,
-      title: "La Yola Restaurant",
-      location: "Marina Cap Cana",
-      rating: 4.9,
-      season: "Todo el año",
-      badge: "3 Diamantes AAA"
-    },
-    stats: [
-      { icon: UtensilsCrossed, value: "AAA 3-Diamond", label: "Reconocimiento Gourmet" },
-      { icon: Star, value: "4.9 / 5", label: "Crítica Gastronómica" },
-      { icon: Utensils, value: "100% Fresco", label: "Pesca del Día Local" },
-      { icon: Crown, value: "Top 1", label: "Vistas a la Marina" },
+      { icon: Users, value: "11M+", label: "Pasajeros del Aeropuerto PUJ (2025)" },
+      { icon: Ruler, value: "900", label: "Vuelos Semanales (Récord 2025)" },
+      { icon: Sun, value: "51,000", label: "Pasajeros en un Día (Récord)" },
+      { icon: Award, value: "Skytrax 2026", label: "Mejor Aeropuerto de C.A. y el Caribe" },
     ]
   },
   {
@@ -159,14 +107,14 @@ const slidesData: SlideData[] = [
       image: santoDomingoImg,
       title: "Zona Colonial",
       location: "Santo Domingo",
-      rating: 4.7,
+      rating: 0, // sin valoraciones reales todavía
       season: "Todo el año",
     },
     stats: [
-      { icon: Landmark, value: "500+ Años", label: "De Historia Viva" },
-      { icon: Award, value: "UNESCO", label: "Patrimonio Mundial" },
-      { icon: Building2, value: "300+", label: "Monumentos Históricos" },
-      { icon: Users, value: "1.8M+", label: "Visitas Culturales" },
+      { icon: Landmark, value: "1498", label: "Fundación de Santo Domingo" },
+      { icon: Award, value: "1990", label: "Patrimonio Mundial UNESCO" },
+      { icon: Building2, value: "1541", label: "Catedral Primada de América" },
+      { icon: Users, value: "668,000", label: "Visitantes Extranjeros (2017, BID)" },
     ]
   },
   {
@@ -175,73 +123,22 @@ const slidesData: SlideData[] = [
     tag: "Aventura y Naturaleza",
     title: "Puerto Plata y Costa Norte",
     subtitle: "La Cuna del Turismo y Aventura",
-    description: "La capital mundial del kitesurf en Cabarete, los impresionantes 27 Charcos de Damajagua, el único teleférico del Caribe y fortalezas históricas frente al océano Atlántico.",
+    description: "El kitesurf de Cabarete, los 27 Charcos de Damajagua, la Loma Isabel de Torres y la Fortaleza San Felipe frente al océano Atlántico.",
     card: {
       image: heroBeachImg,
       title: "27 Charcos de Damajagua",
       location: "Puerto Plata",
-      rating: 4.8,
+      rating: 0, // sin valoraciones reales todavía
       season: "Todo el año",
     },
     stats: [
-      { icon: Mountain, value: "27", label: "Cascadas Naturales" },
-      { icon: Compass, value: "3,087 m", label: "Pico Duarte (Punto + Alto)" },
-      { icon: Waves, value: "25 Nudos", label: "Vientos de Cabarete" },
-      { icon: Users, value: "2.2M+", label: "Cruceristas Anuales" },
+      { icon: Mountain, value: "27", label: "Charcos de Damajagua" },
+      { icon: Compass, value: "~790 m", label: "Loma Isabel de Torres" },
+      { icon: Landmark, value: "1577", label: "Fortaleza San Felipe" },
+      { icon: Users, value: "2.2M", label: "Cruceristas en Puerto Plata (2025)" },
     ]
   },
-  {
-    id: 7,
-    image: "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=1600&auto=format&fit=crop&q=80",
-    tag: "Marca País • Cervecería Nacional Dominicana",
-    title: "Cerveza Presidente",
-    subtitle: "El Sabor Que Nos Une en Cada Rincón de Quisqueya 🇩🇴🍺",
-    description: "Disfruta de una fría bien vestida de novia frente a las mejores playas y terrazas del país. Orgullo 100% dominicano que acompaña las mejores experiencias turísticas.",
-    isSponsored: true,
-    sponsorBadge: "Publicidad Oficial • Cerveza Presidente",
-    ctaText: "Descubrir Puntos de Venta",
-    ctaLink: "/bebidas-rd",
-    card: {
-      image: "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=600&auto=format&fit=crop&q=80",
-      title: "Cerveza Presidente",
-      location: "Disponible en todo el país",
-      rating: 5.0,
-      season: "Todo el año",
-      badge: "Cerveza Oficial"
-    },
-    stats: [
-      { icon: Award, value: "-2°C", label: "Servida Vestida de Novia" },
-      { icon: Star, value: "100%", label: "Orgullo Dominicano" },
-      { icon: Users, value: "#1", label: "Cerveza Preferida en RD" },
-      { icon: Sun, value: "365 Días", label: "De Frescura Total" },
-    ]
-  },
-  {
-    id: 8,
-    image: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1600&auto=format&fit=crop&q=80",
-    tag: "Línea Aérea Bandera de Precios Bajos",
-    title: "Arajet Airlines",
-    subtitle: "Vuela Directo al Paraíso Dominicano desde $9.99 USD",
-    description: "Conectando Santo Domingo, Punta Cana y Santiago con más de 23 destinos internacionales en Norte, Centro y Suramérica en la flota de Boeing 737 MAX más moderna del Caribe.",
-    isSponsored: true,
-    sponsorBadge: "Línea Aérea Patrocinada",
-    ctaText: "Buscar Vuelos & Ofertas",
-    ctaLink: "/como-llegar",
-    card: {
-      image: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=600&auto=format&fit=crop&q=80",
-      title: "Arajet Airlines",
-      location: "AILA / PUJ / STI",
-      rating: 4.8,
-      season: "Todo el año",
-      badge: "Vuelos Directos"
-    },
-    stats: [
-      { icon: Compass, value: "23+", label: "Destinos en América" },
-      { icon: Star, value: "Boeing 737", label: "Flota Nueva MAX 8" },
-      { icon: Users, value: "Tarifas Low-Cost", label: "Precios Imbatibles" },
-      { icon: Award, value: "Hub Caribe", label: "Santo Domingo" },
-    ]
-  }
+
 ];
 
 function DestinationCard({ 
