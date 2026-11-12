@@ -21,7 +21,7 @@ import { captureAndStoreUtmParams } from "@/utils/utm";
 import { useEffect } from "react";
 
 // Rama staging: solo la landing (sin enlaces activos), el acceso y el panel de administración.
-const Index = lazy(() => import("./pages/Index"));
+import Index from "./pages/Index"; // portada en el paquete inicial: sin esperar otro archivo ni el cargador
 const Login = lazy(() => import("./pages/Login"));
 const AdminPanel = lazy(() => import("./pages/AdminPanel"));
 const NoticiasLista = lazy(() => import("./pages/staging/NoticiasLista"));

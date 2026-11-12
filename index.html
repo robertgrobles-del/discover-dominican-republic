@@ -14,7 +14,7 @@
     <link rel="manifest" href="/manifest.json" />
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.googletagmanager.com https://www.clarity.ms https://*.clarity.ms https://static.cloudflareinsights.com https://pagead2.googlesyndication.com https://tpc.googlesyndication.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://commons.wikimedia.org https://upload.wikimedia.org https://*.google-analytics.com https://*.googletagmanager.com https://*.clarity.ms https://c.bing.com https://images.unsplash.com https://*.tile.openstreetmap.org https://pagead2.googlesyndication.com https://*.google.com; connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://*.clarity.ms https://c.bing.com https://cloudflareinsights.com https://fonts.googleapis.com https://nominatim.openstreetmap.org https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net; frame-src 'self' https://www.googletagmanager.com https://www.openstreetmap.org https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://*.google.com;" />
     <link rel="canonical" href="https://descubrerepdom.com" />
-    <script src="/legacy-sw-cleanup.js"></script>
+    <script src="/legacy-sw-cleanup.js" async></script>
 
     <!-- Open Graph -->
     <meta property="og:title" content="Descubre República Dominicana - Tu Portal de Turismo del Caribe" />
@@ -50,8 +50,15 @@
          la vez; el <picture> de Hero.tsx sigue sirviendo WebP/JPEG como respaldo para el resto (Fase 10.17). -->
     <link rel="preload" as="image" href="/src/assets/whale-samana.avif" type="image/avif" fetchpriority="high" />
 
-    <!-- Google Fonts (display=swap; sin onload inline para no necesitar 'unsafe-inline' en la CSP) -->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300..800;1,300..800&family=Noto+Sans:ital,wght@0,300..900;1,300..900&display=swap" />
+    <!-- Google Fonts: se inyectan desde src/main.tsx para no bloquear el primer pintado (display=swap). -->
+    <!-- Fondo y cargador antes de que llegue el JS: sin destello blanco. Mismo aspecto que PageLoader (App.tsx). -->
+    <style>
+      html { background: hsl(195 22% 10%); }
+      #boot { min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+      #boot i { width: 48px; height: 48px; border: 4px solid hsl(193 86% 50%); border-top-color: transparent; border-radius: 50%; animation: boot-spin 1s linear infinite; }
+      @keyframes boot-spin { to { transform: rotate(360deg); } }
+      @media (prefers-reduced-motion: reduce) { #boot i { animation: none; } }
+    </style>
     
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -60,7 +67,7 @@
   </head>
 
   <body>
-    <div id="root"></div>
+    <div id="root"><div id="boot" role="status" aria-label="Cargando"><i></i></div></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

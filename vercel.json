@@ -41,7 +41,7 @@
       "destination": "/api?route=render/noticias/:slug"
     },
     {
-      "source": "/((?!api/).*)",
+      "source": "/((?!api/)(?!.*\\.(?:json|txt|xml)$).*)",
       "destination": "/index.html"
     }
   ],

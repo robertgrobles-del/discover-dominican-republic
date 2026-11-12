@@ -9,6 +9,12 @@ import { installAnonymousImages } from "./lib/anonymousImages";
 import { registerPwa } from "./lib/pwa";
 import "./index.css";
 
+// Fuentes sin bloquear el render: antes era un <link> en index.html que retrasaba el primer pintado ~700 ms.
+const fonts = document.createElement("link");
+fonts.rel = "stylesheet";
+fonts.href = "https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300..800;1,300..800&family=Noto+Sans:ital,wght@0,300..900;1,300..900&display=swap";
+document.head.appendChild(fonts);
+
 installGlobalErrorHandlers();
 registerPwa();
 installAnonymousImages(); // antes del primer render: ninguna imagen de Unsplash debe salir con cookies
