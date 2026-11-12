@@ -72,7 +72,7 @@ const slidesData: SlideData[] = [
       { icon: Waves, value: "~3,000", label: "Ballenas por Temporada (est.)" },
       { icon: Landmark, value: "60,000+", label: "Observadores de Ballenas (2024)" },
       { icon: Sun, value: "Ene - Mar", label: "Temporada de Ballenas" },
-      { icon: Users, value: "11.7M", label: "Visitantes del País en 2025" },
+      { icon: Users, value: "11.7M", label: "Visitantes a Nivel Nacional (2025)" },
     ]
   },
   {
