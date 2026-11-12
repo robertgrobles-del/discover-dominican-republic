@@ -69,10 +69,10 @@ const slidesData: SlideData[] = [
       season: "Ene - Mar",
     },
     stats: [
-      { icon: Waves, value: "3,000+", label: "Ballenas Jorobadas" },
-      { icon: Landmark, value: "32", label: "Áreas Protegidas" },
-      { icon: Sun, value: "300+", label: "Días de Sol al Año" },
-      { icon: Users, value: "10.3M+", label: "Visitantes Anuales" },
+      { icon: Waves, value: "~3,000", label: "Ballenas por Temporada (est.)" },
+      { icon: Landmark, value: "60,000+", label: "Observadores de Ballenas (2024)" },
+      { icon: Sun, value: "Ene - Mar", label: "Temporada de Ballenas" },
+      { icon: Users, value: "11.7M", label: "Visitantes del País en 2025" },
     ]
   },
   {
@@ -118,8 +118,8 @@ const slidesData: SlideData[] = [
     stats: [
       { icon: Ruler, value: "1,600 km", label: "Costas y Playas" },
       { icon: Sun, value: "28°C", label: "Temperatura Promedio" },
-      { icon: Users, value: "8.5M+", label: "Llegadas por Vía Aérea" },
-      { icon: Award, value: "18", label: "Campos de Golf PGA" },
+      { icon: Users, value: "8.9M", label: "Turistas por Vía Aérea (2025)" },
+      { icon: Award, value: "128", label: "Áreas Protegidas" },
     ]
   },
   {

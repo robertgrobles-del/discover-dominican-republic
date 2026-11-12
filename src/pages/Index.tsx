@@ -1,7 +1,6 @@
 import { lazy, Suspense, useState } from "react";
 import { Header } from "@/components/Header";
 import { HeroSlideshow } from "@/components/HeroSlideshow";
-import { PageTransition } from "@/components/PageTransition";
 import { SEOHead, generateOrganizationSchema } from "@/components/SEOHead";
 import { MobileAd, MobileStickyFooterAd, BetweenSectionsAd } from "@/components/promo";
 import { SectionErrorBoundary } from "@/components/SectionErrorBoundary";
@@ -33,7 +32,7 @@ const Index = () => {
   const [isGlobalSearchOpen, setIsGlobalSearchOpen] = useState(false);
 
   return (
-    <PageTransition>
+    <>{/* Sin PageTransition: su opacity 0 inicial impedía a Chrome registrar el LCP (NO_LCP). */}
       <SEOHead
         title="Descubre República Dominicana - Portal Oficial de Turismo y Viajes"
         description="Explora las mejores playas, destinos, hoteles, restaurantes y experiencias de República Dominicana. Planifica tu viaje al Caribe con reservas directas y sin comisiones."
@@ -144,7 +143,7 @@ const Index = () => {
         <MobileStickyFooterAd showDemo />
         <Footer />
       </div>
-    </PageTransition>
+    </>
   );
 };
 
