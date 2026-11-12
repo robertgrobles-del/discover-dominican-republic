@@ -365,8 +365,8 @@ export function BeachEditor({ row, onClose, onNew }: { row: Row | "new"; onClose
 
           <Box title="Imagen principal">
             <div className="space-y-1">
-              <Label htmlFor="beach-img">URL de portada</Label>
-              <ImageField id="beach-img" value={imageUrl} onChange={setImageUrl} />
+              <Label htmlFor="beach-img">Imagen de portada</Label>
+              <ImageField id="beach-img" compact value={imageUrl} onChange={setImageUrl} />
             </div>
             <div className="space-y-1">
               <Label htmlFor="beach-img-alt">Texto alternativo (alt)</Label>

@@ -252,9 +252,10 @@ export function ImageField({ id, value, onChange, compact = false }: { id: strin
     );
   }
   return (
-    <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
+    // flex-wrap: en una columna estrecha (barra lateral) los botones bajan bajo la vista previa en vez de desbordarse.
+    <div className="flex flex-wrap items-start gap-3">
       {preview}
-      <div className="min-w-0 flex-1 space-y-2">
+      <div className="min-w-[12rem] flex-1 space-y-2">
         {buttons}
         {internal
           ? <button type="button" onClick={() => onChange("")} className="text-xs text-destructive underline underline-offset-2">Quitar imagen</button>
