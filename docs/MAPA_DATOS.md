@@ -9,7 +9,7 @@ Fuentes revisadas (10-11-2026):
 
 **Regla para agrupar:** lo que se consulta junto (JOIN), se guarda en la misma operación, o depende de provincias y fichas, va en la misma base. Solo se separa lo que crece mucho, se escribe a cada clic, o debe estar aislado por seguridad o por dinero.
 
-Hoy en Turso: `news`, `news_categories`, `provinces` (con todos los componentes de su página), `municipalities`, `destinations`, `media`, `content_translations`, `events`, `venues`, `leads`, `contact_messages`, `establishment_requests`, `establishment_files` y usuarios. Todo lo demás está en Postgres (`backend/`), en Supabase o en `src/data`.
+Hoy en Turso: `news`, `news_categories`, `provinces` (con todos los componentes de su página), `municipalities`, `destinations`, `beaches`, `media`, `content_translations`, `events`, `venues`, `leads`, `contact_messages`, `establishment_requests`, `establishment_files` y usuarios. Todo lo demás está en Postgres (`backend/`), en Supabase o en `src/data`.
 
 ---
 
@@ -20,7 +20,7 @@ Todo lo que se publica y se cruza con provincias. Va junto para poder filtrar po
 | Grupo | Tablas o datos |
 |---|---|
 | Territorio | `provinces`, `municipalities`, `destinations`; `src/data`: dominicanTerritory, provinceIdentity, provinceEnrichment, destinosData |
-| Naturaleza | `beaches`, `parks`, `protected_areas`, `rivers`, `caves`, `mountains`, `hot_springs`, `bird_species`, `marine_reports`; `src/data`: parquesNacionalesData, riosData, nauticaData |
+| Naturaleza | `beaches` (Turso), `parks`, `protected_areas`, `rivers`, `caves`, `mountains`, `hot_springs`, `bird_species`, `marine_reports`; `src/data`: beaches, parquesNacionalesData, riosData, nauticaData |
 | Alojamiento | `hotels`, `airbnb_listings`, `operator_rooms`; `src/data`: hotels, hotelDetailData, fallbackAccommodations |
 | Comer y salir | `restaurants`, `bars`, `coffee_experiences`, `recipes`, `shopping_centers`, `souvenirs`, `spas_wellness`; `src/data`: restaurants, bars, recipesData, criolloRecipesData, rutasSaborData, shopping-malls |
 | Cultura e historia | `monuments`, `historical_events`, `historical_figures`, `artisanal_workshops`, `audio_guides`, `travel_phrases`, `dictionary_terms`; `src/data`: historyArticles |
@@ -128,6 +128,6 @@ Todas las tablas de `supabase/migrations` existen también en `backend/migration
 
 ## Avisos encontrados
 
-- Hay dos migraciones de Turso con el mismo número: `014_establishment_files.sql` y `014_event_venue_type.sql`. Funciona, porque se ordenan por nombre completo. No hay que renombrarlas: ya están aplicadas, y con otro nombre volverían a ejecutarse. La próxima migración será la `016`.
+- Hay dos migraciones de Turso con el mismo número: `014_establishment_files.sql` y `014_event_venue_type.sql`. Funciona, porque se ordenan por nombre completo. No hay que renombrarlas: ya están aplicadas, y con otro nombre volverían a ejecutarse. La próxima migración tras `020_beaches.sql` será la `021`.
 - Supabase y Postgres repiten casi todas las tablas. Supabase es el esquema viejo y no debería ser la fuente de verdad.
 - Muchas secciones existen solo como archivos de `src/data`, sin tabla (lidomData, sorteosData, socialData…). Al pasar cada una a Turso, entra en el grupo que indica este documento.

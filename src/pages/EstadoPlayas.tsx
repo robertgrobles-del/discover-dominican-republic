@@ -11,9 +11,9 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageTransition } from "@/components/PageTransition";
 import { SEOHead, generateBeachSchema } from "@/components/SEOHead";
-import { supabase } from "@/integrations/supabase/client";
+import { beaches as staticBeaches } from "@/data/beaches";
 import { fetchApi } from "@/lib/fastifyClient";
-import { HAS_BACKEND_SESSION } from "@/lib/authSource";
+import { normalizeCmsBeach, type CmsBeachRow, type PublicBeach } from "@/lib/stagingContent";
 import heroBeachImg from "@/assets/hero-beach.jpg";
 import { usePageContent } from "@/lib/pageContent";
 
@@ -119,28 +119,29 @@ function BeachCard({ beach }: { beach: Beach }) {
   );
 }
 
-function mapDbBeachToLocal(dbBeach: any, marineReport?: any): Beach {
+function mapDbBeachToLocal(beach: PublicBeach): Beach {
   const waveMap: Record<string, BeachStatus> = {
+    calma: "segura",
     baja: "segura",
     moderada: "precaucion",
+    fuerte: "peligrosa",
     alta: "peligrosa",
   };
-  const waveFromReport = marineReport?.wave_height ? `${marineReport.wave_height}m` : undefined;
-  const windFromReport = marineReport?.wind_speed ? `${marineReport.wind_speed} km/h` : undefined;
-  const tempFromReport = marineReport?.water_temp ? Number(marineReport.water_temp) : 28;
+  const waveKey = (beach.waveIntensity || "calma").toLowerCase();
+  const crowdKey = (beach.crowdLevel || "media").toLowerCase();
 
   return {
-    id: dbBeach.id,
-    name: dbBeach.name,
-    region: dbBeach.province?.name || dbBeach.destination?.name || "República Dominicana",
-    status: waveMap[dbBeach.wave_intensity?.toLowerCase()] || (marineReport?.condition_rating === "dangerous" ? "peligrosa" : marineReport?.condition_rating === "caution" ? "precaucion" : "segura"),
-    lastUpdate: marineReport?.created_at ? new Date(marineReport.created_at).toLocaleTimeString("es-DO", { hour: "2-digit", minute: "2-digit" }) : new Date().toLocaleTimeString("es-DO", { hour: "2-digit", minute: "2-digit" }),
-    temp: tempFromReport,
-    weather: marineReport?.recommendation || "Condición Normal",
-    waveHeight: waveFromReport || (dbBeach.wave_intensity === "alta" ? "1.5m" : dbBeach.wave_intensity === "moderada" ? "0.8m" : "0.3m"),
-    seaweed: (dbBeach.crowd_level === "alto" ? "moderado" : "bajo") as Beach["seaweed"],
-    wind: windFromReport || "15 km/h",
-    image: dbBeach.image_url || heroBeachImg,
+    id: beach.id,
+    name: beach.name,
+    region: beach.province || beach.destinationName || "República Dominicana",
+    status: waveMap[waveKey] || "segura",
+    lastUpdate: new Date().toLocaleTimeString("es-DO", { hour: "2-digit", minute: "2-digit" }),
+    temp: 28,
+    weather: beach.bestTimeToVisit ? "Condición Normal" : "Despejado",
+    waveHeight: waveKey === "fuerte" || waveKey === "alta" ? "1.5m" : waveKey === "moderada" ? "0.8m" : "0.3m",
+    seaweed: (crowdKey === "alta" || crowdKey === "alto" ? "moderado" : "bajo") as Beach["seaweed"],
+    wind: "15 km/h",
+    image: beach.imageUrl || heroBeachImg,
   };
 }
 
@@ -153,52 +154,28 @@ export default function EstadoPlayas() {
   const [regions, setRegions] = useState<string[]>(["Todas"]);
 
   useEffect(() => {
+    let active = true;
     async function fetchBeaches() {
-      if (HAS_BACKEND_SESSION) {
-        try {
-          const [beachRes, marineRes] = await Promise.all([
-            fetchApi<{ data: any[] }>("/beaches?limit=50"),
-            fetchApi<{ data: any[] }>("/live/marine-reports?limit=30").catch(() => ({ data: [] })),
-          ]);
-
-          const marineMap = new Map<string, any>();
-          if (marineRes?.data) {
-            marineRes.data.forEach((r: any) => {
-              if (r.location) marineMap.set(r.location.toLowerCase(), r);
-            });
-          }
-
-          if (beachRes?.data && beachRes.data.length > 0) {
-            const mapped = beachRes.data.map((item) => {
-              const report = marineMap.get(item.name?.toLowerCase());
-              return mapDbBeachToLocal(item, report);
-            });
-            setBeaches(mapped);
-            const uniqueRegions = ["Todas", ...new Set(mapped.map((b) => b.region))] as string[];
-            setRegions(uniqueRegions);
-            setLoading(false);
-            return;
-          }
-        } catch (err) {
-          console.error("Error al cargar playas desde Fastify:", err);
+      let list: PublicBeach[] = staticBeaches;
+      try {
+        const res = await fetchApi<{ data: CmsBeachRow[] }>("/public/beaches");
+        if (res?.data) {
+          const bySlug = new Map(staticBeaches.map((b) => [b.slug, b]));
+          list = res.data.map((r) => normalizeCmsBeach(r, bySlug.get(r.slug)));
         }
+      } catch {
+        // Mantiene staticBeaches si la API publica no responde
       }
-
-      const { data } = await supabase
-        .from("beaches")
-        .select("*")
-        .eq("is_active", true)
-        .limit(50);
-
-      if (data && data.length > 0) {
-        const mapped = data.map((b) => mapDbBeachToLocal(b));
-        setBeaches(mapped);
-        const uniqueRegions = ["Todas", ...new Set(mapped.map((b) => b.region))] as string[];
-        setRegions(uniqueRegions);
-      }
+      if (!active) return;
+      const mapped = list.map((b) => mapDbBeachToLocal(b));
+      setBeaches(mapped);
+      const uniqueRegions = ["Todas", ...new Set(mapped.map((b) => b.region))] as string[];
+      setRegions(uniqueRegions);
       setLoading(false);
     }
+
     fetchBeaches();
+    return () => { active = false; };
   }, []);
 
   const filteredBeaches = beaches.filter((beach) => {

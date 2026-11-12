@@ -29,7 +29,7 @@ Estas reglas valen desde ahora para todo el trabajo. Cada regla nueva que pida e
 ## Rutas y contenido
 - Todo cambio de URL lleva redirección de la ruta vieja a la nueva (`<Navigate replace>` en `src/App.tsx` o un redirect en `vercel.json`). Nunca borrar una ruta publicada sin redirigirla.
 - Al fusionar páginas, el contenido de la página eliminada (textos, datos, secciones) se pasa completo a la página destino.
-- Las páginas en preparación se envuelven en `<StaffPreview>` (`src/App.tsx`): solo las ven admin y editor con sesión, y el público recibe una 404. Hoy no hay ninguna en vista previa.
+- Las páginas en preparación se envuelven en `<StaffPreview>` (`src/App.tsx`): solo las ven admin y editor con sesión, y el público recibe una 404. Hoy: `/estado-playas`, hasta tener datos reales del mar.
 - Las páginas que leen de Turso ponen la ficha del panel encima de los datos locales de `src/data`: lo que se rellena en el panel manda, y lo vacío sigue saliendo de `src/data`. Así se migra sección a sección sin dejar páginas vacías.
 - Fotos nuevas en `public/img`: el nombre del archivo indica el lugar y el fotógrafo. Sustituir con ellas las fotos de stock de la portada según el área, conservar el crédito del fotógrafo y optimizar el peso.
 

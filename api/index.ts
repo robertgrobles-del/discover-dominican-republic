@@ -372,6 +372,42 @@ const venueSpec = (b: Fields) => ({
   ...locationSpec(b),
 });
 
+export const BEACH_TYPES = ["arena-blanca", "arena-dorada", "virgen", "bahia", "deportiva", "urbana"];
+export const WAVE_INTENSITIES = ["calma", "moderada", "fuerte"];
+export const CROWD_LEVELS = ["baja", "media", "alta"];
+export const ACCESS_TYPES = ["publico", "semi-privado", "privado"];
+
+const beachSpec = (b: Fields) => ({
+  slug: slugOf(b, 120),
+  name: () => str(b, "name", 200, true),
+  beach_type: () => oneOf(b, "beach_type", BEACH_TYPES, "arena-blanca"),
+  short_description: () => str(b, "short_description", 300),
+  description: () => str(b, "description", 20000),
+  image_url: () => url(b, "image_url"),
+  image_alt: () => str(b, "image_alt", 300),
+  gallery: () => jsonList(b, "gallery", 60),
+  activities: () => jsonList(b, "activities", 30),
+  amenities: () => jsonList(b, "amenities", 30),
+  water_color: () => str(b, "water_color", 120),
+  sand_type: () => str(b, "sand_type", 120),
+  wave_intensity: () => oneOf(b, "wave_intensity", WAVE_INTENSITIES, "calma"),
+  crowd_level: () => oneOf(b, "crowd_level", CROWD_LEVELS, "media"),
+  access_type: () => oneOf(b, "access_type", ACCESS_TYPES, "publico"),
+  parking_available: () => bool(b, "parking_available"),
+  lifeguard_on_duty: () => bool(b, "lifeguard_on_duty"),
+  how_to_get_there: () => str(b, "how_to_get_there", 1000),
+  best_time_to_visit: () => str(b, "best_time_to_visit", 300),
+  latitude: () => num(b, "latitude", -90, 90),
+  longitude: () => num(b, "longitude", -180, 180),
+  rating: () => num(b, "rating", 0, 5) ?? 0, // 0 = sin valoración (la columna en Turso es NOT NULL); la web no la muestra
+  is_popular: () => bool(b, "is_popular"),
+  is_featured: () => bool(b, "is_featured"),
+  seo_title: () => str(b, "seo_title", 90),
+  seo_description: () => str(b, "seo_description", 200),
+  status: () => oneOf(b, "status", STATUSES, "draft"),
+  ...locationSpec(b),
+});
+
 // ---------- usuarios ----------
 interface UserRow { id: string; email: string; password_hash: string; display_name: string | null; roles: string; created_at: string }
 
@@ -400,7 +436,7 @@ const LOCATION_REFS = {
   municipality_id: ["municipalities", "El municipio indicado no existe"],
   destination_id: ["destinations", "El destino indicado no existe"],
 } as const;
-const LOCATED = new Set<string>(["events", "venues", "destinations"]);
+const LOCATED = new Set<string>(["events", "venues", "destinations", "beaches"]);
 
 // refs: columnas que apuntan a otra tabla. Se comprueban aquí porque Turso, por HTTP, no garantiza las claves foráneas.
 const TABLES = {
@@ -411,6 +447,7 @@ const TABLES = {
   venues: { spec: venueSpec, order: "name COLLATE NOCASE", refs: LOCATION_REFS },
   municipalities: { spec: municipalitySpec, order: "name COLLATE NOCASE", refs: { province_id: ["provinces", "La provincia indicada no existe"] } },
   destinations: { spec: destinationSpec, order: "name COLLATE NOCASE", refs: LOCATION_REFS },
+  beaches: { spec: beachSpec, order: "name COLLATE NOCASE", refs: LOCATION_REFS },
 } as const satisfies Record<string, { spec: (b: Fields) => Record<string, () => unknown>; order: string; refs: Record<string, readonly [string, string]> }>;
 
 async function crud(db: Client, table: keyof typeof TABLES, method: string, id: string | undefined, body: Fields, userId: string): Promise<ApiResponse> {
@@ -429,13 +466,13 @@ async function crud(db: Client, table: keyof typeof TABLES, method: string, id: 
       const n = Number((await db.execute({ sql: "SELECT (SELECT COUNT(*) FROM municipalities WHERE province_id = ?) + (SELECT COUNT(*) FROM destinations WHERE province_id = ?) AS n", args: [id, id] })).rows[0]?.n ?? 0);
       if (n) return err(409, `No se puede eliminar: tiene ${n} municipios o destinos. Elimínalos o muévelos antes`);
       await db.execute({ sql: "UPDATE news SET province_id = NULL WHERE province_id = ?", args: [id] });
-      for (const t of ["events", "venues"]) await db.execute({ sql: `UPDATE ${t} SET province_id = NULL WHERE province_id = ?`, args: [id] });
+      for (const t of ["events", "venues", "beaches"]) await db.execute({ sql: `UPDATE ${t} SET province_id = NULL WHERE province_id = ?`, args: [id] });
     }
     if (table === "municipalities") {
-      for (const t of ["destinations", "events", "venues"]) await db.execute({ sql: `UPDATE ${t} SET municipality_id = NULL WHERE municipality_id = ?`, args: [id] });
+      for (const t of ["destinations", "events", "venues", "beaches"]) await db.execute({ sql: `UPDATE ${t} SET municipality_id = NULL WHERE municipality_id = ?`, args: [id] });
     }
     if (table === "destinations") {
-      for (const t of ["events", "venues"]) await db.execute({ sql: `UPDATE ${t} SET destination_id = NULL WHERE destination_id = ?`, args: [id] });
+      for (const t of ["events", "venues", "beaches"]) await db.execute({ sql: `UPDATE ${t} SET destination_id = NULL WHERE destination_id = ?`, args: [id] });
     }
     if (table === "venues") await db.execute({ sql: "UPDATE events SET venue_id = NULL WHERE venue_id = ?", args: [id] });
     await db.execute({ sql: "DELETE FROM content_translations WHERE entity = ? AND entity_id = ?", args: [table, id] });
@@ -511,6 +548,7 @@ const BULK_FIELDS = {
   venues: ["status", "category", "province_id", "municipality_id", "destination_id"],
   municipalities: ["status", "province_id", "kind", "is_capital"],
   destinations: ["status", "province_id", "municipality_id", "kind", "is_popular"],
+  beaches: ["status", "beach_type", "wave_intensity", "crowd_level", "access_type", "is_featured", "is_popular", "province_id", "municipality_id", "destination_id"],
 } as const;
 type BulkTable = keyof typeof BULK_FIELDS;
 const MAX_BULK = 500;
@@ -628,6 +666,16 @@ const PROVINCE_PAGE = "tagline, intro, population, area_km2, best_time, weather_
 const PLACE_PUBLIC = "id, slug, name, short_description, description, highlights, image_url, image_alt, gallery, latitude, longitude, seo_title, seo_description";
 // Sin los datos de contacto de quien lo envió ni la huella de IP.
 const EVENT_PUBLIC = "id, slug, name, event_type, short_description, description, image_url, start_date, end_date, start_time, end_time, venue, venue_type, venue_room, address, province, price_range, ticket_url, organizer, is_featured, updated_at";
+const BEACH_PUBLIC = `b.id, b.slug, b.name, b.province_id, b.municipality_id, b.destination_id, b.beach_type, b.short_description, b.description,
+  b.image_url, b.image_alt, b.gallery, b.activities, b.amenities, b.water_color, b.sand_type, b.wave_intensity, b.crowd_level,
+  b.access_type, b.parking_available, b.lifeguard_on_duty, b.how_to_get_there, b.best_time_to_visit, b.latitude, b.longitude,
+  b.rating, b.is_popular, b.is_featured, b.seo_title, b.seo_description, b.updated_at,
+  p.name AS province_name, p.slug AS province_slug, p.region AS province_region,
+  m.name AS municipality_name, d.name AS destination_name`;
+const BEACH_FROM = `FROM beaches b
+  LEFT JOIN provinces p ON p.id = b.province_id
+  LEFT JOIN municipalities m ON m.id = b.municipality_id
+  LEFT JOIN destinations d ON d.id = b.destination_id`;
 
 async function publicApi(db: Client, path: string, lang?: Lang): Promise<ApiResponse | null> {
   if (path === "/public/provinces") {
@@ -664,6 +712,15 @@ async function publicApi(db: Client, path: string, lang?: Lang): Promise<ApiResp
   if (ev) {
     const r = SLUG.test(ev[1]) ? await db.execute({ sql: `SELECT ${EVENT_PUBLIC} FROM events WHERE status = 'published' AND ${EVENT_LIVE} AND slug = ?`, args: [ev[1]] }) : null;
     return r?.rows[0] ? { status: 200, body: { data: r.rows[0] }, headers: PUBLIC_CACHE } : err(404, "No encontrado");
+  }
+  if (path === "/public/beaches") {
+    const r = await db.execute(`SELECT ${BEACH_PUBLIC} ${BEACH_FROM} WHERE b.status = 'published' ORDER BY b.is_featured DESC, b.is_popular DESC, b.rating DESC, b.name COLLATE NOCASE`);
+    return { status: 200, body: { data: r.rows }, headers: PUBLIC_CACHE };
+  }
+  const beach = path.match(/^\/public\/beaches\/([^/]+)$/);
+  if (beach) {
+    const r = SLUG.test(beach[1]) ? await db.execute({ sql: `SELECT ${BEACH_PUBLIC} ${BEACH_FROM} WHERE b.status = 'published' AND b.slug = ?`, args: [beach[1]] }) : null;
+    return r?.rows[0] ? { status: 200, body: { data: r.rows[0] }, headers: PUBLIC_CACHE } : err(404, "No encontrada");
   }
   if (path === "/public/news") {
     return { status: 200, body: { data: await localizeNews(db, (await listNews(db)).slice(0, 50), lang) }, headers: PUBLIC_CACHE };
@@ -742,8 +799,9 @@ async function mediaAdmin(db: Client, method: string, id: string | undefined, bo
     const used = await db.execute({
       sql: `SELECT (SELECT COUNT(*) FROM news WHERE cover_url = ? OR body LIKE ?)
                  + (SELECT COUNT(*) FROM provinces WHERE image_url = ? OR description LIKE ?)
+                 + (SELECT COUNT(*) FROM beaches WHERE image_url = ? OR gallery LIKE ?)
                  + (SELECT COUNT(*) FROM content_translations WHERE data LIKE ?) AS n`,
-      args: [url, like, url, like, like],
+      args: [url, like, url, like, url, like, like],
     });
     const n = Number(used.rows[0]?.n ?? 0);
     if (n) return err(409, `No se puede eliminar: la usa${n === 1 ? "" : "n"} ${n} publicaci${n === 1 ? "ón" : "ones"}`);
@@ -934,26 +992,28 @@ const AIRPORTS = ["aeropuerto-internacional-de-punta-cana", "aeropuerto-internac
 const PORTS = ["sans-souci", "amber-cove", "taino-bay", "cabo-rojo", "la-romana", "puerto-caucedo", "puerto-haina", "manzanillo"];
 const MARINAS = ["casa-de-campo", "cap-cana", "ocean-world", "marina-zar-par", "puerto-bahia", "luperon"];
 export const STATIC_PAGES = [
-  "/eventos", "/requisitos-viaje", "/e-ticket", "/aeropuerto", ...AIRPORTS.map((x) => `/aeropuerto/${x}`),
+  "/eventos", "/playas", "/requisitos-viaje", "/e-ticket", "/aeropuerto", ...AIRPORTS.map((x) => `/aeropuerto/${x}`),
   "/puertos-marinas", ...PORTS.map((x) => `/puerto/${x}`), ...MARINAS.map((x) => `/marina/${x}`),
   "/provincias", "/negocios", "/anunciate", "/registra-tu-negocio", "/contacto", "/privacidad", "/terminos",
 ];
 
-/** Fichas públicas que salen de Turso además de las noticias: eventos vigentes y negocios aprobados. */
+/** Fichas públicas que salen de Turso además de las noticias: eventos vigentes, playas, provincias y negocios aprobados. */
 interface PublicExtras { events: { slug: string; name: string; short_description: string | null; start_date: string | null; province: string | null; image_url: string | null; updated_at: string | null }[];
   businesses: { id: string; name: string; province: string | null; description: string | null; created_at: string | null }[];
-  provinces: { slug: string; name: string; short_description: string | null; tagline: string | null; image_url: string | null; updated_at: string | null }[] }
+  provinces: { slug: string; name: string; short_description: string | null; tagline: string | null; image_url: string | null; updated_at: string | null }[];
+  beaches: { slug: string; name: string; short_description: string | null; province: string | null; image_url: string | null; updated_at: string | null }[] }
 async function publicExtras(db: Client): Promise<PublicExtras> {
-  const [ev, biz, prov] = await Promise.all([
+  const [ev, biz, prov, bch] = await Promise.all([
     db.execute(`SELECT slug, name, short_description, start_date, province, image_url, updated_at FROM events WHERE status = 'published' AND ${EVENT_LIVE} ORDER BY start_date`),
     db.execute("SELECT id, name, province, description, created_at FROM establishment_requests WHERE status = 'approved' ORDER BY name COLLATE NOCASE"),
     db.execute("SELECT slug, name, short_description, tagline, image_url, updated_at FROM provinces WHERE status = 'published' ORDER BY name COLLATE NOCASE"),
+    db.execute("SELECT b.slug, b.name, b.short_description, p.name AS province, b.image_url, b.updated_at FROM beaches b LEFT JOIN provinces p ON p.id = b.province_id WHERE b.status = 'published' ORDER BY b.name COLLATE NOCASE"),
   ]);
   return { events: ev.rows as unknown as PublicExtras["events"], businesses: biz.rows as unknown as PublicExtras["businesses"],
-    provinces: prov.rows as unknown as PublicExtras["provinces"] };
+    provinces: prov.rows as unknown as PublicExtras["provinces"], beaches: bch.rows as unknown as PublicExtras["beaches"] };
 }
 
-function sitemap(rows: NewsRow[], extras: PublicExtras = { events: [], businesses: [], provinces: [] }): string {
+function sitemap(rows: NewsRow[], extras: PublicExtras = { events: [], businesses: [], provinces: [], beaches: [] }): string {
   const url = (loc: string, lastmod?: string | null, extra = "") =>
     `<url><loc>${xmlEsc(`${siteUrl()}${loc}`)}</loc>${lastmod ? `<lastmod>${xmlEsc(lastmod)}</lastmod>` : ""}${extra}</url>`;
   const newest = rows.map((r) => r.updated_at).sort().at(-1);
@@ -966,6 +1026,8 @@ function sitemap(rows: NewsRow[], extras: PublicExtras = { events: [], businesse
     + extras.businesses.map((b) => url(`/negocios/${b.id}`, b.created_at)).join("")
     + extras.provinces.map((p) => url(`/provincia/${p.slug}`, p.updated_at,
       p.image_url ? `<image:image><image:loc>${xmlEsc(absolute(p.image_url))}</image:loc></image:image>` : "")).join("")
+    + extras.beaches.map((b) => url(`/playa/${b.slug}`, b.updated_at,
+      b.image_url ? `<image:image><image:loc>${xmlEsc(absolute(b.image_url))}</image:loc></image:image>` : "")).join("")
     + "</urlset>";
 }
 
@@ -1075,18 +1137,20 @@ export function newsMarkdown(n: NewsRow): string {
   return `# ${n.title}\n\n${n.excerpt ? `> ${n.excerpt}\n\n` : ""}${meta}${cover}\n\n${absoluteMarkdown(n.body ?? "").trim()}\n`;
 }
 
-function llmsTxt(rows: NewsRow[], extras: PublicExtras = { events: [], businesses: [], provinces: [] }): string {
+function llmsTxt(rows: NewsRow[], extras: PublicExtras = { events: [], businesses: [], provinces: [], beaches: [] }): string {
   const items = rows.map((n) => `- [${n.title}](${siteUrl()}/noticias/${n.slug}.md): ${newsDescription(n)}`).join("\n");
   return `# ${SITE_NAME}\n\n> ${SITE_SUMMARY}\n\n`
     + "Contenido en español de República Dominicana. Cada noticia tiene una versión en Markdown (enlaces de abajo) "
     + `y una página web en ${siteUrl()}/noticias/<slug>. Los datos estructurados de cada página siguen schema.org (NewsArticle).\n\n`
     + `## Noticias\n\n${items || "- Todavía no hay noticias publicadas."}\n\n`
     + (extras.provinces.length ? `## Provincias\n\n${extras.provinces.map((p) => `- [${p.name}](${siteUrl()}/provincia/${p.slug}): ${[p.tagline, p.short_description].filter(Boolean).join(". ")}`).join("\n")}\n\n` : "")
+    + (extras.beaches.length ? `## Playas\n\n${extras.beaches.map((b) => `- [${b.name}](${siteUrl()}/playa/${b.slug}): ${[b.province, b.short_description].filter(Boolean).join(". ")}`).join("\n")}\n\n` : "")
     + (extras.events.length ? `## Próximos eventos\n\n${extras.events.map((e) => `- [${e.name}](${siteUrl()}/evento/${e.slug}): ${[e.start_date, e.province, e.short_description].filter(Boolean).join(". ")}`).join("\n")}\n\n` : "")
     + (extras.businesses.length ? `## Negocios del directorio\n\n${extras.businesses.map((b) => `- [${b.name}](${siteUrl()}/negocios/${b.id})${b.province ? `: ${b.province}` : ""}`).join("\n")}\n\n` : "")
     + `## Guías\n\n- [E-Ticket de República Dominicana: guía del nuevo portal](${siteUrl()}/e-ticket.md): cómo hacer gratis el formulario de entrada y salida en eticket.gob.do.\n`
     + `- [Aeropuertos internacionales de República Dominicana](${siteUrl()}/aeropuerto): terminales, aerolíneas, transporte y destinos cercanos de los ${AIRPORTS.length} aeropuertos.\n`
     + `- [Puertos de cruceros y marinas](${siteUrl()}/puertos-marinas): ${PORTS.length} puertos (Amber Cove, Taíno Bay, Sans Souci, Cabo Rojo…) y ${MARINAS.length} marinas (Cap Cana, Casa de Campo, Ocean World…).\n`
+    + `- [Playas de República Dominicana](${siteUrl()}/playas): directorio de playas por provincia, tipo de arena, oleaje, actividades y servicios.\n`
     + `- [Eventos en República Dominicana](${siteUrl()}/eventos): conciertos, festivales y deportes con fecha, lugar y provincia.\n`
     + `- [Directorio de negocios turísticos](${siteUrl()}/negocios): negocios y servicios turísticos por provincia.\n\n`
     + `## Opcional\n\n- [Todas las noticias en un solo archivo](${siteUrl()}/llms-full.txt)\n`
@@ -1614,16 +1678,16 @@ export async function handle(req: ApiRequest, db: Client, secret: string, secure
     return formsAdmin(db, forms[1] as FormResource, m, forms[2], body);
   }
 
-  const bulk = path.match(/^\/admin\/(provinces|news|events|venues|municipalities|destinations)\/bulk$/);
+  const bulk = path.match(/^\/admin\/(provinces|news|events|venues|municipalities|destinations|beaches)\/bulk$/);
   if (bulk) {
     if (m !== "POST") return err(405, "Método no permitido");
     if (!manager) return err(403, "Solo un editor o administrador edita en lote");
     return bulkEdit(db, bulk[1] as BulkTable, body, user.id);
   }
 
-  const match = path.match(/^\/admin\/(provinces|news|news-categories|events|venues|municipalities|destinations)(?:\/([A-Za-z0-9-]+))?$/);
+  const match = path.match(/^\/admin\/(provinces|news|news-categories|events|venues|municipalities|destinations|beaches)(?:\/([A-Za-z0-9-]+))?$/);
   if (match && m !== "GET" && !manager) {
-    if (match[1] !== "news") return err(403, "Solo un editor o administrador modifica provincias, municipios, destinos, categorías, eventos y recintos");
+    if (match[1] !== "news") return err(403, "Solo un editor o administrador modifica provincias, municipios, destinos, playas, categorías, eventos y recintos");
     const denied = await ownNewsGuard(db, m, match[2], body, user.id, roles.includes("autor"));
     if (denied) return denied;
   }

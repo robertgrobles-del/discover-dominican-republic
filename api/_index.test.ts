@@ -601,3 +601,70 @@ describe("recintos", () => {
     expect(data(await call("GET", `/admin/events/${data(ev).id}`, undefined, auth)).venue_id).toBeNull();
   });
 });
+
+describe("playas", () => {
+  it("trae las 15 playas publicadas, valida ubicación/enums, soporta lote y filtra borradores de sitemap/llms", async () => {
+    const auth = bearer(await login("admin@x.do", "clave-segura-123"));
+    const seeded = data<{ id: string; slug: string; status: string }[]>(await call("GET", "/admin/beaches", undefined, auth));
+    expect(seeded.length).toBeGreaterThanOrEqual(15);
+    expect(seeded.every((b) => b.status === "published")).toBe(true);
+
+    const pubList = data<{ slug: string; province_name: string | null }[]>(await call("GET", "/public/beaches"));
+    expect(pubList.some((b) => b.slug === "playa-bavaro" && b.province_name === "La Altagracia")).toBe(true);
+    expect((await call("GET", "/public/beaches/playa-bavaro")).status).toBe(200);
+
+    // Enums y LocationPicker
+    expect((await call("POST", "/admin/beaches", { slug: "bad-type", name: "Mala", beach_type: "desierto" }, auth)).status).toBe(422);
+    expect((await call("POST", "/admin/beaches", { slug: "bad-loc", name: "Mala", province_id: "samana", destination_id: "bavaro" }, auth)).status).toBe(422);
+
+    // Borrador: no sale en público, sitemap ni llms.txt
+    const draftRes = await call("POST", "/admin/beaches", {
+      slug: "playa-borrador",
+      name: "Playa Borrador",
+      province_id: "barahona",
+      municipality_id: "paraiso",
+      beach_type: "virgen",
+      wave_intensity: "calma",
+      crowd_level: "baja",
+      access_type: "publico",
+      sand_type: "Arena blanca",
+      water_color: "Turquesa",
+      parking_available: 1,
+      lifeguard_on_duty: 0,
+      activities: ["Snorkel", "Natación"],
+      amenities: ["Estacionamiento"],
+      gallery: [{ url: "https://example.com/p.jpg", alt: "Playa Borrador" }],
+      latitude: 18.1,
+      longitude: -71.05,
+      rating: 4.8,
+      is_featured: 1,
+      status: "draft",
+    }, auth);
+    expect(draftRes.status).toBe(201);
+    const draftId = data(draftRes).id as string;
+
+    expect((await call("GET", "/public/beaches/playa-borrador")).status).toBe(404);
+    expect(data<{ slug: string }[]>(await call("GET", "/public/beaches")).map((b) => b.slug)).not.toContain("playa-borrador");
+
+    const smBefore = new TextDecoder().decode((await call("GET", "/sitemap.xml")).raw);
+    const llmsBefore = new TextDecoder().decode((await call("GET", "/llms.txt")).raw);
+    expect(smBefore).toContain("/playas</loc>");
+    expect(smBefore).not.toContain("/estado-playas</loc>"); // en vista previa del equipo
+    expect(smBefore).toContain("/playa/playa-bavaro</loc>");
+    expect(smBefore).not.toContain("/playa/playa-borrador</loc>");
+    expect(llmsBefore).toContain("/playa/playa-bavaro):");
+    expect(llmsBefore).not.toContain("playa-borrador");
+
+    // Publicar en lote → aparece en público, sitemap y llms.txt
+    const bulkRes = await call("POST", "/admin/beaches/bulk", { ids: [draftId], patch: { status: "published" } }, auth);
+    expect(bulkRes.status).toBe(200);
+    expect((await call("GET", "/public/beaches/playa-borrador")).status).toBe(200);
+
+    const smAfter = new TextDecoder().decode((await call("GET", "/sitemap.xml")).raw);
+    const llmsAfter = new TextDecoder().decode((await call("GET", "/llms.txt")).raw);
+    expect(smAfter).toContain("/playa/playa-borrador</loc>");
+    expect(llmsAfter).toContain("/playa/playa-borrador):");
+
+    expect((await call("DELETE", `/admin/beaches/${draftId}`, undefined, auth)).status).toBe(204);
+  });
+});

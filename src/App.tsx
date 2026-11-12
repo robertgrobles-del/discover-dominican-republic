@@ -38,6 +38,9 @@ const PuertoDetalle = lazy(() => import("./pages/PuertoDetalle"));
 const MarinaDetalle = lazy(() => import("./pages/MarinaDetalle"));
 const Provincias = lazy(() => import("./pages/Provincias"));
 const ProvinciaDetalle = lazy(() => import("./pages/ProvinciaDetalle"));
+const Playas = lazy(() => import("./pages/Playas"));
+const PlayaDetalle = lazy(() => import("./pages/PlayaDetalle"));
+const EstadoPlayas = lazy(() => import("./pages/EstadoPlayas"));
 const Contacto = lazy(() => import("./pages/staging/Contacto"));
 const Privacidad = lazy(() => import("./pages/staging/Privacidad"));
 const Terminos = lazy(() => import("./pages/staging/Terminos"));
@@ -49,7 +52,7 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 
 /** Páginas públicas que existen en staging: la landing, noticias, eventos, requisitos de viaje, aeropuertos, puertos y marinas, y directorio de negocios. */
 const PUBLISHED = [
-  "/noticias", "/eventos", "/evento", "/requisitos-viaje", "/e-ticket",
+  "/noticias", "/eventos", "/evento", "/playas", "/playa", "/requisitos-viaje", "/e-ticket",
   "/privacidad", "/terminos", "/contacto", "/anunciate", "/registra-tu-negocio",
   "/aeropuerto", "/aeropuertos", "/puertos-marinas", "/puerto", "/marina", "/provincias", "/provincia", "/negocios", "/negocio", "/empresa", "/empresas", "/404"
 ];
@@ -78,7 +81,7 @@ function ExternalLinksNewTab() {
 
 /**
  * Páginas en preparación: solo las ve el equipo (admin o editor) con sesión; el público recibe la 404.
- * Hoy no hay ninguna; se deja para la próxima sección que se prepare (AGENTS.md).
+ * Hoy: /estado-playas, hasta que tenga datos reales del mar (AGENTS.md).
  */
 function StaffPreview({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -178,6 +181,13 @@ function AnimatedRoutes() {
             <Route path="/marina/:slug" element={<MarinaDetalle />} />
             <Route path="/provincias" element={<Provincias />} />
             <Route path="/provincia/:slug" element={<ProvinciaDetalle />} />
+            <Route path="/playas" element={<Playas />} />
+            <Route path="/playa" element={<Navigate to="/playas" replace />} />
+            <Route path="/playa/:slug" element={<PlayaDetalle />} />
+            {/* Vista previa hasta tener datos reales del mar (2026-11-11). */}
+            <Route path="/estado-playas" element={<StaffPreview><EstadoPlayas /></StaffPreview>} />
+            <Route path="/destino/playa-rincon" element={<Navigate to="/playa/playa-rincon" replace />} />
+            <Route path="/destinos/playa-rincon" element={<Navigate to="/playa/playa-rincon" replace />} />
             <Route path="/contacto" element={<Contacto />} />
             <Route path="/privacidad" element={<Privacidad />} />
             <Route path="/terminos" element={<Terminos />} />

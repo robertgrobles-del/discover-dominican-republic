@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 type Option = [value: string, label: string];
 /** Una acción: un cambio fijo (publicar…) o un campo con opciones a elegir (cambiar provincia a…). */
 export type BulkAction = { key: string; label: string; patch?: Record<string, unknown>; field?: string; options?: Option[] };
-export type BulkResource = "provinces" | "news" | "events" | "venues" | "municipalities" | "destinations";
+export type BulkResource = "provinces" | "news" | "events" | "venues" | "municipalities" | "destinations" | "beaches";
 
 export const STATUS_ACTIONS: BulkAction[] = [
   { key: "publish", label: "Publicar", patch: { status: "published" } },

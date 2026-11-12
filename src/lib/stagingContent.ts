@@ -1,6 +1,7 @@
 // Contenido que el equipo publica desde el panel de staging (Turso, ver api/index.ts → /public/*).
 // La landing lo antepone a su contenido local; si la API falla, la landing sigue igual que antes.
 import { useQuery } from "@tanstack/react-query";
+import { beaches as staticBeaches, getBeachBySlug, type Beach } from "@/data/beaches";
 import { fetchApi } from "@/lib/fastifyClient";
 import { useI18n } from "@/hooks/useI18n";
 
@@ -149,6 +150,151 @@ export function usePublicEstablishment(id: string | undefined) {
         return (await fetchApi<{ data: PublicEstablishment }>(`/public/establishments/${encodeURIComponent(id!)}`)).data;
       } catch {
         return null;
+      }
+    },
+  });
+}
+
+export interface CmsBeachRow {
+  id: string;
+  slug: string;
+  name: string;
+  province_id?: string | null;
+  municipality_id?: string | null;
+  destination_id?: string | null;
+  province_name?: string | null;
+  province_slug?: string | null;
+  municipality_name?: string | null;
+  destination_name?: string | null;
+  beach_type?: string | null;
+  short_description?: string | null;
+  description?: string | null;
+  image_url?: string | null;
+  image_alt?: string | null;
+  gallery?: unknown;
+  activities?: unknown;
+  amenities?: unknown;
+  water_color?: string | null;
+  sand_type?: string | null;
+  wave_intensity?: string | null;
+  crowd_level?: string | null;
+  access_type?: string | null;
+  parking_available?: number | boolean | null;
+  lifeguard_on_duty?: number | boolean | null;
+  how_to_get_there?: string | null;
+  best_time_to_visit?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  rating?: number | null;
+  is_popular?: number | boolean | null;
+  is_featured?: number | boolean | null;
+  seo_title?: string | null;
+  seo_description?: string | null;
+}
+
+export type PublicBeach = Beach & {
+  imageAlt?: string;
+  seoTitle?: string;
+  seoDescription?: string;
+  municipalityName?: string;
+};
+
+function parseJsonArray(v: unknown): unknown[] {
+  if (Array.isArray(v)) return v;
+  if (typeof v === "string" && v.trim()) {
+    try {
+      const parsed = JSON.parse(v);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+  return [];
+}
+
+function normalizeStringList(v: unknown, fallback: string[] = []): string[] {
+  const arr = parseJsonArray(v).map((item) => (typeof item === "string" ? item.trim() : "")).filter(Boolean);
+  return arr.length > 0 ? arr : fallback;
+}
+
+function normalizeGalleryUrls(v: unknown, fallback: string[] = []): string[] {
+  const arr = parseJsonArray(v)
+    .map((item) => (typeof item === "string" ? item : item && typeof item === "object" ? String((item as { url?: unknown }).url ?? "") : ""))
+    .map((u) => u.trim())
+    .filter(Boolean);
+  return arr.length > 0 ? arr : fallback;
+}
+
+/** Combina una fila publicada del CMS sobre los datos locales por si algún campo viene vacío. */
+export function normalizeCmsBeach(row: CmsBeachRow, fallback?: Beach): PublicBeach {
+  const fb = fallback ?? getBeachBySlug(row.slug);
+  return {
+    id: row.id || fb?.id || row.slug,
+    slug: row.slug || fb?.slug || row.id,
+    name: row.name || fb?.name || "",
+    province: row.province_name || fb?.province || "",
+    provinceId: row.province_id ?? fb?.provinceId ?? "",
+    provinceSlug: row.province_slug ?? fb?.provinceSlug ?? row.province_id ?? "",
+    municipalityId: row.municipality_id ?? fb?.municipalityId,
+    municipalityName: row.municipality_name ?? undefined,
+    destinationId: row.destination_id ?? fb?.destinationId,
+    destinationName: row.destination_name ?? fb?.destinationName,
+    beachType: (row.beach_type as Beach["beachType"]) || fb?.beachType || "arena-blanca",
+    shortDescription: row.short_description || fb?.shortDescription || "",
+    description: row.description || fb?.description || "",
+    imageUrl: row.image_url || fb?.imageUrl || "",
+    imageAlt: row.image_alt || fb?.name || row.name,
+    gallery: normalizeGalleryUrls(row.gallery, fb?.gallery ?? []),
+    activities: normalizeStringList(row.activities, fb?.activities ?? []),
+    amenities: normalizeStringList(row.amenities, fb?.amenities ?? []),
+    rating: row.rating != null ? Number(row.rating) : (fb?.rating ?? 0),
+    waterColor: row.water_color || fb?.waterColor || "",
+    sandType: row.sand_type || fb?.sandType || "",
+    waveIntensity: (row.wave_intensity as Beach["waveIntensity"]) || fb?.waveIntensity || "calma",
+    crowdLevel: (row.crowd_level as Beach["crowdLevel"]) || fb?.crowdLevel || "media",
+    accessType: (row.access_type as Beach["accessType"]) || fb?.accessType || "publico",
+    parkingAvailable: row.parking_available != null ? Boolean(row.parking_available) : (fb?.parkingAvailable ?? false),
+    lifeguardOnDuty: row.lifeguard_on_duty != null ? Boolean(row.lifeguard_on_duty) : (fb?.lifeguardOnDuty ?? false),
+    latitude: row.latitude != null ? Number(row.latitude) : (fb?.latitude ?? 18.7357),
+    longitude: row.longitude != null ? Number(row.longitude) : (fb?.longitude ?? -70.1627),
+    howToGetThere: row.how_to_get_there || fb?.howToGetThere,
+    bestTimeToVisit: row.best_time_to_visit || fb?.bestTimeToVisit,
+    isPopular: row.is_popular != null ? Boolean(row.is_popular) : (fb?.isPopular ?? false),
+    isFeatured: row.is_featured != null ? Boolean(row.is_featured) : (fb?.isFeatured ?? false),
+    seoTitle: row.seo_title || undefined,
+    seoDescription: row.seo_description || undefined,
+  };
+}
+
+export function usePublicBeaches() {
+  return useQuery<PublicBeach[]>({
+    queryKey: ["staging-public", "beaches"],
+    staleTime: 60_000,
+    initialData: staticBeaches,
+    queryFn: async () => {
+      try {
+        const res = await fetchApi<{ data: CmsBeachRow[] }>("/public/beaches");
+        const bySlug = new Map(staticBeaches.map((b) => [b.slug, b]));
+        return res.data.map((row) => normalizeCmsBeach(row, bySlug.get(row.slug)));
+      } catch {
+        return staticBeaches;
+      }
+    },
+  });
+}
+
+export function useCmsBeach(slug: string | undefined) {
+  const staticBeach = slug ? getBeachBySlug(slug) : undefined;
+  return useQuery<PublicBeach | null>({
+    queryKey: ["staging-public", "beach", slug],
+    enabled: Boolean(slug),
+    staleTime: 60_000,
+    queryFn: async () => {
+      try {
+        const row = (await fetchApi<{ data: CmsBeachRow }>(`/public/beaches/${encodeURIComponent(slug!)}`)).data;
+        return normalizeCmsBeach(row, staticBeach);
+      } catch {
+        return staticBeach ?? null;
       }
     },
   });

@@ -22,6 +22,8 @@ import { VenueEditor } from "./VenueEditor";
 import { VenueList } from "./VenueList";
 import { PlaceEditor } from "./PlaceEditor";
 import { PlaceList, PLACE_NOUN, type PlaceKind } from "./PlaceList";
+import { BeachEditor } from "./BeachEditor";
+import { BeachList } from "./BeachList";
 import { MediaPicker } from "./MediaLibrary";
 
 export type FieldDef = {
@@ -42,7 +44,7 @@ const toSlug = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLower
 const apiMessage = (e: unknown) => (e instanceof HttpError ? (e.details as { error?: { message?: string } } | null)?.error?.message : null) ?? (e instanceof Error ? e.message : "Error");
 
 export function StagingCrudManager({ resource, title, titleKey, fields, noun, renderEditor, renderList }: {
-  resource: "provinces" | "news" | "news-categories" | "events" | "venues" | "municipalities" | "destinations";
+  resource: "provinces" | "news" | "news-categories" | "events" | "venues" | "municipalities" | "destinations" | "beaches";
   title: string;
   titleKey: string;           // campo que se muestra en la lista y del que sale el slug
   fields: FieldDef[];
@@ -334,6 +336,20 @@ export function StagingVenuesManager() {
       fields={[]}
       renderEditor={(row, close, openNew) => <VenueEditor row={row} onClose={close} onNew={openNew} />}
       renderList={(p) => <VenueList {...p} />}
+    />
+  );
+}
+
+export function StagingBeachesManager() {
+  return (
+    <StagingCrudManager
+      resource="beaches"
+      title="Playas"
+      titleKey="name"
+      noun="playa"
+      fields={[]}
+      renderEditor={(row, close, openNew) => <BeachEditor row={row} onClose={close} onNew={openNew} />}
+      renderList={(p) => <BeachList {...p} />}
     />
   );
 }

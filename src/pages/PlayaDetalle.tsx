@@ -10,9 +10,9 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
 import { SEOHead, generateBeachSchema } from "@/components/SEOHead";
-import { getBeachBySlug, beaches as allStaticBeaches, type Beach } from "@/data/beaches";
-import { supabase } from "@/integrations/supabase/client";
-import { useQuery } from "@tanstack/react-query";
+import { getBeachBySlug } from "@/data/beaches";
+import { useCmsBeach, usePublicBeaches, type PublicBeach } from "@/lib/stagingContent";
+import { NewsBody } from "@/components/admin/staging/NewsBody";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Lightbox } from "@/components/ui/lightbox";
 import { useLightbox } from "@/hooks/useLightbox";
@@ -41,49 +41,15 @@ const beachTypeLabels: Record<string, string> = {
   urbana: "Urbana con Servicios",
 };
 
-interface BeachDbRow {
-  image_url?: string;
-  short_description?: string;
-  beach_type?: string;
-  wave_intensity?: string;
-  crowd_level?: string;
-  access_type?: string;
-  sand_type?: string;
-  water_color?: string;
-  parking_available?: boolean;
-  lifeguard_on_duty?: boolean;
-  how_to_get_there?: string;
-  best_time_to_visit?: string;
-  province_slug?: string;
-  destination_name?: string;
-}
-
-type BeachSource = Partial<Beach> & BeachDbRow;
-
-function useBeachData(slug: string | undefined): { beach: BeachSource | undefined; isLoading: boolean } {
-  const staticBeach = slug ? getBeachBySlug(slug) : undefined;
-  const { data: dbBeach, isLoading } = useQuery({
-    queryKey: ["beach", slug],
-    queryFn: async (): Promise<BeachDbRow | undefined> => {
-      const { data, error } = await supabase
-        .from("beaches")
-        .select("*")
-        .eq("slug", slug!)
-        .eq("is_active", true)
-        .single();
-      if (error) return undefined;
-      return data as BeachDbRow;
-    },
-    enabled: !staticBeach && !!slug,
-  });
-  return { beach: staticBeach || dbBeach, isLoading: !staticBeach && isLoading };
-}
-
 export default function PlayaDetalle() {
   const pc = usePageContent("playa-detalle");
   const beachTypeLabels = pc.data("beachTypeLabels", __pcData.beachTypeLabels);
   const { slug } = useParams<{ slug: string }>();
-  const { beach: rawBeach, isLoading } = useBeachData(slug);
+  const staticFallback = slug ? getBeachBySlug(slug) : undefined;
+  const { data: cmsBeach, isLoading: cmsLoading } = useCmsBeach(slug);
+  const { data: allBeaches = [] } = usePublicBeaches();
+  const rawBeach: PublicBeach | undefined = cmsBeach ?? staticFallback;
+  const isLoading = !rawBeach && cmsLoading;
   const [isSaved, setIsSaved] = useState(false);
 
   const {
@@ -157,40 +123,42 @@ export default function PlayaDetalle() {
     name: rawBeach.name || "",
     slug: rawBeach.slug || "",
     description: rawBeach.description || "",
-    shortDescription: rawBeach.shortDescription || rawBeach.short_description || "",
-    imageUrl: getSafeCoverImage(rawBeach.imageUrl || rawBeach.image_url, "beach", rawBeach.provinceSlug || rawBeach.slug),
+    shortDescription: rawBeach.shortDescription || "",
+    imageUrl: getSafeCoverImage(rawBeach.imageUrl, "beach", rawBeach.provinceSlug || rawBeach.slug),
     gallery: rawBeach.gallery || [],
-    beachType: rawBeach.beachType || rawBeach.beach_type || "arena-blanca",
-    waveIntensity: rawBeach.waveIntensity || rawBeach.wave_intensity || "calma",
-    crowdLevel: rawBeach.crowdLevel || rawBeach.crowd_level || "media",
-    accessType: rawBeach.accessType || rawBeach.access_type || "publico",
-    sandType: rawBeach.sandType || rawBeach.sand_type || "Arena blanca fina",
-    waterColor: rawBeach.waterColor || rawBeach.water_color || "Turquesa cristalino",
-    activities: rawBeach.activities || ["Natación", "Snorkel", "Fotografía", "Caminatas al atardecer"],
-    amenities: rawBeach.amenities || ["Sillas y sombrillas", "Restaurantes locales", "Chiringuitos de coco", "Parqueo"],
-    parkingAvailable: rawBeach.parkingAvailable ?? rawBeach.parking_available ?? true,
-    lifeguardOnDuty: rawBeach.lifeguardOnDuty ?? rawBeach.lifeguard_on_duty ?? false,
-    howToGetThere: rawBeach.howToGetThere || rawBeach.how_to_get_there || "Accesible por carretera principal con señalización turística.",
-    bestTimeToVisit: rawBeach.bestTimeToVisit || rawBeach.best_time_to_visit || "Diciembre a Mayo (aguas más calmas y menor pluviosidad)",
+    beachType: rawBeach.beachType || "arena-blanca",
+    waveIntensity: rawBeach.waveIntensity || "calma",
+    crowdLevel: rawBeach.crowdLevel || "media",
+    accessType: rawBeach.accessType || "publico",
+    sandType: rawBeach.sandType || "",
+    waterColor: rawBeach.waterColor || "",
+    activities: rawBeach.activities ?? [],
+    amenities: rawBeach.amenities ?? [],
+    parkingAvailable: rawBeach.parkingAvailable ?? false,
+    lifeguardOnDuty: rawBeach.lifeguardOnDuty ?? false,
+    howToGetThere: rawBeach.howToGetThere || "",
+    bestTimeToVisit: rawBeach.bestTimeToVisit || "",
     province: rawBeach.province || "República Dominicana",
-    provinceSlug: rawBeach.provinceSlug || rawBeach.province_slug || "la-altagracia",
-    destinationName: rawBeach.destinationName || rawBeach.destination_name || "",
-    rating: Number(rawBeach.rating) || 4.9,
-    latitude: rawBeach.latitude || 18.5,
-    longitude: rawBeach.longitude || -69.0,
+    provinceSlug: rawBeach.provinceSlug || "",
+    destinationName: rawBeach.destinationName || "",
+    rating: Number(rawBeach.rating) || 0, // sin valoración real no se inventa una
+    latitude: rawBeach.latitude ?? null,
+    longitude: rawBeach.longitude ?? null,
+    seoTitle: rawBeach.seoTitle,
+    seoDescription: rawBeach.seoDescription,
   };
 
   const allImages = [beach.imageUrl, ...(beach.gallery || [])].filter(Boolean);
 
-  const relatedBeaches = allStaticBeaches
+  const relatedBeaches = allBeaches
     .filter((b) => b.slug !== beach.slug && (b.province === beach.province || b.provinceSlug === beach.provinceSlug))
     .slice(0, 3);
 
   return (
     <PageTransition>
       <SEOHead
-        title={`${beach.name} - Guía de Playa en ${beach.province} | República Dominicana`}
-        description={beach.shortDescription || beach.description?.slice(0, 160)}
+        title={beach.seoTitle || `${beach.name} - Guía de Playa en ${beach.province} | República Dominicana`}
+        description={beach.seoDescription || beach.shortDescription || beach.description?.slice(0, 160)}
         keywords={`playa ${beach.name}, ${beach.province}, turismo costa republica dominicana, como llegar ${beach.name}, oleaje, arena blanca`}
         image={beach.imageUrl}
         jsonLd={generateBeachSchema({
@@ -214,13 +182,12 @@ export default function PlayaDetalle() {
           breadcrumbs={[
             { label: "Inicio", to: "/" },
             { label: "Playas", to: "/playas" },
-            { label: beach.province, to: `/provincia/${beach.provinceSlug}` },
+            ...(beach.province ? [{ label: beach.province, ...(beach.provinceSlug ? { to: `/provincia/${beach.provinceSlug}` } : {}) }] : []),
             { label: beach.name },
           ]}
           imageUrl={beach.imageUrl}
           location={`${beach.province}${beach.destinationName ? ` · ${beach.destinationName}` : ""}`}
           rating={beach.rating}
-          reviewsCount={124}
           metrics={[
             { label: "Arena", value: beach.sandType, icon: <Sun className="h-3.5 w-3.5 text-amber-400" /> },
             { label: "Agua", value: beach.waterColor, icon: <Droplets className="h-3.5 w-3.5 text-blue-400" /> },
@@ -241,9 +208,9 @@ export default function PlayaDetalle() {
               <div className="p-6 md:p-8 rounded-3xl bg-card border border-border shadow-sm space-y-4">
                 <h2 className="font-display font-bold text-xl text-foreground">{pc.tx("h2.1", "Sobre")}{" "}{beach.name}
                 </h2>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  {beach.description || beach.shortDescription}
-                </p>
+                <div className="text-sm text-muted-foreground leading-relaxed">
+                  <NewsBody markdown={beach.description || beach.shortDescription} />
+                </div>
               </div>
 
               {/* Beach Marine Conditions Component */}
@@ -269,7 +236,7 @@ export default function PlayaDetalle() {
                 address={beach.howToGetThere}
                 province={beach.province}
                 coordinates={{ lat: beach.latitude, lng: beach.longitude }}
-                parkingNotes={beach.parkingAvailable ? "Área de parqueo disponible cercana a la orilla." : "No cuenta con estacionamiento vigilado."}
+                parkingNotes={beach.parkingAvailable ? "Área de parqueo disponible cercana a la orilla." : "Sin datos de estacionamiento."}
                 howToGetThereNotes={beach.howToGetThere}
               />
 
@@ -297,7 +264,7 @@ export default function PlayaDetalle() {
                   </div>
                   <div className="flex justify-between py-1.5 border-b border-border/60">
                     <span className="text-muted-foreground">{pc.tx("span.4", "Parqueo")}</span>
-                    <span className="font-bold text-foreground">{beach.parkingAvailable ? "Disponible y Vigilado" : "Borde de carretera"}</span>
+                    <span className="font-bold text-foreground">{beach.parkingAvailable ? "Disponible" : "Sin datos"}</span>
                   </div>
                   <div className="flex justify-between py-1.5 border-b border-border/60">
                     <span className="text-muted-foreground">{pc.tx("span.5", "Acceso de Transporte")}</span>
@@ -311,7 +278,7 @@ export default function PlayaDetalle() {
                 </div>
 
                 <a
-                  href={`https://www.google.com/maps/search/?api=1&query=${beach.latitude},${beach.longitude}`}
+                  href={`https://www.google.com/maps/search/?api=1&query=${beach.latitude != null ? `${beach.latitude},${beach.longitude}` : encodeURIComponent(`${beach.name}, República Dominicana`)}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="block pt-2"
@@ -436,7 +403,7 @@ export default function PlayaDetalle() {
           primaryActionLabel="Navegar con GPS"
           primaryActionIcon={<Navigation className="h-4 w-4" />}
           onPrimaryAction={() => {
-            window.open(`https://www.google.com/maps/search/?api=1&query=${beach.latitude},${beach.longitude}`, "_blank");
+            window.open(`https://www.google.com/maps/search/?api=1&query=${beach.latitude != null ? `${beach.latitude},${beach.longitude}` : encodeURIComponent(`${beach.name}, República Dominicana`)}`, "_blank");
           }}
           isSaved={isSaved}
           onToggleSave={handleToggleSave}

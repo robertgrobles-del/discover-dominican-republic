@@ -16,8 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useState, useMemo } from "react";
 import { beaches as staticBeaches, Beach } from "@/data/beaches";
-import { CatalogService } from "@/services/catalogService";
-import { useQuery } from "@tanstack/react-query";
+import { usePublicBeaches } from "@/lib/stagingContent";
 import { BetweenSectionsAd, CompactInlineAd, MobileStickyFooterAd, PanoramaAd } from "@/components/promo";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { useTranslation } from "@/hooks/useI18n";
@@ -57,10 +56,7 @@ export default function Playas() {
     'urbana': t("playas.urban") || "Urbanas",
   };
 
-  const { data: beaches = staticBeaches, isLoading } = useQuery({
-    queryKey: ['beaches-list'],
-    queryFn: () => CatalogService.getBeaches(),
-  });
+  const { data: beaches = staticBeaches, isLoading } = usePublicBeaches();
 
   const allBeaches = beaches;
 
@@ -71,7 +67,7 @@ export default function Playas() {
       const dest = (b.destinationName || '').toLowerCase();
       const matchSearch = !search || name.includes(search.toLowerCase()) || prov.includes(search.toLowerCase()) || dest.includes(search.toLowerCase());
       
-      const bType = (b as any).beachType || (b as any).beach_type || '';
+      const bType = b.beachType || '';
       const matchType = filterType === 'todos' || bType === filterType;
 
       let matchRegion = true;
