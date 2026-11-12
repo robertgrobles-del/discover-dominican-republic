@@ -1,203 +1,509 @@
-// Escritorio del panel: la primera pantalla para todos los roles. Resume el contenido, lo pendiente y enlaza
-// todas las secciones que el usuario puede ver (las recibe del panel, así las futuras aparecen solas).
-// Lee las mismas listas que las demás pestañas (comparten caché de TanStack Query), sin endpoint propio.
-import type { ComponentType } from "react";
+// Escritorio del panel de administración: resumen estructurado del catálogo, bandeja de pendientes,
+// actividad reciente y recuperación de borradores locales.
+import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useSearchParams } from "react-router-dom";
-import { ArrowUpRight, PenLine, Upload } from "lucide-react";
-import { useAuth } from "@/hooks/useAuth";
+import { Link } from "react-router-dom";
+import type { LucideIcon } from "lucide-react";
+import {
+  ArrowRight,
+  Building2,
+  CalendarDays,
+  CheckCircle2,
+  Clock,
+  FileEdit,
+  History,
+  Image as ImageIcon,
+  Inbox,
+  Landmark,
+  Mail,
+  MapPin,
+  Newspaper,
+  Pencil,
+  Plus,
+  SearchCheck,
+  Trash2,
+  Waves,
+} from "lucide-react";
 import { fetchApi } from "@/lib/fastifyClient";
-import { analyzeSeo, splitKeywords } from "@/lib/seoAnalysis";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
-import { SeoScore } from "./SeoAnalysisBox";
+import { analyzeSeo, splitKeywords } from "@/lib/seoAnalysis";
+import {
+  AUTOSAVE_EVENT,
+  RESOURCE_LABELS,
+  RESOURCE_TO_TAB,
+  discardLocalDraftRecord,
+  formatRelativeTimeEs,
+  listLocalDrafts,
+  type LocalDraftRecord,
+} from "./useDraftAutosave";
 
 type Row = Record<string, unknown> & { id: string };
-export interface DashboardSection { value: string; label: string; group: string; icon: ComponentType<{ className?: string }> }
+type SectionRef = { value: string; label: string; icon: LucideIcon; group: string };
+const EMPTY: Row[] = [];
 
-const s = (v: unknown) => (v == null ? "" : String(v));
-const ROLE_LABEL: Record<string, string> = { admin: "Administrador", editor: "Editor", autor: "Autor", colaborador: "Colaborador" };
-const list = (path: string, enabled = true) => ({
-  queryKey: ["staging", path], enabled,
-  queryFn: async () => (await fetchApi<{ data: Row[] }>(`/admin/${path}`)).data,
-});
-const seo = (r: Row) => analyzeSeo({
-  keywords: splitKeywords(s(r.focus_keywords)), title: s(r.title), seoTitle: s(r.seo_title), seoDescription: s(r.seo_description),
-  slug: s(r.slug), excerpt: s(r.excerpt), body: s(r.body), imageAlt: s(r.image_alt), hasImage: Boolean(r.cover_url),
-}).score;
-const ago = (iso: unknown) => {
-  if (typeof iso !== "string" || !iso) return "";
-  const m = Math.round((Date.now() - new Date(iso).getTime()) / 60_000);
-  if (m < 60) return `hace ${Math.max(1, m)} min`;
-  if (m < 1440) return `hace ${Math.round(m / 60)} h`;
+const ago = (iso: string | undefined | null) => {
+  if (!iso) return "";
+  const diff = (Date.now() - new Date(iso.replace(" ", "T")).getTime()) / 1000;
+  if (!Number.isFinite(diff) || diff < 0) return "";
+  if (diff < 60) return "ahora mismo";
+  if (diff < 3600) return `hace ${Math.floor(diff / 60)} min`;
+  if (diff < 86_400) return `hace ${Math.floor(diff / 3600)} h`;
+  const days = Math.floor(diff / 86_400);
+  if (days < 30) return `hace ${days} día${days === 1 ? "" : "s"}`;
   return new Date(iso).toLocaleDateString("es-DO", { day: "numeric", month: "short" });
 };
 
-export function StagingDashboard({ sections = [] }: { sections?: DashboardSection[] }) {
-  const { user } = useAuth();
-  const roles = (user?.app_metadata?.roles as string[] | undefined) ?? [];
-  const name = s(user?.user_metadata?.display_name).split(" ")[0];
-  const [, setParams] = useSearchParams();
-  const go = (seccion: string) => setParams({ seccion });
-  const has = (v: string) => sections.some((x) => x.value === v);
-  const isAdmin = roles.includes("admin");
+const toTs = (iso: unknown): number => {
+  if (typeof iso !== "string" || !iso) return 0;
+  const ms = Date.parse(iso.replace(" ", "T"));
+  return Number.isFinite(ms) ? ms : 0;
+};
 
-  const news = useQuery(list("news", has("noticias")));
-  const provinces = useQuery(list("provinces", has("provincias")));
-  const media = useQuery(list("media", has("medios")));
-  const leads = useQuery(list("leads", isAdmin && has("sorteo")));
-  const requests = useQuery(list("establishment-requests", isAdmin && has("solicitudes-negocios")));
-  const messages = useQuery(list("contact-messages", isAdmin && has("mensajes")));
+function Panel({ title, subtitle, icon: Icon, right, noPadding, children }: {
+  title: string;
+  subtitle?: string;
+  icon?: LucideIcon;
+  right?: React.ReactNode;
+  noPadding?: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="overflow-hidden rounded-lg border border-border bg-card shadow-xs">
+      <header className="flex flex-wrap items-center justify-between gap-2 border-b border-border/80 px-4 py-3 sm:px-5">
+        <div className="min-w-0">
+          <h2 className="flex items-center gap-2 text-sm font-semibold text-foreground">
+            {Icon && <Icon className="h-4 w-4 text-muted-foreground" />}
+            <span>{title}</span>
+          </h2>
+          {subtitle && <p className="mt-0.5 text-xs text-muted-foreground">{subtitle}</p>}
+        </div>
+        {right}
+      </header>
+      <div className={noPadding ? "" : "p-4 sm:p-5"}>{children}</div>
+    </section>
+  );
+}
 
-  const rows = news.data ?? [];
-  const nowIso = new Date().toISOString();
-  const published = rows.filter((r) => r.status === "published" && s(r.published_at) <= nowIso);
-  const scheduled = rows.filter((r) => r.status === "published" && s(r.published_at) > nowIso);
-  const drafts = rows.filter((r) => r.status !== "published");
-  const scored = rows.map((r) => ({ r, score: seo(r) }));
-  const avg = scored.length ? Math.round(scored.reduce((a, x) => a + x.score, 0) / scored.length) : 0;
-  const band = { good: scored.filter((x) => x.score >= 70).length, ok: scored.filter((x) => x.score >= 45 && x.score < 70).length, bad: scored.filter((x) => x.score < 45).length };
-  const weak = [...scored].sort((a, b) => a.score - b.score).filter((x) => x.score < 70).slice(0, 5);
-  const pendingRequests = (requests.data ?? []).filter((r) => r.status === "pending").length;
+const useStagingList = (resource: string, enabled: boolean) =>
+  useQuery({
+    queryKey: ["staging", resource],
+    queryFn: async () => (await fetchApi<{ data: Row[] }>(`/admin/${resource}`)).data,
+    enabled,
+    retry: false,
+  });
 
-  // Lo que pide atención, solo de las secciones que este usuario ve.
+export function StagingDashboard({ sections }: { sections: SectionRef[] }) {
+  const has = (v: string) => sections.some((s) => s.value === v);
+
+  const [localDrafts, setLocalDrafts] = useState<LocalDraftRecord[]>(() => listLocalDrafts());
+  useEffect(() => {
+    const sync = () => setLocalDrafts(listLocalDrafts());
+    window.addEventListener(AUTOSAVE_EVENT, sync);
+    window.addEventListener("storage", sync);
+    return () => {
+      window.removeEventListener(AUTOSAVE_EVENT, sync);
+      window.removeEventListener("storage", sync);
+    };
+  }, []);
+
+  const newsQ = useStagingList("news", has("noticias"));
+  const provincesQ = useStagingList("provinces", has("provincias"));
+  const municipalitiesQ = useStagingList("municipalities", has("municipios"));
+  const destinationsQ = useStagingList("destinations", has("destinos"));
+  const beachesQ = useStagingList("beaches", has("playas"));
+  const eventsQ = useStagingList("events", has("eventos"));
+  const venuesQ = useStagingList("venues", has("recintos"));
+  const mediaQ = useStagingList("media", has("medios"));
+  const leadsQ = useStagingList("leads", has("sorteo"));
+  const reqsQ = useStagingList("establishment-requests", has("solicitudes-negocios"));
+  const msgsQ = useStagingList("contact-messages", has("mensajes"));
+
+  const news = newsQ.data ?? EMPTY;
+  const provinces = provincesQ.data ?? EMPTY;
+  const municipalities = municipalitiesQ.data ?? EMPTY;
+  const destinations = destinationsQ.data ?? EMPTY;
+  const beaches = beachesQ.data ?? EMPTY;
+  const events = eventsQ.data ?? EMPTY;
+  const venues = venuesQ.data ?? EMPTY;
+  const media = mediaQ.data ?? EMPTY;
+  const leads = leadsQ.data ?? EMPTY;
+  const reqs = reqsQ.data ?? EMPTY;
+  const msgs = msgsQ.data ?? EMPTY;
+
+  const newsPub = useMemo(() => news.filter((n) => n.status === "published"), [news]);
+  const newsDrafts = news.filter((n) => n.status !== "published");
+  const beachesPub = beaches.filter((b) => b.status === "published");
+  const eventsPub = events.filter((e) => e.status === "published");
+  const eventsFromPublic = events.filter((e) => e.status !== "published" && Boolean(e.submitted_by));
+  const venuesPub = venues.filter((v) => v.status === "published");
+  const provPub = provinces.filter((p) => p.status === "published");
+  const muniPub = municipalities.filter((m) => m.status === "published");
+  const destPub = destinations.filter((d) => d.status === "published");
+
+  const reqPending = reqs.filter((r) => String(r.status ?? "pending") === "pending");
+
+  const seoHealth = useMemo(() => {
+    let good = 0; let needs = 0;
+    for (const a of newsPub) {
+      const r = analyzeSeo({
+        keywords: splitKeywords(String(a.focus_keywords ?? "")),
+        title: String(a.title ?? ""),
+        excerpt: String(a.excerpt ?? ""),
+        body: String(a.body ?? ""),
+        seoTitle: String(a.seo_title ?? ""),
+        seoDescription: String(a.seo_description ?? ""),
+        slug: String(a.slug ?? ""),
+        imageAlt: String(a.image_alt ?? ""),
+        hasImage: Boolean(a.cover_url ?? a.image_url),
+      });
+      if (r.score >= 70) good += 1;
+      else needs += 1;
+    }
+    return { good, needs, total: newsPub.length };
+  }, [newsPub]);
+
+  const catalogRows = [
+    has("provincias") && { label: "Provincias", icon: MapPin, pub: provPub.length, total: provinces.length, to: "/admin?seccion=provincias" },
+    has("municipios") && { label: "Municipios", icon: MapPin, pub: muniPub.length, total: municipalities.length, to: "/admin?seccion=municipios" },
+    has("destinos") && { label: "Destinos", icon: Landmark, pub: destPub.length, total: destinations.length, to: "/admin?seccion=destinos" },
+    has("playas") && { label: "Playas", icon: Waves, pub: beachesPub.length, total: beaches.length, to: "/admin?seccion=playas" },
+    has("recintos") && { label: "Recintos", icon: Landmark, pub: venuesPub.length, total: venues.length, to: "/admin?seccion=recintos" },
+    has("eventos") && { label: "Eventos", icon: CalendarDays, pub: eventsPub.length, total: events.length, to: "/admin?seccion=eventos" },
+    has("noticias") && { label: "Noticias", icon: Newspaper, pub: newsPub.length, total: news.length, to: "/admin?seccion=noticias", note: seoHealth.total > 0 ? `${seoHealth.good}/${seoHealth.total} SEO óptimo` : undefined },
+  ].filter(Boolean) as { label: string; icon: LucideIcon; pub: number; total: number; to: string; note?: string }[];
+
+  const totalCatalog = catalogRows.reduce((acc, r) => acc + r.total, 0);
+  const totalPublished = catalogRows.reduce((acc, r) => acc + r.pub, 0);
+  const totalDrafts = totalCatalog - totalPublished;
+  const inboxCount = reqPending.length + eventsFromPublic.length + msgs.length;
+
+  const recentActivity = useMemo(() => {
+    const items: { id: string; title: string; section: string; tab: string; status: string; updatedAt: string; ts: number }[] = [];
+    const pushRows = (rows: Row[], section: string, tab: string, titleField: string) => {
+      for (const r of rows) {
+        const updatedAt = String(r.updated_at ?? r.created_at ?? "");
+        items.push({
+          id: r.id,
+          title: String(r[titleField] ?? "Sin título"),
+          section,
+          tab,
+          status: String(r.status ?? "draft"),
+          updatedAt,
+          ts: toTs(updatedAt),
+        });
+      }
+    };
+    pushRows(news, "Noticias", "noticias", "title");
+    pushRows(beaches, "Playas", "playas", "name");
+    pushRows(events, "Eventos", "eventos", "name");
+    pushRows(venues, "Recintos", "recintos", "name");
+    pushRows(provinces, "Provincias", "provincias", "name");
+    pushRows(municipalities, "Municipios", "municipios", "name");
+    pushRows(destinations, "Destinos", "destinos", "name");
+    return items.sort((a, b) => b.ts - a.ts).slice(0, 7);
+  }, [news, beaches, events, venues, provinces, municipalities, destinations]);
+
   const todo = [
-    has("solicitudes-negocios") && pendingRequests > 0 && { text: `${pendingRequests} solicitud${pendingRequests === 1 ? "" : "es"} de negocio por revisar`, to: "solicitudes-negocios" },
-    has("mensajes") && (messages.data ?? []).length > 0 && { text: `${(messages.data ?? []).length} mensaje${(messages.data ?? []).length === 1 ? "" : "s"} de contacto`, to: "mensajes" },
-    has("noticias") && drafts.length > 0 && { text: `${drafts.length} borrador${drafts.length === 1 ? "" : "es"} sin publicar`, to: "noticias" },
-    has("noticias") && band.bad > 0 && { text: `${band.bad} noticia${band.bad === 1 ? "" : "s"} con SEO bajo`, to: "noticias" },
-  ].filter(Boolean) as { text: string; to: string }[];
+    reqPending.length > 0 && { label: "Solicitudes de negocios pendientes", count: reqPending.length, to: "/admin?seccion=solicitudes-negocios", icon: Building2, tone: "text-amber-600 dark:text-amber-400" },
+    eventsFromPublic.length > 0 && { label: "Eventos enviados por la comunidad", count: eventsFromPublic.length, to: "/admin?seccion=eventos", icon: CalendarDays, tone: "text-amber-600 dark:text-amber-400" },
+    msgs.length > 0 && { label: "Mensajes de contacto recibidos", count: msgs.length, to: "/admin?seccion=mensajes", icon: Mail, tone: "text-primary" },
+    newsDrafts.length > 0 && { label: "Noticias en borrador", count: newsDrafts.length, to: "/admin?seccion=noticias", icon: FileEdit, tone: "text-muted-foreground" },
+    (beaches.length - beachesPub.length) > 0 && { label: "Playas en borrador", count: beaches.length - beachesPub.length, to: "/admin?seccion=playas", icon: Waves, tone: "text-muted-foreground" },
+    seoHealth.needs > 0 && { label: "Noticias publicadas con SEO mejorable", count: seoHealth.needs, to: "/admin?seccion=noticias", icon: SearchCheck, tone: "text-muted-foreground" },
+  ].filter(Boolean) as { label: string; count: number; to: string; icon: LucideIcon; tone: string }[];
 
-  const stats = [
-    has("noticias") && { label: "Noticias publicadas", value: published.length, note: `${scheduled.length} programadas`, to: "noticias", loading: news.isLoading },
-    has("noticias") && { label: "SEO medio", value: rows.length ? avg : "—", note: "de 100 puntos", to: "noticias", loading: news.isLoading },
-    has("provincias") && { label: "Provincias", value: (provinces.data ?? []).length, note: `${(provinces.data ?? []).filter((p) => p.status === "published").length} publicadas`, to: "provincias", loading: provinces.isLoading },
-    has("medios") && { label: "Imágenes", value: (media.data ?? []).length, note: "en la biblioteca", to: "medios", loading: media.isLoading },
-    has("sorteo") && { label: "Suscriptores", value: (leads.data ?? []).length, note: "boletín y sorteo", to: "sorteo", loading: leads.isLoading },
-  ].filter(Boolean) as { label: string; value: number | string; note: string; to: string; loading: boolean }[];
-
-  const groups = sections.reduce<Record<string, DashboardSection[]>>((g, x) => ({ ...g, [x.group]: [...(g[x.group] ?? []), x] }), {});
+  const quickActions = [
+    has("noticias") && { label: "Escribir noticia", desc: "Artículo editorial o guía", to: "/admin?seccion=noticias&nuevo=1", icon: Newspaper },
+    has("playas") && { label: "Añadir playa", desc: "Ficha completa con mapa", to: "/admin?seccion=playas&nuevo=1", icon: Waves },
+    has("eventos") && { label: "Publicar evento", desc: "Feria, concierto o actividad", to: "/admin?seccion=eventos&nuevo=1", icon: CalendarDays },
+    has("medios") && { label: "Subir imágenes", desc: "Biblioteca compartida", to: "/admin?seccion=medios", icon: ImageIcon },
+  ].filter(Boolean) as { label: string; desc: string; to: string; icon: LucideIcon }[];
 
   return (
-    <div className="space-y-10">
-      {/* Saludo y acciones */}
-      <header className="flex flex-wrap items-end justify-between gap-6 border-b border-border pb-6">
-        <div>
-          <p className="text-sm capitalize text-muted-foreground">{new Date().toLocaleDateString("es-DO", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}</p>
-          <h2 className="mt-1 text-3xl font-semibold tracking-tight">Hola{name ? `, ${name}` : ""}</h2>
-          {roles[0] && <p className="mt-1 text-sm text-muted-foreground">Entraste como <span className="font-medium text-foreground">{ROLE_LABEL[roles[0]] ?? roles[0]}</span></p>}
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {has("noticias") && <Button onClick={() => go("noticias")} className="gap-2 active:scale-[0.98]"><PenLine className="h-4 w-4" />Escribir una noticia</Button>}
-          {has("medios") && <Button variant="outline" onClick={() => go("medios")} className="gap-2 active:scale-[0.98]"><Upload className="h-4 w-4" />Subir imágenes</Button>}
-        </div>
-      </header>
+    <div className="space-y-6">
+      {/* Cinta unificada de métricas principales */}
+      <section aria-label="Indicadores generales" className="grid divide-y divide-border overflow-hidden rounded-lg border border-border bg-card shadow-xs sm:grid-cols-2 sm:divide-x sm:divide-y-0 lg:grid-cols-4">
+        <Link to="/admin?seccion=noticias" className="group block p-4 transition-colors hover:bg-muted/30 sm:p-5">
+          <div className="flex items-center justify-between text-xs font-medium text-muted-foreground">
+            <span>Publicaciones activas</span>
+            <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+          </div>
+          <p className="mt-2 text-2xl font-bold tabular-nums tracking-tight text-foreground">{totalPublished}</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            de {totalCatalog} ficha{totalCatalog === 1 ? "" : "s"} en el catálogo
+          </p>
+        </Link>
 
-      {/* Cifras */}
-      {stats.length > 0 && (
-        <dl className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
-          {stats.map((x, i) => (
-            <button key={x.label} type="button" onClick={() => go(x.to)}
-              className={`group py-2 pr-4 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${i ? "sm:border-l sm:border-border sm:pl-5" : ""}`}>
-              <dt className="text-sm text-muted-foreground group-hover:text-foreground">{x.label}</dt>
-              <dd className="mt-1 text-4xl font-semibold tabular-nums tracking-tight">{x.loading ? <Skeleton className="h-10 w-14" /> : x.value}</dd>
-              <dd className="mt-0.5 text-xs text-muted-foreground">{x.note}</dd>
-            </button>
-          ))}
-        </dl>
+        <Link to="/admin?seccion=noticias" className="group block p-4 transition-colors hover:bg-muted/30 sm:p-5">
+          <div className="flex items-center justify-between text-xs font-medium text-muted-foreground">
+            <span>Borradores abiertos</span>
+            <FileEdit className="h-4 w-4 text-primary" />
+          </div>
+          <p className="mt-2 text-2xl font-bold tabular-nums tracking-tight text-foreground">{totalDrafts}</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {localDrafts.length > 0
+              ? `${localDrafts.length} respaldo${localDrafts.length === 1 ? "" : "s"} en este equipo`
+              : "Autoguardado servidor cada 5 min"}
+          </p>
+        </Link>
+
+        <Link
+          to={reqPending.length > 0 ? "/admin?seccion=solicitudes-negocios" : msgs.length > 0 ? "/admin?seccion=mensajes" : "/admin?seccion=eventos"}
+          className="group block p-4 transition-colors hover:bg-muted/30 sm:p-5"
+        >
+          <div className="flex items-center justify-between text-xs font-medium text-muted-foreground">
+            <span>Bandeja por revisar</span>
+            <Inbox className={`h-4 w-4 ${inboxCount > 0 ? "text-amber-600 dark:text-amber-400" : "text-muted-foreground"}`} />
+          </div>
+          <p className="mt-2 text-2xl font-bold tabular-nums tracking-tight text-foreground">{inboxCount}</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {reqPending.length} negocio{reqPending.length === 1 ? "" : "s"} · {msgs.length} mensaje{msgs.length === 1 ? "" : "s"}
+          </p>
+        </Link>
+
+        <Link to={has("medios") ? "/admin?seccion=medios" : "/admin?seccion=provincias"} className="group block p-4 transition-colors hover:bg-muted/30 sm:p-5">
+          <div className="flex items-center justify-between text-xs font-medium text-muted-foreground">
+            <span>Recursos y comunidad</span>
+            <ImageIcon className="h-4 w-4 text-muted-foreground" />
+          </div>
+          <p className="mt-2 text-2xl font-bold tabular-nums tracking-tight text-foreground">{media.length}</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            archivo{media.length === 1 ? "" : "s"} en medios{has("sorteo") ? ` · ${leads.length} en sorteo` : ""}
+          </p>
+        </Link>
+      </section>
+
+      {/* Borradores recuperados tras apagón, cierre inesperado o falta de internet */}
+      {localDrafts.length > 0 && (
+        <Panel
+          title={`Borradores recuperados en este equipo (${localDrafts.length})`}
+          subtitle="Cambios pendientes de sincronizar guardados ante cierre inesperado, corte eléctrico o desconexión."
+          icon={History}
+          noPadding
+        >
+          <ul className="divide-y divide-border">
+            {localDrafts.map((d) => {
+              const tab = RESOURCE_TO_TAB[d.resource];
+              const label = RESOURCE_LABELS[d.resource] ?? d.resource;
+              const editUrl = tab ? `/admin?seccion=${tab}&editar=${encodeURIComponent(d.itemId)}` : "/admin";
+              return (
+                <li key={`${d.resource}:${d.itemId}`} className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-5">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="rounded bg-amber-500/15 px-1.5 py-0.5 text-[11px] font-semibold text-amber-800 dark:text-amber-300">
+                        {label} · {d.itemId === "new" ? "Nuevo" : "En edición"}
+                      </span>
+                      <span className="truncate text-sm font-medium text-foreground">{d.title}</span>
+                    </div>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      Guardado localmente {formatRelativeTimeEs(d.updatedAt)}
+                      {d.pendingSync ? " · Se subirá automáticamente al volver internet" : ""}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button size="sm" asChild>
+                      <Link to={editUrl}>Continuar</Link>
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      className="text-muted-foreground hover:text-destructive"
+                      title="Descartar copia local"
+                      onClick={() => discardLocalDraftRecord(d.resource, d.itemId)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </Panel>
       )}
 
-      <div className="grid gap-8 lg:grid-cols-[1.5fr_1fr]">
-        {/* Actividad reciente */}
-        {has("noticias") && (
-          <section aria-labelledby="dash-actividad">
-            <div className="flex items-baseline justify-between">
-              <h3 id="dash-actividad" className="font-semibold">Actividad reciente</h3>
-              <button type="button" onClick={() => go("noticias")} className="text-sm text-primary hover:underline">Ver todas</button>
-            </div>
-            <ul className="mt-3 divide-y divide-border border-y border-border">
-              {news.isLoading && [0, 1, 2].map((i) => <li key={i} className="py-3"><Skeleton className="h-5 w-full" /></li>)}
-              {scored.slice(0, 7).map(({ r, score }) => {
-                const st = r.status !== "published" ? ["Borrador", "bg-muted-foreground"] : s(r.published_at) > nowIso ? ["Programada", "bg-amber-500"] : ["Publicada", "bg-emerald-500"];
-                return (
-                  <li key={r.id} className="flex items-center gap-3 py-3 text-sm">
-                    <span className={`h-2 w-2 shrink-0 rounded-full ${st[1]}`} title={st[0]} aria-label={st[0]} />
-                    <span className="min-w-0 flex-1 truncate">{s(r.title)}</span>
-                    <span className="hidden shrink-0 text-xs text-muted-foreground sm:inline">{ago(r.updated_at ?? r.created_at)}</span>
-                    <SeoScore score={score} />
-                  </li>
-                );
-              })}
-              {!news.isLoading && !rows.length && <li className="py-6 text-sm text-muted-foreground">Todavía no hay noticias. Escribe la primera.</li>}
-            </ul>
-          </section>
-        )}
+      {/* Área operativa principal en 2 columnas */}
+      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1.45fr)_minmax(0,1fr)]">
+        <div className="space-y-6">
+          {/* Tabla de actividad reciente */}
+          <Panel
+            title="Actividad reciente"
+            subtitle="Últimas fichas creadas o modificadas en el portal"
+            icon={Clock}
+            noPadding
+            right={has("noticias") && (
+              <Link to="/admin?seccion=noticias" className="text-xs font-medium text-primary hover:underline">
+                Ver todo
+              </Link>
+            )}
+          >
+            {recentActivity.length === 0 ? (
+              <p className="p-5 text-sm text-muted-foreground">Aún no hay actividad registrada.</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="border-b border-border bg-muted/30 text-left text-xs text-muted-foreground">
+                    <tr>
+                      <th className="px-4 py-2.5 font-medium sm:px-5">Título</th>
+                      <th className="px-3 py-2.5 font-medium">Sección</th>
+                      <th className="px-3 py-2.5 font-medium">Estado</th>
+                      <th className="px-3 py-2.5 font-medium text-right sm:px-5">Edición</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {recentActivity.map((item) => {
+                      const isPub = item.status === "published";
+                      return (
+                        <tr key={`${item.tab}:${item.id}`} className="transition-colors hover:bg-muted/20">
+                          <td className="max-w-[260px] px-4 py-2.5 sm:px-5">
+                            <Link
+                              to={`/admin?seccion=${item.tab}&editar=${encodeURIComponent(item.id)}`}
+                              className="block truncate font-medium text-foreground hover:text-primary hover:underline"
+                            >
+                              {item.title}
+                            </Link>
+                          </td>
+                          <td className="whitespace-nowrap px-3 py-2.5 text-xs text-muted-foreground">{item.section}</td>
+                          <td className="whitespace-nowrap px-3 py-2.5">
+                            <span
+                              className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-medium ${
+                                isPub
+                                  ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400"
+                                  : "bg-muted text-muted-foreground"
+                              }`}
+                            >
+                              {isPub ? "Publicado" : "Borrador"}
+                            </span>
+                          </td>
+                          <td className="whitespace-nowrap px-3 py-2.5 text-right text-xs text-muted-foreground tabular-nums sm:px-5">
+                            <span className="inline-flex items-center gap-2">
+                              <span>{ago(item.updatedAt)}</span>
+                              <Link
+                                to={`/admin?seccion=${item.tab}&editar=${encodeURIComponent(item.id)}`}
+                                className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+                                title="Abrir en el editor"
+                                aria-label={`Editar ${item.title}`}
+                              >
+                                <Pencil className="h-3.5 w-3.5" />
+                              </Link>
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </Panel>
 
-        <div className="space-y-8">
-          {/* Pendientes */}
-          <section aria-labelledby="dash-pendiente">
-            <h3 id="dash-pendiente" className="font-semibold">Pendiente</h3>
-            {todo.length ? (
-              <ul className="mt-3 space-y-1">
+          {/* Estado consolidado del catálogo y SEO */}
+          {catalogRows.length > 0 && (
+            <Panel
+              title="Cobertura del catálogo"
+              subtitle="Proporción de fichas publicadas por módulo"
+              icon={Landmark}
+              noPadding
+            >
+              <div className="divide-y divide-border">
+                {catalogRows.map((row) => {
+                  const pct = row.total > 0 ? Math.round((row.pub / row.total) * 100) : 0;
+                  const drafts = row.total - row.pub;
+                  return (
+                    <div key={row.label} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-4 py-3 sm:grid-cols-[150px_minmax(0,1fr)_auto] sm:px-5">
+                      <Link to={row.to} className="flex items-center gap-2 text-sm font-medium text-foreground hover:text-primary hover:underline">
+                        <row.icon className="h-3.5 w-3.5 text-muted-foreground" />
+                        <span>{row.label}</span>
+                      </Link>
+                      <div className="hidden items-center gap-3 sm:flex">
+                        <div className="h-2 flex-1 overflow-hidden rounded-full bg-muted">
+                          <div className="h-full bg-primary transition-all" style={{ width: `${pct}%` }} />
+                        </div>
+                        <span className="w-10 text-right text-xs tabular-nums text-muted-foreground">{pct}%</span>
+                      </div>
+                      <div className="text-right text-xs tabular-nums text-muted-foreground">
+                        <span className="font-medium text-foreground">{row.pub}</span>/{row.total}
+                        {drafts > 0 && <span className="ml-1.5">· {drafts} borrador{drafts === 1 ? "" : "es"}</span>}
+                        {row.note && <span className="ml-2 hidden text-[11px] text-emerald-700 dark:text-emerald-400 md:inline">({row.note})</span>}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </Panel>
+          )}
+        </div>
+
+        {/* Columna derecha: Pendientes + Crear nuevo */}
+        <div className="space-y-6">
+          <Panel
+            title="Por atender"
+            subtitle="Tareas y elementos que requieren revisión"
+            icon={Inbox}
+            noPadding
+          >
+            {todo.length === 0 ? (
+              <p className="flex items-center gap-2 p-5 text-sm text-muted-foreground">
+                <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                Todo al día. No hay solicitudes ni tareas urgentes.
+              </p>
+            ) : (
+              <ul className="divide-y divide-border">
                 {todo.map((t) => (
-                  <li key={t.text}>
-                    <button type="button" onClick={() => go(t.to)} className="flex w-full items-center justify-between rounded px-2 py-2 text-left text-sm transition-colors hover:bg-muted">
-                      {t.text}<ArrowUpRight className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
-                    </button>
+                  <li key={t.label}>
+                    <Link
+                      to={t.to}
+                      className="flex items-center justify-between gap-3 px-4 py-3 text-sm transition-colors hover:bg-muted/20 sm:px-5"
+                    >
+                      <span className="flex min-w-0 items-center gap-2.5 text-foreground">
+                        <t.icon className={`h-4 w-4 shrink-0 ${t.tone}`} />
+                        <span className="truncate">{t.label}</span>
+                      </span>
+                      <span className="flex shrink-0 items-center gap-2">
+                        <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-semibold tabular-nums text-foreground">
+                          {t.count}
+                        </span>
+                        <ArrowRight className="h-3.5 w-3.5 text-muted-foreground" />
+                      </span>
+                    </Link>
                   </li>
                 ))}
               </ul>
-            ) : <p className="mt-3 text-sm text-muted-foreground">Nada pendiente. Todo al día.</p>}
-          </section>
+            )}
+          </Panel>
 
-          {/* Salud SEO */}
-          {has("noticias") && rows.length > 0 && (
-            <section aria-labelledby="dash-seo">
-              <h3 id="dash-seo" className="font-semibold">Salud SEO</h3>
-              <div className="mt-3 flex h-2.5 overflow-hidden rounded-full bg-muted" role="img" aria-label={`${band.good} buenas, ${band.ok} mejorables, ${band.bad} bajas`}>
-                <span className="bg-emerald-500" style={{ width: `${(band.good / rows.length) * 100}%` }} />
-                <span className="bg-amber-500" style={{ width: `${(band.ok / rows.length) * 100}%` }} />
-                <span className="bg-red-500" style={{ width: `${(band.bad / rows.length) * 100}%` }} />
-              </div>
-              <p className="mt-2 flex gap-4 text-xs text-muted-foreground tabular-nums">
-                <span>{band.good} buenas</span><span>{band.ok} mejorables</span><span>{band.bad} bajas</span>
-              </p>
-              {weak.length > 0 && (
-                <ul className="mt-3 divide-y divide-border text-sm">
-                  {weak.map(({ r, score }) => (
-                    <li key={r.id} className="flex items-center gap-3 py-2"><span className="min-w-0 flex-1 truncate">{s(r.title)}</span><SeoScore score={score} /></li>
-                  ))}
-                </ul>
-              )}
-            </section>
+          {quickActions.length > 0 && (
+            <Panel
+              title="Crear nuevo"
+              subtitle="Acceso directo a los editores principales"
+              icon={Plus}
+              noPadding
+            >
+              <ul className="divide-y divide-border">
+                {quickActions.map((a) => (
+                  <li key={a.to}>
+                    <Link
+                      to={a.to}
+                      className="flex items-center justify-between gap-3 px-4 py-3 transition-colors hover:bg-muted/20 sm:px-5"
+                    >
+                      <span className="flex min-w-0 items-center gap-3">
+                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border bg-muted/40 text-foreground">
+                          <a.icon className="h-4 w-4" />
+                        </span>
+                        <span className="min-w-0">
+                          <span className="block text-sm font-medium text-foreground">{a.label}</span>
+                          <span className="block text-xs text-muted-foreground">{a.desc}</span>
+                        </span>
+                      </span>
+                      <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </Panel>
           )}
         </div>
       </div>
-
-      {/* Todas las secciones a las que tiene acceso (las nuevas aparecen solas) */}
-      {sections.length > 0 && (
-        <section aria-labelledby="dash-secciones" className="border-t border-border pt-8">
-          <h3 id="dash-secciones" className="font-semibold">Tus secciones</h3>
-          <div className="mt-4 grid gap-8 md:grid-cols-2 xl:grid-cols-3">
-            {Object.entries(groups).map(([group, items]) => (
-              <div key={group}>
-                <p className="mb-2 text-xs text-muted-foreground">{group}</p>
-                <ul className="space-y-1">
-                  {items.map((x) => (
-                    <li key={x.value}>
-                      <button type="button" onClick={() => go(x.value)} className="group flex w-full items-center gap-3 rounded px-2 py-2 text-left text-sm transition-colors hover:bg-muted">
-                        <x.icon className="h-4 w-4 text-muted-foreground group-hover:text-foreground" />
-                        <span className="flex-1">{x.label}</span>
-                        <ArrowUpRight className="h-3.5 w-3.5 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" aria-hidden="true" />
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
     </div>
   );
 }

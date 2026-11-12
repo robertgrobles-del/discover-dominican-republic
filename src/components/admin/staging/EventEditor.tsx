@@ -1,6 +1,6 @@
 // Editor de evento con la disposición del de noticias (estilo WordPress): contenido a la izquierda; cajas de
 // Publicar, Fecha y hora, Imagen, Lugar, Entradas y Contacto a la derecha.
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ArrowLeft, Loader2 } from "lucide-react";
@@ -16,6 +16,8 @@ import { Box } from "./NewsEditor";
 import { eventEnded } from "./EventList";
 import { EventPlacePicker } from "./EventPlacePicker";
 import { LocationPicker, locationLabel, useTerritory } from "./LocationPicker";
+import { EditorAutosaveStrip } from "./DraftAutosaveBar";
+import { buildAutoDraftSlug, useDraftAutosave } from "./useDraftAutosave";
 
 type Row = Record<string, unknown> & { id: string };
 const EVENT_TYPES = ["Cultural", "Música", "Feria", "Regional", "Exposición", "Deporte", "Gastronomía", "Evento"];
@@ -48,21 +50,68 @@ export function EventEditor({ row, onClose, onNew }: { row: Row | "new"; onClose
   const [slugTouched, setSlugTouched] = useState(row !== "new");
   const set = (k: Key, v: string) => setF((x) => ({ ...x, [k]: v, ...(k === "name" && !slugTouched ? { slug: toSlug(v) } : {}) }));
 
+  const eventSnapshot = useMemo(() => ({ f, featured, slugTouched }), [f, featured, slugTouched]);
+
+  const autosave = useDraftAutosave({
+    resource: "events",
+    itemId: id,
+    status: f.status || "draft",
+    snapshot: eventSnapshot,
+    title: f.name,
+    serverUpdatedAt: row === "new" ? null : (row.updated_at as string | null),
+    onRestore: (snap) => {
+      setF(snap.f);
+      setFeatured(snap.featured);
+      setSlugTouched(snap.slugTouched);
+    },
+    onPromoted: (saved) => {
+      setId(saved.id);
+      setSlugTouched(true);
+      setF((x) => ({ ...x, name: x.name.trim() || "Evento borrador", slug: x.slug.trim() || saved.slug || x.slug, status: "draft" }));
+      void qc.invalidateQueries({ queryKey: ["staging", "events"] });
+    },
+    onServerAutoDraft: async (snap, effectiveId) => {
+      const targetId = effectiveId ?? id;
+      const safeName = snap.f.name.trim() || "Evento borrador";
+      const safeSlug = buildAutoDraftSlug(safeName, snap.f.slug, "evento");
+      const body = {
+        ...Object.fromEntries(FIELDS.map((k) => [k, snap.f[k] || null])),
+        name: safeName,
+        slug: safeSlug,
+        status: "draft",
+        is_featured: snap.featured,
+      };
+      const saved = (await fetchApi<{ data: Row }>(`/admin/events${targetId ? `/${targetId}` : ""}`, {
+        method: targetId ? "PUT" : "POST",
+        body: JSON.stringify(body),
+      })).data;
+      setId(saved.id);
+      setF((x) => ({ ...x, name: x.name.trim() || safeName, slug: x.slug.trim() || String(saved.slug ?? safeSlug), status: "draft" }));
+      void qc.invalidateQueries({ queryKey: ["staging", "events"] });
+      return { id: saved.id, slug: String(saved.slug ?? safeSlug), updated_at: saved.updated_at as string | undefined };
+    },
+    onManualSave: () => {
+      if (!save.isPending && !trash.isPending && f.name && f.slug) save.mutate(f.status === "published" ? "published" : "draft");
+    },
+  });
+
   const save = useMutation({
     mutationFn: async (status: string) => {
+      const targetId = autosave.effectiveId ?? id;
       const body = { ...Object.fromEntries(FIELDS.map((k) => [k, f[k] || null])), status, is_featured: featured };
-      return (await fetchApi<{ data: Row }>(`/admin/events${id ? `/${id}` : ""}`, { method: id ? "PUT" : "POST", body: JSON.stringify(body) })).data;
+      return (await fetchApi<{ data: Row }>(`/admin/events${targetId ? `/${targetId}` : ""}`, { method: targetId ? "PUT" : "POST", body: JSON.stringify(body) })).data;
     },
     onSuccess: (saved, status) => {
       setId(saved.id); setF((x) => ({ ...x, status }));
+      autosave.markSavedClean(saved.id);
       void qc.invalidateQueries({ queryKey: ["staging", "events"] });
       toast.success(status === "published" ? "Evento publicado" : "Borrador guardado", { action: { label: "Nuevo evento", onClick: onNew } });
     },
     onError: (e) => toast.error(apiMessage(e)),
   });
   const trash = useMutation({
-    mutationFn: () => fetchApi(`/admin/events/${id}`, { method: "DELETE" }),
-    onSuccess: () => { toast.success("Evento eliminado"); void qc.invalidateQueries({ queryKey: ["staging", "events"] }); onClose(); },
+    mutationFn: () => fetchApi(`/admin/events/${autosave.effectiveId ?? id}`, { method: "DELETE" }),
+    onSuccess: () => { autosave.markSavedClean(id); toast.success("Evento eliminado"); void qc.invalidateQueries({ queryKey: ["staging", "events"] }); onClose(); },
     onError: (e) => toast.error(apiMessage(e)),
   });
   const busy = save.isPending || trash.isPending;
@@ -76,6 +125,8 @@ export function EventEditor({ row, onClose, onNew }: { row: Row | "new"; onClose
         <h2 className="text-xl font-semibold">{id ? "Editar evento" : "Añadir nuevo evento"}</h2>
         {id && <Button size="sm" variant="outline" className="border-primary text-primary" onClick={onNew}>Añadir nuevo evento</Button>}
       </div>
+
+      <EditorAutosaveStrip autosave={autosave} itemLabel="este evento" />
 
       {f.submitter_email && f.status !== "published" && (
         <p className="rounded border-l-4 border-amber-500 bg-amber-500/10 p-3 text-sm">
@@ -97,7 +148,7 @@ export function EventEditor({ row, onClose, onNew }: { row: Row | "new"; onClose
             <Textarea rows={3} value={f.short_description} onChange={(e) => set("short_description", e.target.value)} aria-label="Resumen" />
             <p className="flex justify-between text-xs text-muted-foreground">
               <span>Sale en la tarjeta del calendario y en los buscadores.</span>
-              <span className={f.short_description.length > 160 ? "font-semibold text-amber-600" : ""}>{f.short_description.length}/160</span>
+              <span className={`tabular-nums ${f.short_description.length > 160 ? "font-semibold text-amber-600" : ""}`}>{f.short_description.length}/160</span>
             </p>
           </Box>
         </div>

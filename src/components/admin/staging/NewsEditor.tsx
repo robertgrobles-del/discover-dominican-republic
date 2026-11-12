@@ -16,6 +16,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { ClassicEditor } from "./ClassicEditor";
 import { NewsBody } from "./NewsBody";
 import { ImageField } from "./StagingCrudManager";
+import { DraftAutosaveBar } from "./DraftAutosaveBar";
+import { buildAutoDraftSlug, useDraftAutosave } from "./useDraftAutosave";
 
 type Row = Record<string, unknown> & { id: string };
 const LANGS = [
@@ -110,13 +112,87 @@ export function NewsEditor({ row, onClose, onNew }: { row: Row | "new"; onClose:
     return next;
   });
 
+  const dirtyTr = useMemo(
+    () => Object.fromEntries([...dirty].map((l) => [l, tr[l]])) as Partial<Record<Tr, Texts>>,
+    [dirty, tr],
+  );
+  const newsSnapshot = useMemo(
+    () => ({ base, dirtyTr, slugTouched }),
+    [base, dirtyTr, slugTouched],
+  );
+
+  const autosave = useDraftAutosave({
+    resource: "news",
+    itemId: id,
+    status: base.status,
+    snapshot: newsSnapshot,
+    title: base.title,
+    serverUpdatedAt: isNew ? null : (row.updated_at as string | null),
+    onRestore: (snap) => {
+      setBase(snap.base);
+      setSlugTouched(snap.slugTouched);
+      const restoredLangs = Object.keys(snap.dirtyTr ?? {}) as Tr[];
+      if (restoredLangs.length) {
+        setTr((cur) => ({ ...cur, ...snap.dirtyTr }));
+        setDirty(new Set(restoredLangs));
+      }
+    },
+    onPromoted: (saved) => {
+      setId(saved.id);
+      setSlugTouched(true);
+      setBase((b) => ({
+        ...b,
+        title: b.title.trim() || "Borrador sin título",
+        slug: b.slug.trim() || saved.slug || b.slug,
+        status: "draft",
+      }));
+      void qc.invalidateQueries({ queryKey: ["staging", "news"] });
+    },
+    onServerAutoDraft: async (snap, effectiveId) => {
+      const targetId = effectiveId ?? id;
+      const safeTitle = snap.base.title.trim() || "Borrador sin título";
+      const safeSlug = buildAutoDraftSlug(safeTitle, snap.base.slug, "noticia");
+      const body = {
+        ...Object.fromEntries(Object.entries(snap.base).map(([k, v]) => [k, v || null])),
+        title: safeTitle,
+        slug: safeSlug,
+        featured: snap.base.featured === "1",
+        status: "draft",
+        published_at: fromLocalInput(snap.base.published_at),
+      };
+      const res = await fetchApi<{ data: Row }>(`/admin/news${targetId ? `/${targetId}` : ""}`, {
+        method: targetId ? "PUT" : "POST",
+        body: JSON.stringify(body),
+      });
+      const savedId = res.data.id;
+      for (const [l, data] of Object.entries(snap.dirtyTr ?? {})) {
+        if (data) await fetchApi(`/admin/translations/news/${savedId}/${l}`, { method: "PUT", body: JSON.stringify({ data }) });
+      }
+      setId(savedId);
+      setDirty(new Set());
+      setBase((b) => ({
+        ...b,
+        title: b.title.trim() || safeTitle,
+        slug: b.slug.trim() || String(res.data.slug ?? safeSlug),
+        status: "draft",
+      }));
+      void qc.invalidateQueries({ queryKey: ["staging", "news"] });
+      void qc.invalidateQueries({ queryKey: ["staging", "translations", "news", savedId] });
+      return { id: savedId, slug: String(res.data.slug ?? safeSlug), updated_at: res.data.updated_at as string | undefined };
+    },
+    onManualSave: () => {
+      if (!save.isPending && !trash.isPending) save.mutate(base.status === "published" ? "published" : "draft");
+    },
+  });
+
   const save = useMutation({
     mutationFn: async (status: "draft" | "published") => {
+      const targetId = autosave.effectiveId ?? id;
       const body = {
         ...Object.fromEntries(Object.entries(base).map(([k, v]) => [k, v || null])),
         featured: base.featured === "1", status, published_at: fromLocalInput(base.published_at),
       };
-      const res = await fetchApi<{ data: Row }>(`/admin/news${id ? `/${id}` : ""}`, { method: id ? "PUT" : "POST", body: JSON.stringify(body) });
+      const res = await fetchApi<{ data: Row }>(`/admin/news${targetId ? `/${targetId}` : ""}`, { method: targetId ? "PUT" : "POST", body: JSON.stringify(body) });
       const newId = res.data.id;
       for (const l of dirty) {
         await fetchApi(`/admin/translations/news/${newId}/${l}`, { method: "PUT", body: JSON.stringify({ data: tr[l] ?? {} }) });
@@ -127,6 +203,7 @@ export function NewsEditor({ row, onClose, onNew }: { row: Row | "new"; onClose:
       setId(saved.id);
       setDirty(new Set());
       setBase((b) => ({ ...b, status, published_at: toLocalInput(saved.published_at) }));
+      autosave.markSavedClean(saved.id);
       void qc.invalidateQueries({ queryKey: ["staging", "news"] });
       void qc.invalidateQueries({ queryKey: ["staging", "translations", "news", saved.id] });
       toast.success(status === "published" ? "Noticia publicada" : "Borrador guardado", { action: { label: "Nueva noticia", onClick: onNew } });
@@ -135,8 +212,8 @@ export function NewsEditor({ row, onClose, onNew }: { row: Row | "new"; onClose:
   });
 
   const trash = useMutation({
-    mutationFn: () => fetchApi(`/admin/news/${id}`, { method: "DELETE" }),
-    onSuccess: () => { toast.success("Noticia eliminada"); void qc.invalidateQueries({ queryKey: ["staging", "news"] }); onClose(); },
+    mutationFn: () => fetchApi(`/admin/news/${autosave.effectiveId ?? id}`, { method: "DELETE" }),
+    onSuccess: () => { autosave.markSavedClean(id); toast.success("Noticia eliminada"); void qc.invalidateQueries({ queryKey: ["staging", "news"] }); onClose(); },
     onError: (e) => toast.error(apiMessage(e)),
   });
 
@@ -172,6 +249,26 @@ export function NewsEditor({ row, onClose, onNew }: { row: Row | "new"; onClose:
         <h2 className="text-xl font-semibold">{isNew && !id ? "Añadir nueva noticia" : "Editar noticia"}</h2>
         {id && <Button size="sm" variant="outline" className="border-primary text-primary" onClick={onNew}>Añadir nueva noticia</Button>}
       </div>
+
+      <DraftAutosaveBar
+        isDirty={autosave.isDirty}
+        isOnline={autosave.isOnline}
+        canAutoSaveServer={autosave.canAutoSaveServer}
+        serverBlocker={autosave.serverBlocker}
+        isSavingAuto={autosave.isSavingAuto}
+        pendingSync={autosave.pendingSync}
+        remainingMs={autosave.remainingMs}
+        intervalMs={autosave.intervalMs}
+        setIntervalMs={autosave.setIntervalMs}
+        lastLocalSavedAt={autosave.lastLocalSavedAt}
+        lastServerSavedAt={autosave.lastServerSavedAt}
+        lastAutoError={autosave.lastAutoError}
+        recoveryDraft={autosave.recoveryDraft}
+        onRestoreRecovery={autosave.restoreRecovery}
+        onDiscardRecovery={autosave.discardRecovery}
+        onSaveDraftNow={() => void autosave.triggerServerDraftSave()}
+        itemLabel="esta noticia"
+      />
 
       <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_300px]">
         {/* Columna principal */}

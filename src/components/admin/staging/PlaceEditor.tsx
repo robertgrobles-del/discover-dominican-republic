@@ -1,6 +1,6 @@
 // Ficha de municipio o destino, con la disposición del editor de noticias: contenido a la izquierda; Publicar, Imagen,
 // Ubicación y Coordenadas a la derecha. El destino se ubica con LocationPicker (provincia > municipio).
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ArrowLeft, Loader2 } from "lucide-react";
@@ -16,6 +16,8 @@ import { Box } from "./NewsEditor";
 import { PhotoList } from "./ProvinceEditor";
 import { LocationPicker, useTerritory, type Location } from "./LocationPicker";
 import { PLACE_NOUN, type PlaceKind } from "./PlaceList";
+import { EditorAutosaveStrip } from "./DraftAutosaveBar";
+import { buildAutoDraftSlug, useDraftAutosave } from "./useDraftAutosave";
 
 type Row = Record<string, unknown> & { id: string };
 type Photo = { url: string; alt: string };
@@ -49,29 +51,86 @@ export function PlaceEditor({ kind, row, onClose, onNew }: { kind: PlaceKind; ro
   const set = (k: keyof typeof f, v: string) => setF((x) => ({ ...x, [k]: v, ...(k === "name" && !slugTouched ? { slug: toSlug(v) } : {}) }));
   const provSlug = s(t.provinces.find((p) => p.id === loc.province_id)?.slug) || "<provincia>";
 
+  const placeSnapshot = useMemo(
+    () => ({ f, flag, loc, highlights, gallery, slugTouched }),
+    [f, flag, loc, highlights, gallery, slugTouched],
+  );
+
+  const buildPayload = (snap: typeof placeSnapshot, status: string, fallback = false) => {
+    const num = (v: string) => (v.trim() === "" ? null : Number(v));
+    const safeName = fallback ? snap.f.name.trim() || `${noun.one} borrador` : snap.f.name;
+    const safeSlug = fallback ? buildAutoDraftSlug(safeName, snap.f.slug, noun.one.toLowerCase()) : snap.f.slug;
+    const derivedProv =
+      snap.loc.province_id ||
+      (snap.loc.municipality_id ? s(t.municipalities.find((m) => m.id === snap.loc.municipality_id)?.province_id) : "");
+    return {
+      ...Object.fromEntries(Object.entries(snap.f).map(([k, v]) => [k, v || null])),
+      name: safeName || null,
+      slug: safeSlug || null,
+      status,
+      latitude: num(snap.f.latitude), longitude: num(snap.f.longitude),
+      highlights: snap.highlights.split("\n").map((x) => x.trim()).filter(Boolean),
+      gallery: snap.gallery,
+      province_id: derivedProv || null,
+      ...(kind === "municipalities"
+        ? { is_capital: snap.flag, population: num(snap.f.population) }
+        : { is_popular: snap.flag, municipality_id: snap.loc.municipality_id || null }),
+    };
+  };
+
+  const autosave = useDraftAutosave({
+    resource: kind,
+    itemId: id,
+    status: f.status,
+    snapshot: placeSnapshot,
+    title: f.name,
+    serverUpdatedAt: row === "new" ? null : (row.updated_at as string | null),
+    onRestore: (snap) => {
+      setF(snap.f); setFlag(snap.flag); setLoc(snap.loc);
+      setHighlights(snap.highlights); setGallery(snap.gallery); setSlugTouched(snap.slugTouched);
+    },
+    onPromoted: (saved) => {
+      setId(saved.id);
+      setSlugTouched(true);
+      setF((x) => ({ ...x, name: x.name.trim() || `${noun.one} borrador`, slug: x.slug.trim() || saved.slug || x.slug, status: "draft" }));
+      void qc.invalidateQueries({ queryKey: ["staging", kind] });
+    },
+    getServerDraftBlocker: (snap) =>
+      snap.loc.province_id || snap.loc.municipality_id ? null : "Elige una provincia para guardar el auto-borrador en el servidor.",
+    onServerAutoDraft: async (snap, effectiveId) => {
+      const targetId = effectiveId ?? id;
+      const body = buildPayload(snap, "draft", true);
+      const saved = (await fetchApi<{ data: Row }>(`/admin/${kind}${targetId ? `/${targetId}` : ""}`, {
+        method: targetId ? "PUT" : "POST",
+        body: JSON.stringify(body),
+      })).data;
+      setId(saved.id);
+      setF((x) => ({ ...x, name: x.name.trim() || String(body.name ?? ""), slug: x.slug.trim() || String(saved.slug ?? body.slug ?? ""), status: "draft" }));
+      void qc.invalidateQueries({ queryKey: ["staging", kind] });
+      return { id: saved.id, slug: String(saved.slug ?? ""), updated_at: saved.updated_at as string | undefined };
+    },
+    onManualSave: () => {
+      if (!save.isPending && !trash.isPending && ready) save.mutate(f.status === "published" ? "published" : "draft");
+    },
+  });
+
   const save = useMutation({
     mutationFn: async (status: string) => {
-      const num = (v: string) => (v.trim() === "" ? null : Number(v));
-      const body: Record<string, unknown> = {
-        ...Object.fromEntries(Object.entries(f).map(([k, v]) => [k, v || null])), status,
-        latitude: num(f.latitude), longitude: num(f.longitude), highlights: highlights.split("\n").map((x) => x.trim()).filter(Boolean), gallery,
-        province_id: loc.province_id || null,
-        ...(kind === "municipalities"
-          ? { is_capital: flag, population: num(f.population) }
-          : { is_popular: flag, municipality_id: loc.municipality_id || null }),
-      };
-      return (await fetchApi<{ data: Row }>(`/admin/${kind}${id ? `/${id}` : ""}`, { method: id ? "PUT" : "POST", body: JSON.stringify(body) })).data;
+      const targetId = autosave.effectiveId ?? id;
+      const body = buildPayload(placeSnapshot, status);
+      return (await fetchApi<{ data: Row }>(`/admin/${kind}${targetId ? `/${targetId}` : ""}`, { method: targetId ? "PUT" : "POST", body: JSON.stringify(body) })).data;
     },
     onSuccess: (saved, status) => {
       setId(saved.id); setF((x) => ({ ...x, status }));
+      autosave.markSavedClean(saved.id);
       void qc.invalidateQueries({ queryKey: ["staging", kind] });
-      toast.success(status === "published" ? `${noun.one[0].toUpperCase()}${noun.one.slice(1)} publicado` : "Borrador guardado");
+      toast.success(status === "published" ? `${noun.one[0].toUpperCase()}${noun.one.slice(1)} publicado` : "Borrador guardado", { action: { label: noun.add, onClick: onNew } });
     },
     onError: (e) => toast.error(apiMessage(e)),
   });
   const trash = useMutation({
-    mutationFn: () => fetchApi(`/admin/${kind}/${id}`, { method: "DELETE" }),
-    onSuccess: () => { toast.success("Eliminado"); void qc.invalidateQueries({ queryKey: ["staging", kind] }); onClose(); },
+    mutationFn: () => fetchApi(`/admin/${kind}/${autosave.effectiveId ?? id}`, { method: "DELETE" }),
+    onSuccess: () => { autosave.markSavedClean(id); toast.success("Eliminado"); void qc.invalidateQueries({ queryKey: ["staging", kind] }); onClose(); },
     onError: (e) => toast.error(apiMessage(e)),
   });
   const busy = save.isPending || trash.isPending;
@@ -84,6 +143,8 @@ export function PlaceEditor({ kind, row, onClose, onNew }: { kind: PlaceKind; ro
         <h2 className="text-xl font-semibold">{id ? `Editar ${noun.one}` : noun.add}</h2>
         {id && <Button size="sm" variant="outline" className="border-primary text-primary" onClick={onNew}>{noun.add}</Button>}
       </div>
+
+      <EditorAutosaveStrip autosave={autosave} itemLabel={`este ${noun.one}`} />
 
       <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_300px]">
         <div className="min-w-0 space-y-4">

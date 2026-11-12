@@ -1,5 +1,6 @@
 // Alta, edición y borrado de una tabla del mini backend de staging (api/index.ts): provincias, noticias y categorías.
-import { Fragment, useRef, useState, type FormEvent, type ReactNode } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ImagePlus, Images, Loader2, Pencil, Plus, Trash2 } from "lucide-react";
@@ -55,7 +56,8 @@ export function StagingCrudManager({ resource, title, titleKey, fields, noun, re
   renderList?: (p: { rows: Row[]; onNew: () => void; onEdit: (r: Row) => void; onDelete: (ids: string[]) => void; busy: boolean }) => ReactNode;
 }) {
   const qc = useQueryClient();
-  const queryKey = ["staging", resource];
+  const [searchParams, setSearchParams] = useSearchParams();
+  const queryKey = useMemo(() => ["staging", resource], [resource]);
   const { data: rows = [], isLoading, error } = useQuery({
     queryKey,
     queryFn: async () => (await fetchApi<{ data: Row[] }>(`/admin/${resource}`)).data,
@@ -65,7 +67,7 @@ export function StagingCrudManager({ resource, title, titleKey, fields, noun, re
   const [form, setForm] = useState<Record<string, string>>({});
   const [slugTouched, setSlugTouched] = useState(false);
 
-  const open = (row: Row | "new") => {
+  const open = useCallback((row: Row | "new") => {
     setEditing(row);
     setSlugTouched(row !== "new");
     setForm(Object.fromEntries(fields.map((f) => {
@@ -73,7 +75,37 @@ export function StagingCrudManager({ resource, title, titleKey, fields, noun, re
       const v = row[f.key];
       return [f.key, f.type === "checkbox" ? (v === 1 || v === true ? "1" : "") : String(v ?? "")];
     })));
-  };
+  }, [fields]);
+
+  const clearEditQuery = useCallback(() => {
+    if (!searchParams.has("nuevo") && !searchParams.has("editar")) return;
+    const next = new URLSearchParams(searchParams);
+    next.delete("nuevo");
+    next.delete("editar");
+    setSearchParams(next, { replace: true });
+  }, [searchParams, setSearchParams]);
+
+  const closeEditor = useCallback(() => {
+    setEditing(null);
+    clearEditQuery();
+    void qc.invalidateQueries({ queryKey });
+  }, [clearEditQuery, qc, queryKey]);
+
+  // Permite abrir un editor directo desde el Escritorio (?nuevo=1 o ?editar=<id|new>)
+  const nuevoParam = searchParams.get("nuevo");
+  const editarParam = searchParams.get("editar");
+  useEffect(() => {
+    if (nuevoParam === "1" || editarParam === "new") {
+      if (editing !== "new") open("new");
+      return;
+    }
+    if (editarParam && rows.length > 0) {
+      const target = rows.find((r) => r.id === editarParam);
+      if (target && (editing === null || editing === "new" || editing.id !== target.id)) {
+        open(target);
+      }
+    }
+  }, [nuevoParam, editarParam, rows, editing, open]);
 
   const save = useMutation({
     mutationFn: async () => {
@@ -82,7 +114,7 @@ export function StagingCrudManager({ resource, title, titleKey, fields, noun, re
       const isNew = editing === "new";
       return fetchApi(`/admin/${resource}${isNew ? "" : `/${(editing as Row).id}`}`, { method: isNew ? "POST" : "PUT", body: JSON.stringify(body) });
     },
-    onSuccess: () => { toast.success(`${noun[0].toUpperCase()}${noun.slice(1)} guardada`); setEditing(null); void qc.invalidateQueries({ queryKey }); },
+    onSuccess: () => { toast.success(`${noun[0].toUpperCase()}${noun.slice(1)} guardada`); setEditing(null); clearEditQuery(); void qc.invalidateQueries({ queryKey }); },
     onError: (e) => toast.error(apiMessage(e)),
   });
 
@@ -103,8 +135,8 @@ export function StagingCrudManager({ resource, title, titleKey, fields, noun, re
 
   // La clave cambia en cada «nueva» para que el editor empiece vacío aunque ya estuviera en una nueva.
   if (editing && renderEditor) {
-    return <Fragment key={editorKey}>{renderEditor(editing, () => { setEditing(null); void qc.invalidateQueries({ queryKey }); },
-      () => { setEditing("new"); setEditorKey((k) => k + 1); })}</Fragment>;
+    return <Fragment key={editorKey}>{renderEditor(editing, closeEditor,
+      () => { clearEditQuery(); setEditing("new"); setEditorKey((k) => k + 1); })}</Fragment>;
   }
   if (editing) {
     return (

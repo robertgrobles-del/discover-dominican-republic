@@ -21,9 +21,10 @@ import { StagingContactMessagesManager, StagingEstablishmentRequestsManager, Sta
 import { MediaLibrary } from "@/components/admin/staging/MediaLibrary";
 import { StagingUsersManager } from "@/components/admin/staging/StagingUsersManager";
 import { StagingDashboard } from "@/components/admin/staging/StagingDashboard";
-import { Shield, Loader2, Menu, X, ChevronRight, ExternalLink, LogOut, MapPin, Newspaper, Users, Tags, Gift, Building2, Moon, Sun, Image as ImageIcon, LayoutDashboard, Mail, CalendarDays, Landmark, Map as MapIcon, Signpost, Waves } from "lucide-react";
+import { AUTOSAVE_EVENT, RESOURCE_TO_TAB, listLocalDrafts } from "@/components/admin/staging/useDraftAutosave";
+import { Shield, Loader2, Menu, X, ChevronRight, ExternalLink, LogOut, MapPin, Newspaper, Users, Tags, Gift, Building2, Moon, Sun, Image as ImageIcon, LayoutDashboard, Mail, CalendarDays, Landmark, Map as MapIcon, Signpost, Waves, WifiOff, History } from "lucide-react";
 
-type TabCategory = "home" | "erp" | "crm" | "cms" | "system";
+type TabCategory = "home" | "editorial" | "catalog" | "crm" | "system";
 
 interface AdminTab {
   value: string;
@@ -41,53 +42,28 @@ interface AdminTab {
 
 /** Qué se hace en cada sección: es el subtítulo de su pantalla. */
 const TAB_DESCRIPTIONS: Record<string, string> = {
-  dashboard: "Ventas, reservas e indicadores clave del día",
-  pedidos: "Pedidos de la tienda y confirmación de depósitos y transferencias",
-  productos: "Productos, existencias, fotos y categorías de la tienda",
-  "reservas-directas": "Reservas hechas en el portal: estado, cobros y cancelaciones",
-  indicadores: "Ingresos, comisiones y liquidaciones",
-  stock: "Envíos, seguimiento y entregas de pedidos",
-  cupones: "Códigos de descuento, límites de uso y vigencia",
-  membresias: "Planes, precios y suscriptores",
-  finance_lottery: "Resultados de loterías y tasas de cambio",
-  usuarios: "Cuentas, roles, suspensiones y puntos",
-  operadores: "Operadores y socios: verificación y estado",
-  leads: "Solicitudes comerciales y su seguimiento",
-  soporte: "Consultas de usuarios y sus respuestas",
-  embajadores: "Embajadores, referidos y comisiones",
-  encuestas: "Encuestas publicadas y sus respuestas",
-  nps: "Satisfacción de los visitantes a lo largo del tiempo",
-  establecimientos: "Hoteles, restaurantes, bares, spas y demás negocios: alta, edición y publicación",
-  editorial: "Artículos de la revista: redacción, revisión y publicación",
-  contenido: "Catálogos del portal y documentos de contenido",
-  medios: "Fotos y archivos subidos al portal",
-  traducciones: "Textos de la interfaz en cada idioma",
-  "eventos-propuestos": "Eventos enviados por usuarios, pendientes de aprobar",
-  sorteos: "Sorteos, participantes y ganadores",
-  routebuilder: "Rutas turísticas y sus paradas",
-  gamificacion: "Retos, sellos, niveles y recompensas",
-  aigenerator: "Borradores de texto generados con IA",
-  "paginas-fijas": "Edita los textos y las imágenes de cada página del portal y mira el resultado al instante",
-  banners: "Anuncios, ubicaciones y campañas",
-  analytics: "Visitas, búsquedas y embudos de conversión",
-  gobernanza: "Quién puede hacer qué: roles y permisos",
-  moderacion: "Reseñas, fotos y reportes pendientes de revisar",
-  accesos: "Inicios de sesión, sesiones activas y permisos temporales",
-  audit: "Historial de acciones del personal",
-  system_console: "Estado de los servicios y trabajos programados",
-  import: "Carga de datos desde archivos",
-  entidades: "Consulta directa de las tablas del catálogo",
-  ajustes: "Configuración general del portal",
-  creadores: "Creadores registrados, sus enlaces de afiliado e invitaciones a estancias",
-  "campanas-creadores": "Campañas con creadores de contenido y sus entregas",
+  dashboard: "Métricas consolidadas, borradores protegidos, actividad reciente y tareas pendientes",
+  provincias: "Fichas editoriales, fotografías, clima, cómo llegar y SEO por provincia",
+  municipios: "Municipios y distritos municipales vinculados a su provincia",
+  destinos: "Zonas turísticas, ciudades, pueblos e islas del portal",
+  noticias: "Redacción, traducción y publicación de noticias y guías",
+  "categorias-noticias": "Organiza las categorías temáticas del blog y noticias",
+  eventos: "Cartelera cultural, ferias y propuestas enviadas desde la web",
+  recintos: "Teatros, museos, estadios y espacios culturales",
+  playas: "Fichas completas de playas: características, seguridad, mapa y galería",
+  medios: "Imágenes subidas y biblioteca multimedia reutilizable",
+  sorteo: "Participantes registrados desde los formularios del sitio",
+  "solicitudes-negocios": "Negocios propuestos para revisar y publicar en el directorio",
+  mensajes: "Bandeja de consultas recibidas desde el formulario de contacto",
+  usuarios: "Cuentas del equipo, roles y permisos de acceso",
 };
 
-const CATEGORY_CONFIG: Record<TabCategory, { label: string; badge: string; description: string; order: number }> = {
-  home: { label: "Inicio", badge: "HOME", description: "Resumen de todo el panel", order: 0 },
-  erp: { label: "ERP & Operaciones", badge: "ERP", description: "Finanzas, inventario, reservas y logística", order: 1 },
-  crm: { label: "CRM & Relaciones", badge: "CRM", description: "Usuarios, operadores, leads y soporte", order: 2 },
-  cms: { label: "CMS & Contenidos", badge: "CMS", description: "Artículos, catálogos, medios e idiomas", order: 3 },
-  system: { label: "Sistema & Seguridad", badge: "CORE", description: "Gobernanza, auditoría y configuración", order: 4 },
+const CATEGORY_CONFIG: Record<TabCategory, { label: string; description: string; order: number }> = {
+  home: { label: "Resumen", description: "Visión general del portal", order: 0 },
+  editorial: { label: "Editorial", description: "Noticias, categorías y biblioteca de medios", order: 1 },
+  catalog: { label: "Guía y lugares", description: "Provincias, municipios, destinos, playas, eventos y recintos", order: 2 },
+  crm: { label: "Comunidad", description: "Solicitudes, mensajes y participantes", order: 3 },
+  system: { label: "Equipo", description: "Usuarios y permisos", order: 4 },
 };
 
 
@@ -96,18 +72,18 @@ const CATEGORY_CONFIG: Record<TabCategory, { label: string; badge: string; descr
 // de demostración que se carga con la landing en datos locales.
 const ADMIN_TABS: AdminTab[] = [
   { value: "dashboard", label: "Escritorio", category: "home", capability: "staging.panel", allowRoles: ["admin", "editor", "autor", "colaborador"], icon: LayoutDashboard, iconClass: "text-foreground", render: ({ tabs }) => <StagingDashboard sections={tabs.filter((t) => t.value !== "dashboard").map((t) => ({ ...t, group: CATEGORY_CONFIG[t.category as TabCategory]?.label ?? "" }))} /> },
-  { value: "provincias", label: "Provincias", category: "cms", capability: "staging.panel", allowRoles: ["admin", "editor"], icon: MapPin, iconClass: "text-emerald-500", render: () => <StagingProvincesManager /> },
-  { value: "municipios", label: "Municipios", category: "cms", capability: "staging.panel", allowRoles: ["admin", "editor"], icon: MapIcon, iconClass: "text-emerald-600", render: () => <StagingPlacesManager kind="municipalities" /> },
-  { value: "destinos", label: "Destinos", category: "cms", capability: "staging.panel", allowRoles: ["admin", "editor"], icon: Signpost, iconClass: "text-teal-500", render: () => <StagingPlacesManager kind="destinations" /> },
-  { value: "noticias", label: "Noticias", category: "cms", capability: "staging.panel", allowRoles: ["admin", "editor", "autor", "colaborador"], icon: Newspaper, iconClass: "text-primary", render: () => <StagingNewsManager /> },
-  { value: "medios", label: "Biblioteca de medios", category: "cms", capability: "staging.panel", allowRoles: ["admin", "editor", "autor", "colaborador"], icon: ImageIcon, iconClass: "text-cyan-500", render: () => <MediaLibrary /> },
-  { value: "categorias-noticias", label: "Categorías de noticias", category: "cms", capability: "staging.panel", allowRoles: ["admin", "editor"], icon: Tags, iconClass: "text-amber-500", render: () => <StagingNewsCategoriesManager /> },
-  { value: "eventos", label: "Eventos", category: "cms", capability: "staging.panel", allowRoles: ["admin", "editor"], icon: CalendarDays, iconClass: "text-rose-500", render: () => <StagingEventsManager /> },
-  { value: "recintos", label: "Recintos", category: "cms", capability: "staging.panel", allowRoles: ["admin", "editor"], icon: Landmark, iconClass: "text-indigo-500", render: () => <StagingVenuesManager /> },
-  { value: "playas", label: "Playas", category: "cms", capability: "staging.panel", allowRoles: ["admin", "editor"], icon: Waves, iconClass: "text-cyan-600", render: () => <StagingBeachesManager /> },
-  { value: "sorteo", label: "Sorteo y boletín", category: "crm", capability: "staging.panel", allowRoles: ["admin"], icon: Gift, iconClass: "text-pink-500", render: () => <StagingLeadsManager /> },
+  { value: "noticias", label: "Noticias", category: "editorial", capability: "staging.panel", allowRoles: ["admin", "editor", "autor", "colaborador"], icon: Newspaper, iconClass: "text-primary", render: () => <StagingNewsManager /> },
+  { value: "categorias-noticias", label: "Categorías", category: "editorial", capability: "staging.panel", allowRoles: ["admin", "editor"], icon: Tags, iconClass: "text-amber-500", render: () => <StagingNewsCategoriesManager /> },
+  { value: "medios", label: "Biblioteca de medios", category: "editorial", capability: "staging.panel", allowRoles: ["admin", "editor", "autor", "colaborador"], icon: ImageIcon, iconClass: "text-cyan-500", render: () => <MediaLibrary /> },
+  { value: "provincias", label: "Provincias", category: "catalog", capability: "staging.panel", allowRoles: ["admin", "editor"], icon: MapPin, iconClass: "text-emerald-500", render: () => <StagingProvincesManager /> },
+  { value: "municipios", label: "Municipios", category: "catalog", capability: "staging.panel", allowRoles: ["admin", "editor"], icon: MapIcon, iconClass: "text-emerald-600", render: () => <StagingPlacesManager kind="municipalities" /> },
+  { value: "destinos", label: "Destinos", category: "catalog", capability: "staging.panel", allowRoles: ["admin", "editor"], icon: Signpost, iconClass: "text-teal-500", render: () => <StagingPlacesManager kind="destinations" /> },
+  { value: "playas", label: "Playas", category: "catalog", capability: "staging.panel", allowRoles: ["admin", "editor"], icon: Waves, iconClass: "text-cyan-600", render: () => <StagingBeachesManager /> },
+  { value: "eventos", label: "Eventos", category: "catalog", capability: "staging.panel", allowRoles: ["admin", "editor"], icon: CalendarDays, iconClass: "text-rose-500", render: () => <StagingEventsManager /> },
+  { value: "recintos", label: "Recintos", category: "catalog", capability: "staging.panel", allowRoles: ["admin", "editor"], icon: Landmark, iconClass: "text-indigo-500", render: () => <StagingVenuesManager /> },
   { value: "solicitudes-negocios", label: "Solicitudes de negocios", category: "crm", capability: "staging.panel", allowRoles: ["admin"], icon: Building2, iconClass: "text-orange-500", render: () => <StagingEstablishmentRequestsManager /> },
   { value: "mensajes", label: "Mensajes de contacto", category: "crm", capability: "staging.panel", allowRoles: ["admin"], icon: Mail, iconClass: "text-violet-500", render: () => <StagingContactMessagesManager /> },
+  { value: "sorteo", label: "Sorteo y boletín", category: "crm", capability: "staging.panel", allowRoles: ["admin"], icon: Gift, iconClass: "text-pink-500", render: () => <StagingLeadsManager /> },
   { value: "usuarios", label: "Usuarios", category: "system", capability: "staging.panel", allowRoles: ["admin"], icon: Users, iconClass: "text-sky-500", render: () => <StagingUsersManager /> },
 ];
 
@@ -143,6 +119,43 @@ export default function AdminPanel() {
   const theme = useAdminTheme();
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isOnline, setIsOnline] = useState(() => (typeof navigator !== "undefined" ? navigator.onLine !== false : true));
+  const [localDraftCountByTab, setLocalDraftCountByTab] = useState<Record<string, number>>(() => {
+    const counts: Record<string, number> = {};
+    for (const d of listLocalDrafts()) {
+      const tab = RESOURCE_TO_TAB[d.resource];
+      if (tab) counts[tab] = (counts[tab] ?? 0) + 1;
+    }
+    return counts;
+  });
+
+  useEffect(() => {
+    const refreshDrafts = () => {
+      const counts: Record<string, number> = {};
+      for (const d of listLocalDrafts()) {
+        const tab = RESOURCE_TO_TAB[d.resource];
+        if (tab) counts[tab] = (counts[tab] ?? 0) + 1;
+      }
+      setLocalDraftCountByTab(counts);
+    };
+    const onOnline = () => setIsOnline(true);
+    const onOffline = () => setIsOnline(false);
+    window.addEventListener(AUTOSAVE_EVENT, refreshDrafts);
+    window.addEventListener("storage", refreshDrafts);
+    window.addEventListener("online", onOnline);
+    window.addEventListener("offline", onOffline);
+    return () => {
+      window.removeEventListener(AUTOSAVE_EVENT, refreshDrafts);
+      window.removeEventListener("storage", refreshDrafts);
+      window.removeEventListener("online", onOnline);
+      window.removeEventListener("offline", onOffline);
+    };
+  }, []);
+
+  const totalLocalDrafts = useMemo(
+    () => Object.values(localDraftCountByTab).reduce((acc, n) => acc + n, 0),
+    [localDraftCountByTab],
+  );
 
   // El modo demo solo aplica cuando NO hay sesión de backend real
   const isDemoMode = !HAS_BACKEND_SESSION && (demo || IS_MOCK_DATA);
@@ -263,6 +276,7 @@ export default function AdminPanel() {
                 const isActive = activeTab?.value === tab.value;
                 const Icon = tab.icon;
                 const pending = pendingByTab[tab.value] ?? 0;
+                const localDrafts = localDraftCountByTab[tab.value] ?? 0;
                 return (
                   <li key={tab.value}>
                     <button
@@ -278,6 +292,13 @@ export default function AdminPanel() {
                       {isActive && <span className="absolute inset-y-1 left-0 w-0.5 rounded-full bg-primary" aria-hidden="true" />}
                       <Icon className={`h-3.5 w-3.5 shrink-0 ${isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"}`} />
                       <span className="flex-1 truncate">{tab.label}</span>
+                      {localDrafts > 0 && (
+                        <span
+                          className="h-2 w-2 shrink-0 rounded-full bg-amber-500"
+                          title={`${localDrafts} borrador(es) guardado(s) en este equipo`}
+                          aria-label={`${localDrafts} borradores locales`}
+                        />
+                      )}
                       {tab.demoOnly && <span className="rounded bg-muted px-1 text-3xs font-medium uppercase text-muted-foreground">demo</span>}
                       {pending > 0 && <span className="rounded-full bg-primary/90 px-1.5 py-0.2 text-3xs font-bold tabular-nums text-primary-foreground shadow-xs" aria-label={`${pending} pendientes`}>{pending}</span>}
                     </button>
@@ -327,15 +348,35 @@ export default function AdminPanel() {
           <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-3 border-b border-border/60 bg-background/95 px-4 backdrop-blur lg:px-8">
             <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setMobileMenuOpen(true)} aria-label="Abrir menú"><Menu className="h-5 w-5" /></Button>
             <nav aria-label="Ruta" className="flex min-w-0 items-center gap-2 text-xs">
-              <span className="hidden text-muted-foreground font-medium sm:inline">Suite Unificada</span>
+              <span className="hidden text-muted-foreground font-medium sm:inline">Administración</span>
               <ChevronRight className="hidden h-3 w-3 text-muted-foreground/60 sm:inline" />
-              <Badge variant="outline" className="text-3xs uppercase font-semibold tracking-wider border-border/60 bg-muted/30">
-                {activeTab ? CATEGORY_CONFIG[activeTab.category].label : "Administración"}
-              </Badge>
-              <ChevronRight className="h-3 w-3 text-muted-foreground/60" />
+              <span className="hidden text-muted-foreground sm:inline">
+                {activeTab ? CATEGORY_CONFIG[activeTab.category].label : "Panel"}
+              </span>
+              <ChevronRight className="hidden h-3 w-3 text-muted-foreground/60 sm:inline" />
               <span className="truncate font-semibold text-foreground text-sm">{activeTab?.label ?? "Inicio"}</span>
             </nav>
             <div className="ml-auto flex items-center gap-2">
+              {!isOnline && (
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/40 bg-amber-500/10 px-2.5 py-1 text-3xs font-medium text-amber-700 dark:text-amber-300">
+                  <WifiOff className="h-3 w-3" />
+                  <span className="hidden sm:inline">Sin internet · respaldo local activo</span>
+                  <span className="sm:hidden">Sin red</span>
+                </span>
+              )}
+              {totalLocalDrafts > 0 && activeTabValue !== "dashboard" && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setActiveTabValue("dashboard")}
+                  className="h-8 gap-1.5 border-amber-500/40 bg-amber-500/10 text-xs text-amber-800 hover:bg-amber-500/20 dark:text-amber-300"
+                >
+                  <History className="h-3.5 w-3.5" />
+                  <span className="tabular-nums">{totalLocalDrafts}</span>
+                  <span className="hidden md:inline">borrador{totalLocalDrafts === 1 ? "" : "es"} local{totalLocalDrafts === 1 ? "" : "es"}</span>
+                </Button>
+              )}
               <Button variant="ghost" size="icon" className="h-8 w-8" onClick={theme.toggle}
                 aria-label={theme.dark ? "Cambiar a modo claro" : "Cambiar a modo oscuro"} title={theme.dark ? "Modo claro" : "Modo oscuro"}>
                 {theme.dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
@@ -353,12 +394,7 @@ export default function AdminPanel() {
                 <>
                   <div className="mb-6 pb-4 border-b border-border/50 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                     <div>
-                      <div className="flex items-center gap-2">
-                        <h1 className="text-2xl font-bold tracking-tight text-foreground">{activeTab.label}</h1>
-                        <span className="text-3xs font-mono px-2 py-0.5 rounded-full bg-primary/10 text-primary font-bold border border-primary/20">
-                          {CATEGORY_CONFIG[activeTab.category].badge}
-                        </span>
-                      </div>
+                      <h1 className="text-2xl font-bold tracking-tight text-foreground">{activeTab.label}</h1>
                       <p className="text-xs text-muted-foreground mt-0.5">{TAB_DESCRIPTIONS[activeTab.value] ?? CATEGORY_CONFIG[activeTab.category].description}</p>
                     </div>
                   </div>

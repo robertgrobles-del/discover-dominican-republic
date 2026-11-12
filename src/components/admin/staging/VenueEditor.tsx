@@ -1,6 +1,6 @@
 // Ficha de recinto (venue) con la disposición del editor de noticias: contenido, servicios, cómo llegar y galería
 // a la izquierda; Publicar, Imagen, Tipo, Ubicación con mapa, Contacto y SEO a la derecha.
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { LocationPicker, locationLabel, useTerritory } from "./LocationPicker";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -16,6 +16,8 @@ import { ImageField } from "./StagingCrudManager";
 import { PhotoList } from "./ProvinceEditor";
 import { Box } from "./NewsEditor";
 import { VENUE_CATEGORY } from "./VenueList";
+import { EditorAutosaveStrip } from "./DraftAutosaveBar";
+import { buildAutoDraftSlug, useDraftAutosave } from "./useDraftAutosave";
 
 type Row = Record<string, unknown> & { id: string };
 type Photo = { url: string; alt: string };
@@ -99,26 +101,77 @@ export function VenueEditor({ row, onClose, onNew }: { row: Row | "new"; onClose
     } catch { toast.error("No se pudo consultar el mapa ahora."); } finally { setLocating(false); }
   };
 
+  const venueSnapshot = useMemo(
+    () => ({ f, gallery, amenities, features, how, slugTouched }),
+    [f, gallery, amenities, features, how, slugTouched],
+  );
+
+  const buildPayload = (snap: typeof venueSnapshot, status: string, fallback = false) => {
+    const n = (v: string) => (v.trim() === "" ? null : Number(v));
+    const safeName = fallback ? snap.f.name.trim() || "Recinto borrador" : snap.f.name;
+    const safeSlug = fallback ? buildAutoDraftSlug(safeName, snap.f.slug, "recinto") : snap.f.slug;
+    return {
+      ...Object.fromEntries(TEXT.map((k) => [k, snap.f[k] || null])),
+      name: safeName || null,
+      slug: safeSlug || null,
+      status,
+      latitude: n(snap.f.latitude), longitude: n(snap.f.longitude),
+      capacity: n(snap.f.capacity), year_built: n(snap.f.year_built),
+      gallery: snap.gallery, amenities: snap.amenities, features: snap.features, how_to_get: snap.how,
+    };
+  };
+
+  const autosave = useDraftAutosave({
+    resource: "venues",
+    itemId: id,
+    status: f.status || "draft",
+    snapshot: venueSnapshot,
+    title: f.name,
+    serverUpdatedAt: row === "new" ? null : (row.updated_at as string | null),
+    onRestore: (snap) => {
+      setF(snap.f); setGallery(snap.gallery); setAmenities(snap.amenities);
+      setFeatures(snap.features); setHow(snap.how); setSlugTouched(snap.slugTouched);
+    },
+    onPromoted: (saved) => {
+      setId(saved.id);
+      setSlugTouched(true);
+      setF((x) => ({ ...x, name: x.name.trim() || "Recinto borrador", slug: x.slug.trim() || saved.slug || x.slug, status: "draft" }));
+      void qc.invalidateQueries({ queryKey: ["staging", "venues"] });
+    },
+    onServerAutoDraft: async (snap, effectiveId) => {
+      const targetId = effectiveId ?? id;
+      const body = buildPayload(snap, "draft", true);
+      const saved = (await fetchApi<{ data: Row }>(`/admin/venues${targetId ? `/${targetId}` : ""}`, {
+        method: targetId ? "PUT" : "POST",
+        body: JSON.stringify(body),
+      })).data;
+      setId(saved.id);
+      setF((x) => ({ ...x, name: x.name.trim() || String(body.name ?? ""), slug: x.slug.trim() || String(saved.slug ?? body.slug ?? ""), status: "draft" }));
+      void qc.invalidateQueries({ queryKey: ["staging", "venues"] });
+      return { id: saved.id, slug: String(saved.slug ?? ""), updated_at: saved.updated_at as string | undefined };
+    },
+    onManualSave: () => {
+      if (!save.isPending && !trash.isPending && f.name && f.slug) save.mutate(f.status === "published" ? "published" : "draft");
+    },
+  });
+
   const save = useMutation({
     mutationFn: async (status: string) => {
-      const n = (v: string) => (v.trim() === "" ? null : Number(v));
-      const body = {
-        ...Object.fromEntries(TEXT.map((k) => [k, f[k] || null])), status,
-        latitude: n(f.latitude), longitude: n(f.longitude), capacity: n(f.capacity), year_built: n(f.year_built),
-        gallery, amenities, features, how_to_get: how,
-      };
-      return (await fetchApi<{ data: Row }>(`/admin/venues${id ? `/${id}` : ""}`, { method: id ? "PUT" : "POST", body: JSON.stringify(body) })).data;
+      const targetId = autosave.effectiveId ?? id;
+      const body = buildPayload(venueSnapshot, status);
+      return (await fetchApi<{ data: Row }>(`/admin/venues${targetId ? `/${targetId}` : ""}`, { method: targetId ? "PUT" : "POST", body: JSON.stringify(body) })).data;
     },
     onSuccess: (saved, status) => {
       setId(saved.id); setF((x) => ({ ...x, status }));
+      autosave.markSavedClean(saved.id);
       void qc.invalidateQueries({ queryKey: ["staging", "venues"] });
       toast.success(status === "published" ? "Recinto publicado" : "Borrador guardado", { action: { label: "Nuevo recinto", onClick: onNew } });
     },
     onError: (e) => toast.error(apiMessage(e)),
   });
   const trash = useMutation({
-    mutationFn: () => fetchApi(`/admin/venues/${id}`, { method: "DELETE" }),
-    onSuccess: () => { toast.success("Recinto eliminado"); void qc.invalidateQueries({ queryKey: ["staging", "venues"] }); onClose(); },
+    mutationFn: () => fetchApi(`/admin/venues/${autosave.effectiveId ?? id}`, { method: "DELETE" }),
+    onSuccess: () => { autosave.markSavedClean(id); toast.success("Recinto eliminado"); void qc.invalidateQueries({ queryKey: ["staging", "venues"] }); onClose(); },
     onError: (e) => toast.error(apiMessage(e)),
   });
   const busy = save.isPending || trash.isPending;
@@ -132,6 +185,8 @@ export function VenueEditor({ row, onClose, onNew }: { row: Row | "new"; onClose
         <h2 className="text-xl font-semibold">{id ? "Editar recinto" : "Añadir nuevo recinto"}</h2>
         {id && <Button size="sm" variant="outline" className="border-primary text-primary" onClick={onNew}>Añadir nuevo recinto</Button>}
       </div>
+
+      <EditorAutosaveStrip autosave={autosave} itemLabel="este recinto" />
 
       <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_300px]">
         <div className="min-w-0 space-y-4">

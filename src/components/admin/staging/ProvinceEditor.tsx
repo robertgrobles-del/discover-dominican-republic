@@ -1,6 +1,6 @@
 // Ficha de provincia con la misma disposición que el editor de noticias (estilo WordPress): contenido a la izquierda,
 // cajas de Publicar, Portada, Identidad y Ubicación a la derecha. Municipios, lugares y galería se guardan como JSON.
-import { useState, type ReactNode } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ArrowLeft, ArrowDown, ArrowUp, ImagePlus, Loader2, Plus, Trash2 } from "lucide-react";
@@ -17,6 +17,8 @@ import { SeoAnalysisBox } from "./SeoAnalysisBox";
 import { Box } from "./NewsEditor";
 import { useTerritory } from "./LocationPicker";
 import { INTRO_LAYOUTS } from "@/components/province/ProvinceIntroSection";
+import { EditorAutosaveStrip } from "./DraftAutosaveBar";
+import { buildAutoDraftSlug, useDraftAutosave } from "./useDraftAutosave";
 
 // Secciones de la página de provincia, en el orden por defecto. Los catálogos (monumentos, parques, hoteles…) se
 // rellenan solos: aquí solo se decide si salen y en qué orden.
@@ -162,34 +164,99 @@ export function ProvinceEditor({ row, onClose, onNew }: { row: Row | "new"; onCl
   const [slugTouched, setSlugTouched] = useState(row !== "new");
   const set = (k: keyof typeof f, v: string) => setF((x) => ({ ...x, [k]: v, ...(k === "name" && !slugTouched ? { slug: toSlug(v) } : {}) }));
 
+  const provinceSnapshot = useMemo(
+    () => ({
+      f, cards, highlights, dishes, credits, cats, slides, about,
+      themes, tags, days, airport, trips, blocks, hero, gallery, slugTouched,
+    }),
+    [f, cards, highlights, dishes, credits, cats, slides, about, themes, tags, days, airport, trips, blocks, hero, gallery, slugTouched],
+  );
+
+  const buildPayload = (snap: typeof provinceSnapshot, status: string, fallback = false) => {
+    const num = (v: string) => (v.trim() === "" ? null : Number(v));
+    const safeName = fallback ? snap.f.name.trim() || "Provincia borrador" : snap.f.name;
+    const safeSlug = fallback ? buildAutoDraftSlug(safeName, snap.f.slug, "provincia") : snap.f.slug;
+    return {
+      ...Object.fromEntries(Object.entries(snap.f).map(([k, v]) => [k, v || null])),
+      name: safeName || null,
+      slug: safeSlug || null,
+      status,
+      latitude: num(snap.f.latitude), longitude: num(snap.f.longitude),
+      population: num(snap.f.population), area_km2: num(snap.f.area_km2),
+      highlights: lines(snap.highlights), typical_dishes: lines(snap.dishes),
+      photo_credits: lines(snap.credits), categories: snap.cats,
+      slides: snap.slides.filter((x) => x.title.trim()), about: snap.about,
+      airport: snap.airport, blocks: snap.blocks,
+      intro_cards: snap.cards.filter((x) => x.image && x.title.trim()),
+      themes: snap.themes.filter((x) => x.title.trim()).map((x) => ({ ...x, facts: lines(x.facts) })),
+      traveler_tags: snap.tags.filter((x) => x.label.trim()).map((x) => ({ ...x, places: lines(x.places) })),
+      itinerary: snap.days.filter((x) => x.titulo.trim() || x.lugar.trim()).map((x, i) => ({ ...x, dia: i + 1 })),
+      transport: snap.trips.filter((x) => x.desde.trim()),
+      hero_images: snap.hero, gallery: snap.gallery,
+      municipalities: munis.filter((m) => m.name.trim()),
+      places: places.filter((p) => p.name.trim()).map((p) => ({ ...p, lat: num(p.lat), lng: num(p.lng) })),
+    };
+  };
+
+  const autosave = useDraftAutosave({
+    resource: "provinces",
+    itemId: id,
+    status: f.status,
+    snapshot: provinceSnapshot,
+    title: f.name,
+    serverUpdatedAt: row === "new" ? null : (row.updated_at as string | null),
+    onRestore: (snap) => {
+      setF(snap.f); setCards(snap.cards); setHighlights(snap.highlights); setDishes(snap.dishes);
+      setCredits(snap.credits); setCats(snap.cats); setSlides(snap.slides); setAbout(snap.about);
+      setThemes(snap.themes); setTags(snap.tags); setDays(snap.days); setAirport(snap.airport);
+      setTrips(snap.trips); setBlocks(snap.blocks); setHero(snap.hero); setGallery(snap.gallery);
+      setSlugTouched(snap.slugTouched);
+    },
+    onPromoted: (saved) => {
+      setId(saved.id);
+      setSlugTouched(true);
+      setF((x) => ({ ...x, name: x.name.trim() || "Provincia borrador", slug: x.slug.trim() || saved.slug || x.slug, status: "draft" }));
+      void qc.invalidateQueries({ queryKey: ["staging", "provinces"] });
+    },
+    onServerAutoDraft: async (snap, effectiveId) => {
+      const targetId = effectiveId ?? id;
+      const body = buildPayload(snap, "draft", true);
+      const saved = (await fetchApi<{ data: Row }>(`/admin/provinces${targetId ? `/${targetId}` : ""}`, {
+        method: targetId ? "PUT" : "POST",
+        body: JSON.stringify(body),
+      })).data;
+      setId(saved.id);
+      setF((x) => ({
+        ...x,
+        name: x.name.trim() || String(body.name ?? ""),
+        slug: x.slug.trim() || String(saved.slug ?? body.slug ?? ""),
+        status: "draft",
+      }));
+      void qc.invalidateQueries({ queryKey: ["staging", "provinces"] });
+      return { id: saved.id, slug: String(saved.slug ?? ""), updated_at: saved.updated_at as string | undefined };
+    },
+    onManualSave: () => {
+      if (!save.isPending && !trash.isPending) save.mutate(f.status === "published" ? "published" : "draft");
+    },
+  });
+
   const save = useMutation({
     mutationFn: async (status: string) => {
-      const num = (v: string) => (v.trim() === "" ? null : Number(v));
-      const body = {
-        ...Object.fromEntries(Object.entries(f).map(([k, v]) => [k, v || null])), status,
-        latitude: num(f.latitude), longitude: num(f.longitude), population: num(f.population), area_km2: num(f.area_km2),
-        highlights: lines(highlights), typical_dishes: lines(dishes), photo_credits: lines(credits), categories: cats,
-        slides: slides.filter((x) => x.title.trim()), about, airport, blocks,
-        intro_cards: cards.filter((x) => x.image && x.title.trim()),
-        themes: themes.filter((x) => x.title.trim()).map((x) => ({ ...x, facts: lines(x.facts) })),
-        traveler_tags: tags.filter((x) => x.label.trim()).map((x) => ({ ...x, places: lines(x.places) })),
-        itinerary: days.filter((x) => x.titulo.trim() || x.lugar.trim()).map((x, i) => ({ ...x, dia: i + 1 })),
-        transport: trips.filter((x) => x.desde.trim()),
-        hero_images: hero, gallery, municipalities: munis.filter((m) => m.name.trim()),
-        places: places.filter((p) => p.name.trim()).map((p) => ({ ...p, lat: num(p.lat), lng: num(p.lng) })),
-      };
-      return (await fetchApi<{ data: Row }>(`/admin/provinces${id ? `/${id}` : ""}`, { method: id ? "PUT" : "POST", body: JSON.stringify(body) })).data;
+      const targetId = autosave.effectiveId ?? id;
+      const body = buildPayload(provinceSnapshot, status);
+      return (await fetchApi<{ data: Row }>(`/admin/provinces${targetId ? `/${targetId}` : ""}`, { method: targetId ? "PUT" : "POST", body: JSON.stringify(body) })).data;
     },
     onSuccess: (saved, status) => {
       setId(saved.id); setF((x) => ({ ...x, status }));
+      autosave.markSavedClean(saved.id);
       void qc.invalidateQueries({ queryKey: ["staging", "provinces"] });
       toast.success(status === "published" ? "Provincia publicada" : "Borrador guardado", { action: { label: "Nueva provincia", onClick: onNew } });
     },
     onError: (e) => toast.error(apiMessage(e)),
   });
   const trash = useMutation({
-    mutationFn: () => fetchApi(`/admin/provinces/${id}`, { method: "DELETE" }),
-    onSuccess: () => { toast.success("Provincia eliminada"); void qc.invalidateQueries({ queryKey: ["staging", "provinces"] }); onClose(); },
+    mutationFn: () => fetchApi(`/admin/provinces/${autosave.effectiveId ?? id}`, { method: "DELETE" }),
+    onSuccess: () => { autosave.markSavedClean(id); toast.success("Provincia eliminada"); void qc.invalidateQueries({ queryKey: ["staging", "provinces"] }); onClose(); },
     onError: (e) => toast.error(apiMessage(e)),
   });
   const busy = save.isPending || trash.isPending;
@@ -201,6 +268,8 @@ export function ProvinceEditor({ row, onClose, onNew }: { row: Row | "new"; onCl
         <h2 className="text-xl font-semibold">{id ? "Editar provincia" : "Añadir nueva provincia"}</h2>
         {id && <Button size="sm" variant="outline" className="border-primary text-primary" onClick={onNew}>Añadir nueva provincia</Button>}
       </div>
+
+      <EditorAutosaveStrip autosave={autosave} itemLabel="esta provincia" />
 
       <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_300px]">
         <div className="min-w-0 space-y-4">

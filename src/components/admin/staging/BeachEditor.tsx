@@ -14,6 +14,8 @@ import { Box } from "./NewsEditor";
 import { PhotoList } from "./ProvinceEditor";
 import { ImageField } from "./StagingCrudManager";
 import { ACCESS_LABELS, BEACH_TYPE_LABELS, CROWD_LABELS, WAVE_LABELS } from "./BeachList";
+import { EditorAutosaveStrip } from "./DraftAutosaveBar";
+import { buildAutoDraftSlug, useDraftAutosave } from "./useDraftAutosave";
 
 type Row = Record<string, unknown> & { id: string };
 type Photo = { url: string; alt: string };
@@ -121,43 +123,115 @@ export function BeachEditor({ row, onClose, onNew }: { row: Row | "new"; onClose
   const lat = Number(latitude), lon = Number(longitude);
   const hasCoords = latitude.trim() !== "" && longitude.trim() !== "" && Number.isFinite(lat) && Number.isFinite(lon);
 
+  const beachSnapshot = useMemo(
+    () => ({
+      name, slug, slugManual, location, beachType, shortDesc, description,
+      imageUrl, imageAlt, gallery, activities, amenities, waterColor, sandType,
+      waveIntensity, crowdLevel, accessType, parkingAvailable, lifeguardOnDuty,
+      howToGetThere, bestTimeToVisit, latitude, longitude, rating, isPopular,
+      isFeatured, seoTitle, seoDesc, status,
+    }),
+    [
+      name, slug, slugManual, location, beachType, shortDesc, description,
+      imageUrl, imageAlt, gallery, activities, amenities, waterColor, sandType,
+      waveIntensity, crowdLevel, accessType, parkingAvailable, lifeguardOnDuty,
+      howToGetThere, bestTimeToVisit, latitude, longitude, rating, isPopular,
+      isFeatured, seoTitle, seoDesc, status,
+    ],
+  );
+
+  const buildPayload = (snap: typeof beachSnapshot, targetStatus: string, fallback = false) => {
+    const safeName = fallback ? snap.name.trim() || "Playa borrador" : snap.name.trim();
+    const safeSlug = fallback
+      ? buildAutoDraftSlug(safeName, snap.slug, "playa").slice(0, 120)
+      : (snap.slug.trim() || toSlug(safeName)).slice(0, 120);
+    return {
+      name: safeName,
+      slug: safeSlug,
+      province_id: snap.location.province_id || null,
+      municipality_id: snap.location.municipality_id || null,
+      destination_id: snap.location.destination_id || null,
+      beach_type: snap.beachType,
+      short_description: snap.shortDesc.trim() || null,
+      description: snap.description.trim() || null,
+      image_url: snap.imageUrl.trim() || null,
+      image_alt: snap.imageAlt.trim() || null,
+      gallery: snap.gallery.filter((p) => p.url.trim()).map((p) => ({ url: p.url.trim(), alt: p.alt.trim() })),
+      activities: snap.activities,
+      amenities: snap.amenities,
+      water_color: snap.waterColor.trim() || null,
+      sand_type: snap.sandType.trim() || null,
+      wave_intensity: snap.waveIntensity,
+      crowd_level: snap.crowdLevel,
+      access_type: snap.accessType,
+      parking_available: snap.parkingAvailable ? 1 : 0,
+      lifeguard_on_duty: snap.lifeguardOnDuty ? 1 : 0,
+      how_to_get_there: snap.howToGetThere.trim() || null,
+      best_time_to_visit: snap.bestTimeToVisit.trim() || null,
+      latitude: snap.latitude.trim() === "" ? null : Number(snap.latitude),
+      longitude: snap.longitude.trim() === "" ? null : Number(snap.longitude),
+      rating: snap.rating.trim() === "" ? 4.5 : Number(snap.rating),
+      is_popular: snap.isPopular ? 1 : 0,
+      is_featured: snap.isFeatured ? 1 : 0,
+      seo_title: snap.seoTitle.trim() || null,
+      seo_description: snap.seoDesc.trim() || null,
+      status: targetStatus,
+    };
+  };
+
+  const autosave = useDraftAutosave({
+    resource: "beaches",
+    itemId: id || null,
+    status,
+    snapshot: beachSnapshot,
+    title: name,
+    serverUpdatedAt: isNew ? null : (initial.updated_at as string | null),
+    onRestore: (snap) => {
+      setName(snap.name); setSlug(snap.slug); setSlugManual(snap.slugManual);
+      setLocation(snap.location); setBeachType(snap.beachType); setShortDesc(snap.shortDesc);
+      setDescription(snap.description); setImageUrl(snap.imageUrl); setImageAlt(snap.imageAlt);
+      setGallery(snap.gallery); setActivities(snap.activities); setAmenities(snap.amenities);
+      setWaterColor(snap.waterColor); setSandType(snap.sandType); setWaveIntensity(snap.waveIntensity);
+      setCrowdLevel(snap.crowdLevel); setAccessType(snap.accessType);
+      setParkingAvailable(snap.parkingAvailable); setLifeguardOnDuty(snap.lifeguardOnDuty);
+      setHowToGetThere(snap.howToGetThere); setBestTimeToVisit(snap.bestTimeToVisit);
+      setLatitude(snap.latitude); setLongitude(snap.longitude); setRating(snap.rating);
+      setIsPopular(snap.isPopular); setIsFeatured(snap.isFeatured);
+      setSeoTitle(snap.seoTitle); setSeoDesc(snap.seoDesc); setStatus(snap.status);
+    },
+    onPromoted: (saved) => {
+      setId(saved.id);
+      setSlugManual(true);
+      if (!name.trim()) setName("Playa borrador");
+      if (!slug.trim() && saved.slug) setSlug(saved.slug);
+      setStatus("draft");
+      void qc.invalidateQueries({ queryKey: ["staging", "beaches"] });
+    },
+    onServerAutoDraft: async (snap, effectiveId) => {
+      const targetId = effectiveId ?? (id || null);
+      const body = buildPayload(snap, "draft", true);
+      const saved = (await fetchApi<{ data: Row }>(targetId ? `/admin/beaches/${targetId}` : "/admin/beaches", {
+        method: targetId ? "PUT" : "POST",
+        body: JSON.stringify(body),
+      })).data;
+      setId(saved.id);
+      if (!name.trim()) setName(body.name);
+      if (!slug.trim()) setSlug(s(saved.slug) || body.slug);
+      setStatus("draft");
+      void qc.invalidateQueries({ queryKey: ["staging", "beaches"] });
+      return { id: saved.id, slug: s(saved.slug) || body.slug, updated_at: saved.updated_at as string | undefined };
+    },
+    onManualSave: () => {
+      if (!save.isPending && !deleting && name.trim()) save.mutate(status === "published" ? "published" : "draft");
+    },
+  });
+
   const save = useMutation({
     mutationFn: async (nextStatus?: string) => {
-      const targetStatus = nextStatus ?? status;
-      const body = {
-        name: name.trim(),
-        slug: (slug.trim() || toSlug(name)).slice(0, 120),
-        province_id: location.province_id || null,
-        municipality_id: location.municipality_id || null,
-        destination_id: location.destination_id || null,
-        beach_type: beachType,
-        short_description: shortDesc.trim() || null,
-        description: description.trim() || null,
-        image_url: imageUrl.trim() || null,
-        image_alt: imageAlt.trim() || null,
-        gallery: gallery.filter((p) => p.url.trim()).map((p) => ({ url: p.url.trim(), alt: p.alt.trim() })),
-        activities,
-        amenities,
-        water_color: waterColor.trim() || null,
-        sand_type: sandType.trim() || null,
-        wave_intensity: waveIntensity,
-        crowd_level: crowdLevel,
-        access_type: accessType,
-        parking_available: parkingAvailable ? 1 : 0,
-        lifeguard_on_duty: lifeguardOnDuty ? 1 : 0,
-        how_to_get_there: howToGetThere.trim() || null,
-        best_time_to_visit: bestTimeToVisit.trim() || null,
-        latitude: latitude.trim() === "" ? null : Number(latitude),
-        longitude: longitude.trim() === "" ? null : Number(longitude),
-        rating: rating.trim() === "" ? 4.5 : Number(rating),
-        is_popular: isPopular ? 1 : 0,
-        is_featured: isFeatured ? 1 : 0,
-        seo_title: seoTitle.trim() || null,
-        seo_description: seoDesc.trim() || null,
-        status: targetStatus,
-      };
-      const saved = await fetchApi<{ data: Row }>(id ? `/admin/beaches/${id}` : "/admin/beaches", {
-        method: id ? "PUT" : "POST",
+      const targetId = autosave.effectiveId ?? (id || null);
+      const body = buildPayload(beachSnapshot, nextStatus ?? status);
+      const saved = await fetchApi<{ data: Row }>(targetId ? `/admin/beaches/${targetId}` : "/admin/beaches", {
+        method: targetId ? "PUT" : "POST",
         body: JSON.stringify(body),
       });
       return saved.data;
@@ -166,18 +240,23 @@ export function BeachEditor({ row, onClose, onNew }: { row: Row | "new"; onClose
       setId(saved.id);
       setSlug(s(saved.slug));
       setStatus(s(saved.status));
-      qc.invalidateQueries({ queryKey: ["staging-crud", "beaches"] });
-      toast.success(saved.status === "published" ? "Playa publicada" : "Borrador guardado");
+      autosave.markSavedClean(saved.id);
+      void qc.invalidateQueries({ queryKey: ["staging", "beaches"] });
+      toast.success(saved.status === "published" ? "Playa publicada" : "Borrador guardado", {
+        action: { label: "Nueva playa", onClick: onNew },
+      });
     },
     onError: (e) => toast.error(apiMessage(e)),
   });
 
   const remove = async () => {
-    if (!id || !window.confirm(`¿Eliminar definitivamente "${name || "esta playa"}"?`)) return;
+    const targetId = autosave.effectiveId ?? (id || null);
+    if (!targetId || !window.confirm(`¿Eliminar definitivamente "${name || "esta playa"}"?`)) return;
     setDeleting(true);
     try {
-      await fetchApi(`/admin/beaches/${id}`, { method: "DELETE" });
-      qc.invalidateQueries({ queryKey: ["staging-crud", "beaches"] });
+      await fetchApi(`/admin/beaches/${targetId}`, { method: "DELETE" });
+      autosave.markSavedClean(targetId);
+      void qc.invalidateQueries({ queryKey: ["staging", "beaches"] });
       toast.success("Playa eliminada");
       onClose();
     } catch (e) {
@@ -201,7 +280,9 @@ export function BeachEditor({ row, onClose, onNew }: { row: Row | "new"; onClose
         <Button variant="outline" size="sm" onClick={onNew}>Añadir nueva</Button>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_280px]">
+      <EditorAutosaveStrip autosave={autosave} itemLabel="esta playa" />
+
+      <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_300px]">
         <div className="space-y-5">
           <div className="space-y-2">
             <Input
@@ -329,7 +410,7 @@ export function BeachEditor({ row, onClose, onNew }: { row: Row | "new"; onClose
           </Box>
         </div>
 
-        <aside className="space-y-4">
+        <aside className="min-w-0 space-y-4 lg:sticky lg:top-4 lg:max-h-[calc(100dvh-2rem)] lg:overflow-y-auto lg:overscroll-contain lg:pr-1">
           <Box title="Publicar">
             <div className="space-y-2 text-xs text-muted-foreground">
               <div>Estado: <strong className="text-foreground">{status === "published" ? "Publicada" : "Borrador"}</strong></div>

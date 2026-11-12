@@ -62,30 +62,32 @@ export function StagingLeadsManager() {
   return (
     <section className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-lg font-semibold">Sorteo y boletín <span className="text-sm font-normal text-muted-foreground">({rows.length})</span></h2>
-        <div className="flex gap-2">
-          <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar nombre o correo" aria-label="Buscar participante" className="h-9 w-56" />
+        <p className="text-sm text-muted-foreground tabular-nums">
+          {shown.length} participante{shown.length === 1 ? "" : "s"}{q.trim() ? ` de ${rows.length}` : ""}
+        </p>
+        <div className="flex flex-wrap items-center gap-2">
+          <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar por nombre o correo" aria-label="Buscar participante" className="h-9 w-60" />
           <Button variant="outline" size="sm" onClick={exportCsv} disabled={!shown.length}><Download className="mr-2 h-4 w-4" />Exportar CSV</Button>
         </div>
       </div>
       {isLoading ? <Loader2 className="h-6 w-6 animate-spin text-primary" /> : error ? (
         <p role="alert" className="text-sm text-destructive">No se pudo cargar: {apiMessage(error)}</p>
       ) : !shown.length ? (
-        <p className="rounded-2xl border border-dashed border-border p-10 text-center text-sm text-muted-foreground">Todavía no hay participantes.</p>
+        <p className="rounded-lg border border-dashed border-border bg-card/50 p-10 text-center text-sm text-muted-foreground">Todavía no hay participantes.</p>
       ) : (
-        <div className="overflow-x-auto rounded-2xl border border-border bg-card">
+        <div className="overflow-x-auto rounded-lg border border-border bg-card shadow-xs">
           <table className="w-full text-sm">
-            <thead className="bg-muted/40 text-left text-xs text-muted-foreground">
-              <tr><th className="p-3 font-medium">Nombre</th><th className="p-3 font-medium">Correo</th><th className="p-3 font-medium">Origen</th><th className="p-3 font-medium">Fecha</th><th className="p-3"><span className="sr-only">Acciones</span></th></tr>
+            <thead className="border-b border-border bg-muted/40 text-left text-xs text-muted-foreground">
+              <tr><th className="px-4 py-2.5 font-medium">Nombre</th><th className="px-3 py-2.5 font-medium">Correo</th><th className="px-3 py-2.5 font-medium">Origen</th><th className="px-3 py-2.5 font-medium">Fecha</th><th className="px-4 py-2.5 text-right font-medium"><span className="sr-only">Acciones</span></th></tr>
             </thead>
             <tbody className="divide-y divide-border">
               {shown.map((r) => (
-                <tr key={r.id}>
-                  <td className="p-3 font-medium">{r.name}</td>
-                  <td className="p-3"><a href={`mailto:${r.email}`} className="text-primary hover:underline">{r.email}</a></td>
-                  <td className="p-3 text-muted-foreground">{r.interest ?? r.source}</td>
-                  <td className="whitespace-nowrap p-3 text-muted-foreground">{fecha(r.created_at)}</td>
-                  <td className="p-3 text-right">
+                <tr key={r.id} className="hover:bg-muted/20">
+                  <td className="px-4 py-2.5 font-medium">{r.name}</td>
+                  <td className="px-3 py-2.5"><a href={`mailto:${r.email}`} className="text-primary hover:underline">{r.email}</a></td>
+                  <td className="px-3 py-2.5 text-muted-foreground">{r.interest ?? r.source}</td>
+                  <td className="whitespace-nowrap px-3 py-2.5 text-xs tabular-nums text-muted-foreground">{fecha(r.created_at)}</td>
+                  <td className="px-4 py-2.5 text-right">
                     <Button size="icon" variant="ghost" aria-label={`Eliminar a ${r.email}`} disabled={remove.isPending}
                       onClick={() => { if (window.confirm(`¿Eliminar a ${r.email} del sorteo?`)) remove.mutate(r.id); }}>
                       <Trash2 className="h-4 w-4 text-destructive" />
@@ -144,37 +146,31 @@ export function StagingEstablishmentRequestsManager() {
   return (
     <section className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h2 className="text-lg font-semibold">Solicitudes y Empresas</h2>
-          <p className="text-xs text-muted-foreground">Gestiona registros, publica empresas y verifica su página y card en el directorio.</p>
+        <div role="group" aria-label="Filtrar por estado" className="flex flex-wrap gap-1.5">
+          {(["pending", "approved", "rejected", "all"] as const).map((s) => (
+            <button key={s} type="button" aria-pressed={filter === s} onClick={() => setFilter(s)}
+              className={`rounded-md border px-3 py-1.5 text-xs font-medium transition-colors ${filter === s ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card hover:border-primary/50"}`}>
+              {s === "all" ? `Todas (${rows.length})` : `${STATUS[s].label} (${count(s)})`}
+            </button>
+          ))}
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <Button size="sm" onClick={() => setRegisterModalOpen(true)} className="gap-1.5 rounded-lg bg-primary">
-            <Plus className="h-4 w-4" /> Registrar y Publicar Empresa
-          </Button>
-          <div role="group" aria-label="Filtrar por estado" className="flex flex-wrap gap-1.5">
-            {(["pending", "approved", "rejected", "all"] as const).map((s) => (
-              <button key={s} type="button" aria-pressed={filter === s} onClick={() => setFilter(s)}
-                className={`rounded-full border px-3 py-1 text-xs font-medium ${filter === s ? "border-primary bg-primary text-primary-foreground" : "border-border hover:border-primary/50"}`}>
-                {s === "all" ? `Todas (${rows.length})` : `${STATUS[s].label} (${count(s)})`}
-              </button>
-            ))}
-          </div>
-        </div>
+        <Button size="sm" onClick={() => setRegisterModalOpen(true)} className="gap-1.5">
+          <Plus className="h-4 w-4" /> Registrar y publicar empresa
+        </Button>
       </div>
       {isLoading ? <Loader2 className="h-6 w-6 animate-spin text-primary" /> : error ? (
         <p role="alert" className="text-sm text-destructive">No se pudo cargar: {apiMessage(error)}</p>
       ) : !shown.length ? (
-        <p className="rounded-2xl border border-dashed border-border p-10 text-center text-sm text-muted-foreground">No hay solicitudes en este estado.</p>
+        <p className="rounded-lg border border-dashed border-border bg-card/50 p-10 text-center text-sm text-muted-foreground">No hay solicitudes en este estado.</p>
       ) : (
-        <ul className="space-y-3">
+        <ul className="divide-y divide-border overflow-hidden rounded-lg border border-border bg-card shadow-xs">
           {shown.map((r) => (
-            <li key={r.id} className="rounded-2xl border border-border bg-card">
+            <li key={r.id}>
               <details className="group">
-                <summary className="flex cursor-pointer list-none flex-wrap items-center gap-3 p-4">
+                <summary className="flex cursor-pointer list-none flex-wrap items-center gap-3 px-4 py-3.5 transition-colors hover:bg-muted/20">
                   <div className="min-w-0 flex-1">
                     <p className="truncate font-medium">{r.name} <span className="text-xs font-normal capitalize text-muted-foreground">· {r.type}</span></p>
-                    <p className="truncate text-xs text-muted-foreground">{r.contact_name} · {r.province ?? "Sin provincia"} · {fecha(r.created_at)}</p>
+                    <p className="truncate text-xs text-muted-foreground">{r.contact_name} · {r.province ?? "Sin provincia"} · <span className="tabular-nums">{fecha(r.created_at)}</span></p>
                   </div>
                   <Badge variant={STATUS[r.status].variant}>{STATUS[r.status].label}</Badge>
                 </summary>
@@ -305,23 +301,34 @@ interface ContactMessage { id: string; name: string; email: string; subject: str
 /** Mensajes del formulario de /contacto: se leen aquí y se responden por correo. */
 export function StagingContactMessagesManager() {
   const { data: rows = [], isLoading, error, remove } = useResource<ContactMessage>("contact-messages");
+  const [q, setQ] = useState("");
+  const shown = useMemo(() => {
+    const t = q.trim().toLowerCase();
+    return t ? rows.filter((r) => `${r.name} ${r.email} ${r.subject ?? ""} ${r.message}`.toLowerCase().includes(t)) : rows;
+  }, [rows, q]);
+
   return (
     <section className="space-y-4">
-      <h2 className="text-lg font-semibold">Mensajes de contacto <span className="text-sm font-normal text-muted-foreground">({rows.length})</span></h2>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <p className="text-sm text-muted-foreground tabular-nums">
+          {shown.length} mensaje{shown.length === 1 ? "" : "s"}{q.trim() ? ` de ${rows.length}` : ""}
+        </p>
+        <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar asunto, remitente o mensaje" aria-label="Buscar mensaje" className="h-9 w-64" />
+      </div>
       {isLoading ? <Loader2 className="h-6 w-6 animate-spin text-primary" /> : error ? (
         <p role="alert" className="text-sm text-destructive">No se pudo cargar: {apiMessage(error)}</p>
-      ) : !rows.length ? (
-        <p className="rounded-md border border-dashed border-border p-10 text-center text-sm text-muted-foreground">Todavía no hay mensajes.</p>
+      ) : !shown.length ? (
+        <p className="rounded-lg border border-dashed border-border bg-card/50 p-10 text-center text-sm text-muted-foreground">Todavía no hay mensajes.</p>
       ) : (
-        <ul className="divide-y divide-border rounded-md border border-border bg-card">
-          {rows.map((r) => (
-            <li key={r.id} className="p-4">
+        <ul className="divide-y divide-border overflow-hidden rounded-lg border border-border bg-card shadow-xs">
+          {shown.map((r) => (
+            <li key={r.id} className="p-4 transition-colors hover:bg-muted/20">
               <div className="flex flex-wrap items-baseline justify-between gap-2">
                 <p className="font-medium">{r.subject ?? "Sin asunto"} <span className="font-normal text-muted-foreground">· {r.name}</span></p>
-                <span className="text-xs text-muted-foreground">{fecha(r.created_at)}</span>
+                <span className="text-xs tabular-nums text-muted-foreground">{fecha(r.created_at)}</span>
               </div>
-              <p className="mt-2 whitespace-pre-line text-sm">{r.message}</p>
-              <div className="mt-3 flex gap-2">
+              <p className="mt-2 whitespace-pre-line text-sm text-foreground/90">{r.message}</p>
+              <div className="mt-3 flex items-center gap-2">
                 <Button size="sm" asChild><a href={`mailto:${r.email}?subject=${encodeURIComponent(`Re: ${r.subject ?? "Tu mensaje a Descubre RD"}`)}`}>Responder a {r.email}</a></Button>
                 <Button size="sm" variant="ghost" aria-label={`Eliminar mensaje de ${r.name}`} disabled={remove.isPending}
                   onClick={() => { if (window.confirm("¿Eliminar este mensaje?")) remove.mutate(r.id); }}><Trash2 className="h-4 w-4 text-destructive" /></Button>
