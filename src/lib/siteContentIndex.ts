@@ -1,9 +1,11 @@
 import { useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { fetchApi } from "@/lib/fastifyClient";
 import { airports } from "@/data/airports";
 import { eventosEstaticosCompletos, staticEventos } from "@/data/eventosData";
 import { usePublicNewsList, usePublicEstablishments, type PublicNews, type PublicEstablishment } from "@/lib/stagingContent";
 
-export type ContentItemType = "noticia" | "aeropuerto" | "pagina" | "evento" | "negocio";
+export type ContentItemType = "noticia" | "aeropuerto" | "pagina" | "evento" | "negocio" | "provincia" | "municipio" | "destino" | "playa" | "recinto";
 
 export interface SiteContentItem {
   id: string;
@@ -151,6 +153,44 @@ export const EVENT_CONTENT_ITEMS: SiteContentItem[] = [
   })),
 ].filter((item, index, self) => index === self.findIndex((t) => t.url === item.url));
 
+type CmsRow = Record<string, unknown>;
+const str = (v: unknown) => (typeof v === "string" ? v : "");
+
+/**
+ * Contenido del panel (Turso) para el selector de enlaces: sólo lo publicado, para no enlazar a páginas que dan 404.
+ * Municipios, destinos y recintos aún no tienen página propia: enlazan a la de su provincia.
+ */
+function useCmsLinkItems(): { items: SiteContentItem[]; isLoading: boolean } {
+  const q = (r: string) => ({ queryKey: ["staging", r], queryFn: async () => (await fetchApi<{ data: CmsRow[] }>(`/admin/${r}`)).data, staleTime: 60_000 });
+  const prov = useQuery(q("provinces"));
+  const muni = useQuery(q("municipalities"));
+  const dest = useQuery(q("destinations"));
+  const beach = useQuery(q("beaches"));
+  const ev = useQuery(q("events"));
+  const venue = useQuery(q("venues"));
+  const items = useMemo(() => {
+    const pub = (rows: CmsRow[] | undefined) => (rows ?? []).filter((r) => r.status === "published");
+    const provinces = prov.data ?? [];
+    const provOf = (r: CmsRow) => provinces.find((p) => p.id === r.province_id);
+    const onProvince = (rows: CmsRow[] | undefined, type: ContentItemType, label: string, prefix: string): SiteContentItem[] =>
+      pub(rows).flatMap((r) => {
+        const p = provOf(r);
+        if (!p || p.status !== "published") return [];
+        return [{ id: `${prefix}-${str(r.id)}`, title: str(r.name), url: `/provincia/${str(p.slug)}`, type,
+          badge: label, description: `Enlaza a la página de ${str(p.name)} (aún sin página propia)` }];
+      });
+    return [
+      ...pub(provinces).map((r) => ({ id: `prov-${str(r.slug)}`, title: str(r.name), url: `/provincia/${str(r.slug)}`, type: "provincia" as const, badge: "Provincia", description: str(r.short_description) || undefined })),
+      ...pub(beach.data).map((r) => ({ id: `beach-${str(r.slug)}`, title: str(r.name), url: `/playa/${str(r.slug)}`, type: "playa" as const, badge: str(provOf(r)?.name) || "Playa", description: str(r.short_description) || undefined })),
+      ...pub(ev.data).map((r) => ({ id: `cms-event-${str(r.slug)}`, title: str(r.name), url: `/evento/${str(r.slug)}`, type: "evento" as const, badge: str(r.start_date).slice(0, 10) || "Evento", description: str(r.short_description) || undefined })),
+      ...onProvince(muni.data, "municipio", "Municipio", "muni"),
+      ...onProvince(dest.data, "destino", "Destino", "dest"),
+      ...onProvince(venue.data, "recinto", "Recinto", "venue"),
+    ];
+  }, [prov.data, muni.data, dest.data, beach.data, ev.data, venue.data]);
+  return { items, isLoading: prov.isLoading || beach.isLoading || ev.isLoading };
+}
+
 /**
  * Hook universal que provee todo el contenido indexado del sitio (noticias, aeropuertos, páginas y eventos).
  */
@@ -181,15 +221,18 @@ export function useSiteContentIndex() {
     }));
   }, [establishments]);
 
+  const cms = useCmsLinkItems();
+
   const allItems: SiteContentItem[] = useMemo(() => {
     return [
       ...STATIC_SITE_PAGES,
       ...AIRPORT_CONTENT_ITEMS,
       ...newsItems,
       ...establishmentItems,
+      ...cms.items,
       ...EVENT_CONTENT_ITEMS,
-    ];
-  }, [newsItems, establishmentItems]);
+    ].filter((item, i, all) => all.findIndex((t) => t.url === item.url && t.type === item.type) === i);
+  }, [newsItems, establishmentItems, cms.items]);
 
   return {
     allItems,
@@ -198,7 +241,7 @@ export function useSiteContentIndex() {
     airportItems: AIRPORT_CONTENT_ITEMS,
     pageItems: STATIC_SITE_PAGES,
     eventItems: EVENT_CONTENT_ITEMS,
-    isLoading: isLoadingNews || isLoadingEst,
+    isLoading: isLoadingNews || isLoadingEst || cms.isLoading,
   };
 }
 

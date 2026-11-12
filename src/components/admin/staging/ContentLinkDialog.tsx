@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
   Link2, Search, Newspaper, Plane, FileText, Calendar, 
-  ExternalLink, Check, Compass, Globe, Building2 
+  ExternalLink, Check, Compass, Globe, Building2, MapPin, Waves, Landmark 
 } from "lucide-react";
 import { 
   useSiteContentIndex, 
@@ -107,6 +107,14 @@ export function ContentLinkDialog({
         return <Building2 className="h-4 w-4 text-indigo-500" />;
       case "evento":
         return <Calendar className="h-4 w-4 text-amber-500" />;
+      case "provincia":
+      case "municipio":
+      case "destino":
+        return <MapPin className="h-4 w-4 text-emerald-600" />;
+      case "playa":
+        return <Waves className="h-4 w-4 text-cyan-600" />;
+      case "recinto":
+        return <Landmark className="h-4 w-4 text-indigo-500" />;
       case "pagina":
       default:
         return <FileText className="h-4 w-4 text-primary" />;
@@ -216,6 +224,11 @@ export function ContentLinkDialog({
                 { type: "aeropuerto" as const, label: "Aeropuertos", count: allItems.filter(i => i.type === "aeropuerto").length },
                 { type: "pagina" as const, label: "Páginas", count: allItems.filter(i => i.type === "pagina").length },
                 { type: "evento" as const, label: "Eventos", count: allItems.filter(i => i.type === "evento").length },
+                { type: "provincia" as const, label: "Provincias", count: allItems.filter(i => i.type === "provincia").length },
+                { type: "municipio" as const, label: "Municipios", count: allItems.filter(i => i.type === "municipio").length },
+                { type: "destino" as const, label: "Destinos", count: allItems.filter(i => i.type === "destino").length },
+                { type: "playa" as const, label: "Playas", count: allItems.filter(i => i.type === "playa").length },
+                { type: "recinto" as const, label: "Recintos", count: allItems.filter(i => i.type === "recinto").length },
               ].map((f) => (
                 <button
                   key={f.type}
