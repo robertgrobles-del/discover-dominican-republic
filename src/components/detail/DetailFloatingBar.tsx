@@ -59,9 +59,11 @@ export const DetailFloatingBar: React.FC<DetailFloatingBarProps> = ({
                 variant="outline"
                 size="sm"
                 onClick={onToggleSave}
+                aria-label={isSaved ? "Quitar de favoritos" : "Guardar en favoritos"}
+                aria-pressed={Boolean(isSaved)}
                 className="h-10 w-10 p-0 rounded-2xl border-border"
               >
-                <Heart className={`h-4 w-4 ${isSaved ? "fill-red-500 text-red-500" : ""}`} />
+                <Heart aria-hidden="true" className={`h-4 w-4 ${isSaved ? "fill-red-500 text-red-500" : ""}`} />
               </Button>
             )}
             {onShare && (
@@ -69,6 +71,7 @@ export const DetailFloatingBar: React.FC<DetailFloatingBarProps> = ({
                 variant="outline"
                 size="sm"
                 onClick={onShare}
+                aria-label="Compartir"
                 className="h-10 w-10 p-0 rounded-2xl border-border"
               >
                 <Share2 className="h-4 w-4" />

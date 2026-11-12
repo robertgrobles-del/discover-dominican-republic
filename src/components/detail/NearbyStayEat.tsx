@@ -25,7 +25,7 @@ export function NearbyStayEat({ placeName, destinationId, province }: { placeNam
   );
 
   return (
-    <section className="mt-14 grid gap-8 border-t border-border/60 pt-10 lg:grid-cols-2">
+    <section className="mt-14 grid gap-8 border-t border-border/60 pt-10 lg:grid-cols-2 [&>*]:min-w-0">
       {hotels.length > 0 && (
         <div>
           <h3 className="mb-4 flex items-center gap-2 font-display text-2xl font-black text-foreground"><BedDouble className="h-6 w-6 text-primary" />Dónde alojarte cerca de {placeName}</h3>

@@ -568,13 +568,15 @@ async function bulkEdit(db: Client, table: BulkTable, body: Fields, userId: stri
 
   const errors: { id: string; name: string; message: string }[] = [];
   let updated = 0;
-  for (const id of ids) {
+  // De 10 en 10 en paralelo: cada ficha son 3-4 viajes a Turso y en serie 150 fichas pasarían el límite de la función.
+  const one = async (id: string) => {
     const row = (await db.execute({ sql: `SELECT * FROM ${table} WHERE id = ?`, args: [id] })).rows[0] as Fields | undefined;
-    if (!row) { errors.push({ id, name: id, message: "No existe" }); continue; }
+    if (!row) { errors.push({ id, name: id, message: "No existe" }); return; }
     const r = await crud(db, table, "PUT", id, { ...row, ...reset, ...patch }, userId);
     if (r.status === 200) updated++;
     else errors.push({ id, name: String(row.name ?? row.title ?? id), message: (r.body as { error?: { message?: string } })?.error?.message ?? "Error" });
-  }
+  };
+  for (let i = 0; i < ids.length; i += 10) await Promise.all(ids.slice(i, i + 10).map(one));
   return { status: 200, body: { data: { updated, errors } } };
 }
 

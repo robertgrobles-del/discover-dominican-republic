@@ -237,6 +237,8 @@ export const CommentSection: React.FC<CommentSectionProps> = ({
                   type="button"
                   key={star}
                   onClick={() => setRating(star)}
+                  aria-label={`${star} de 5 estrellas`}
+                  aria-pressed={star <= rating}
                   className="p-1 hover:scale-110 transition-transform"
                 >
                   <Star

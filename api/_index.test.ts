@@ -19,6 +19,7 @@ const bearer = (r: Res) => ({ authorization: `Bearer ${data<Session>(r).tokens.a
 
 beforeAll(async () => {
   db = createClient({ url: `file:${join(dir, "t.sqlite")}` });
+  await db.execute("PRAGMA foreign_keys = ON"); // como Turso: así una migración con referencias rotas falla aquí y no en Vercel
   await db.executeMultiple(readFileSync(join(__dirname, "../staging/schema.sql"), "utf8"));
   // Las mismas migraciones que se aplican en Turso con `node staging/db.mjs migrate`.
   const migrations = join(__dirname, "../staging/migrations");
