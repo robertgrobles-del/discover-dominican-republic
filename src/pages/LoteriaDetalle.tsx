@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useI18n } from "@/hooks/useI18n";
-import { DEFAULT_LOTTERY_RESULTS, LotteryResult, resolveDrawSlug } from "@/data/loteriasData";
+import { LotteryResult, resolveDrawSlug } from "@/data/loteriasData";
 import { fetchLotteryResults, fetchLotteryDetail } from "@/services/lotteryService";
 import { PreFooterPresidenteBanner } from "@/components/promo";
 
@@ -195,17 +195,10 @@ export default function LoteriaDetalle() {
           }));
           setDraws(adapted);
         } else {
-          // Filtrar los sorteos de DEFAULT_LOTTERY_RESULTS que pertenezcan a esta empresa
-          const defaults = DEFAULT_LOTTERY_RESULTS.filter(
-            (r) => r.company === normalizedSlug
-          );
-          setDraws(defaults);
+          setDraws([]); // sin resultados reales para esa fecha: nada de números de ejemplo
         }
       } catch {
-        const defaults = DEFAULT_LOTTERY_RESULTS.filter(
-          (r) => r.company === normalizedSlug
-        );
-        setDraws(defaults);
+        setDraws([]);
       } finally {
         setIsLoading(false);
       }

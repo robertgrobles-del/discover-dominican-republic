@@ -4,7 +4,7 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 // Cliente web: habla con Turso por HTTP, sin el módulo nativo de SQLite que no hace falta en Vercel.
 import { createClient, type Client, type InValue } from "@libsql/client/web";
 import { createHmac, randomBytes, randomUUID, scryptSync, timingSafeEqual } from "node:crypto";
-import { scrapeAndSyncLotteries } from "./scraper/loterias.js";
+import { dueDraws, isIsoDate, rdNow, scrapeAndSyncLotteries } from "./scraper/loterias.js";
 
 // Mini backend de staging (Turso/SQLite): acceso al panel, provincias y noticias.
 // Responde con el mismo contrato que el backend completo para /auth/*, así el frontend no cambia.
@@ -1969,11 +1969,101 @@ async function handleGetDrawDetail(
   };
 }
 
+/** Sincroniza un día (hoy por defecto). La fecha no puede ser futura ni anterior a 2000. */
 async function handleSyncLotteries(db: Client, body: Fields): Promise<ApiResponse> {
-  const htmlContent = typeof body.htmlContent === "string" ? body.htmlContent : undefined;
-  const date = typeof body.date === "string" ? body.date : undefined;
+  const htmlContent = typeof body.htmlContent === "string" && body.htmlContent.length <= 2_000_000 ? body.htmlContent : undefined;
+  const today = rdNow().date;
+  const date = body.date === undefined || body.date === "" ? today : body.date;
+  if (!isIsoDate(date) || date > today || date < "2000-01-01") return err(422, "Fecha no válida: usa AAAA-MM-DD, hoy o un día pasado");
   const report = await scrapeAndSyncLotteries(db, { htmlContent, date });
-  return { status: report.success ? 200 : 502, body: { data: report } };
+  return { status: 200, body: { data: report } };
+}
+
+/** Cron (cada minuto): sólo descarga si algún sorteo se celebró hace 0–5 minutos y aún no tiene resultado. */
+async function handleLotteryCron(db: Client): Promise<ApiResponse> {
+  const due = await dueDraws(db);
+  if (!due.length) return { status: 200, body: { data: { due: 0 } } };
+  const report = await scrapeAndSyncLotteries(db);
+  return { status: 200, body: { data: { due: due.length, ...report } } };
+}
+
+// ---------- loterías y sorteos (panel) ----------
+const DAYS = ["lunes", "martes", "miercoles", "jueves", "viernes", "sabado", "domingo"];
+const lotterySpec = (b: Fields) => ({
+  slug: slugOf(b, 80),
+  name: () => str(b, "name", 120, true),
+  country: () => str(b, "country", 80) ?? "República Dominicana",
+  logo_url: () => url(b, "logo_url"),
+  website_url: () => url(b, "website_url"),
+  description: () => str(b, "description", 1000),
+  color_scheme: () => str(b, "color_scheme", 80),
+  is_active: () => bool(b, "is_active"),
+});
+const parseDays = (v: unknown): unknown => {
+  if (Array.isArray(v)) return v;
+  if (typeof v !== "string") return null;
+  try { return JSON.parse(v); } catch { return null; }
+};
+const drawSpec = (b: Fields) => ({
+  lottery_id: () => str(b, "lottery_id", 64, true),
+  slug: slugOf(b, 100),
+  name: () => str(b, "name", 120, true),
+  source_name: () => str(b, "source_name", 120),
+  draw_days: () => {
+    const list = parseDays(b.draw_days);
+    if (!Array.isArray(list) || !list.length || list.some((d) => !DAYS.includes(String(d)))) return new Error("draw_days: elige al menos un día de la semana");
+    return JSON.stringify(DAYS.filter((d) => list.includes(d)));
+  },
+  draw_time: () => { const t = str(b, "draw_time", 5, true); return t instanceof Error || /^([01]\d|2[0-3]):[0-5]\d$/.test(t!) ? t : new Error("draw_time debe ser HH:MM (hora de RD)"); },
+  ball_range_min: () => int(b, "ball_range_min", 0, 99) ?? 0,
+  ball_range_max: () => int(b, "ball_range_max", 1, 99) ?? 99,
+  number_of_balls: () => int(b, "number_of_balls", 1, 20) ?? 3,
+  tombolas_count: () => int(b, "tombolas_count", 1, 20) ?? 1,
+  has_bonus: () => bool(b, "has_bonus"),
+  bonus_name: () => str(b, "bonus_name", 80),
+  description: () => str(b, "description", 1000),
+  schedule_description: () => str(b, "schedule_description", 200),
+  is_active: () => bool(b, "is_active"),
+});
+
+async function lotteryAdmin(db: Client, kind: "lotteries" | "lottery_draws", method: string, id: string | undefined, body: Fields): Promise<ApiResponse> {
+  if (method === "GET" && !id) {
+    const sql = kind === "lotteries"
+      ? "SELECT l.*, (SELECT COUNT(*) FROM lottery_draws d WHERE d.lottery_id = l.id) AS draws_count FROM lotteries l ORDER BY l.name COLLATE NOCASE"
+      : "SELECT d.*, l.name AS lottery_name, (SELECT MAX(draw_date) FROM lottery_results r WHERE r.draw_id = d.id) AS last_result FROM lottery_draws d JOIN lotteries l ON l.id = d.lottery_id ORDER BY l.name COLLATE NOCASE, d.draw_time";
+    return { status: 200, body: { data: (await db.execute(sql)).rows } };
+  }
+  if (method === "DELETE" && id) {
+    if (kind === "lotteries") {
+      const n = Number((await db.execute({ sql: "SELECT COUNT(*) AS n FROM lottery_draws WHERE lottery_id = ?", args: [id] })).rows[0]?.n ?? 0);
+      if (n) return err(409, `No se puede eliminar: tiene ${n} sorteo${n === 1 ? "" : "s"}. Elimínalos o desactiva la lotería`);
+    } else {
+      await db.execute({ sql: "DELETE FROM lottery_results WHERE draw_id = ?", args: [id] });
+    }
+    const r = await db.execute({ sql: `DELETE FROM ${kind} WHERE id = ?`, args: [id] });
+    return r.rowsAffected ? { status: 204 } : err(404, "No encontrado");
+  }
+  if (!(method === "POST" && !id) && !(method === "PUT" && id)) return err(405, "Método no permitido");
+  const values = collect(kind === "lotteries" ? lotterySpec(body) : drawSpec(body));
+  if (values instanceof Error) return err(422, values.message);
+  if (kind === "lottery_draws") {
+    if (!(await db.execute({ sql: "SELECT 1 FROM lotteries WHERE id = ?", args: [values.lottery_id] })).rows.length) return err(422, "La lotería indicada no existe");
+    if (Number(values.ball_range_min) >= Number(values.ball_range_max)) return err(422, "El número mínimo debe ser menor que el máximo");
+  }
+  try {
+    const cols = Object.keys(values);
+    if (method === "POST") {
+      const newId = randomUUID();
+      await db.execute({ sql: `INSERT INTO ${kind} (id, ${cols.join(", ")}) VALUES (?, ${cols.map(() => "?").join(", ")})`, args: [newId, ...Object.values(values)] });
+      return { status: 201, body: { data: (await db.execute({ sql: `SELECT * FROM ${kind} WHERE id = ?`, args: [newId] })).rows[0] } };
+    }
+    const r = await db.execute({ sql: `UPDATE ${kind} SET ${cols.map((c) => `${c} = ?`).join(", ")}, updated_at = ? WHERE id = ?`, args: [...Object.values(values), now(), id!] });
+    if (!r.rowsAffected) return err(404, "No encontrado");
+    return { status: 200, body: { data: (await db.execute({ sql: `SELECT * FROM ${kind} WHERE id = ?`, args: [id!] })).rows[0] } };
+  } catch (e) {
+    if (String(e).includes("UNIQUE")) return err(409, "Ya existe un registro con ese slug");
+    throw e;
+  }
 }
 
 // ---------- router ----------
@@ -2002,10 +2092,10 @@ export async function handle(req: ApiRequest, db: Client, secret: string, secure
     return handleGetLotteryDetail(indicatorsDb, lotMatch[1]);
   }
   // Sincronizar escribe resultados: sólo el cron de Vercel (CRON_SECRET) aquí; el equipo, más abajo y con sesión.
-  if (m === "POST" && path === "/lotteries/sync") {
+  if ((m === "POST" || m === "GET") && path === "/lotteries/sync") { // GET: así lo llama el cron de Vercel
     const cron = process.env.CRON_SECRET;
     if (!cron || req.headers.authorization !== `Bearer ${cron}`) return err(401, "No autenticado");
-    return handleSyncLotteries(indicatorsDb, {});
+    return handleLotteryCron(indicatorsDb);
   }
 
   if (m === "GET" && path.startsWith("/public/")) return (await publicApi(db, path, lang)) ?? err(404, "Ruta no encontrada");
@@ -2074,6 +2164,8 @@ export async function handle(req: ApiRequest, db: Client, secret: string, secure
   if (path === "/admin/lotteries/sync" && m === "POST") {
     return manager ? handleSyncLotteries(getIndicatorsDb(db), body) : err(403, "Solo un editor o administrador sincroniza loterías");
   }
+  const lot = path.match(/^\/admin\/(lotteries|lottery-draws)(?:\/([A-Za-z0-9-]+))?$/);
+  if (lot) return manager ? lotteryAdmin(getIndicatorsDb(db), lot[1] === "lotteries" ? "lotteries" : "lottery_draws", m, lot[2], body) : err(403, "Solo un editor o administrador gestiona loterías");
   if (path === "/admin/media" && m === "POST") {
     return roles.includes("colaborador") && !manager && !roles.includes("autor") ? err(403, "Un colaborador no puede subir imágenes") : uploadMedia(db, body, user.id);
   }

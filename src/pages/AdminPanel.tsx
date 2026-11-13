@@ -20,11 +20,12 @@ import { StagingEventsManager, StagingVenuesManager, StagingPlacesManager, Stagi
 import { StagingContactMessagesManager, StagingEstablishmentRequestsManager, StagingLeadsManager } from "@/components/admin/staging/StagingFormsManagers";
 import { MediaLibrary } from "@/components/admin/staging/MediaLibrary";
 import { StagingUsersManager } from "@/components/admin/staging/StagingUsersManager";
+import { StagingLotteriesManager } from "@/components/admin/staging/LotteriesAdmin";
 import { StagingDashboard } from "@/components/admin/staging/StagingDashboard";
 import { AUTOSAVE_EVENT, RESOURCE_TO_TAB, listLocalDrafts } from "@/components/admin/staging/useDraftAutosave";
-import { Shield, Loader2, Menu, X, ChevronRight, ExternalLink, LogOut, MapPin, Newspaper, Users, Tags, Gift, Building2, Moon, Sun, Image as ImageIcon, LayoutDashboard, Mail, CalendarDays, Landmark, Map as MapIcon, Signpost, Waves, WifiOff, History } from "lucide-react";
+import { Shield, Loader2, Menu, X, ChevronRight, ExternalLink, LogOut, MapPin, Newspaper, Users, Tags, Gift, Building2, Moon, Sun, Image as ImageIcon, LayoutDashboard, Mail, CalendarDays, Landmark, Map as MapIcon, Signpost, Waves, WifiOff, History, Ticket } from "lucide-react";
 
-type TabCategory = "home" | "editorial" | "catalog" | "crm" | "system";
+type TabCategory = "home" | "editorial" | "catalog" | "data" | "crm" | "system";
 
 interface AdminTab {
   value: string;
@@ -62,7 +63,8 @@ const CATEGORY_CONFIG: Record<TabCategory, { label: string; description: string;
   home: { label: "Resumen", description: "Visión general del portal", order: 0 },
   editorial: { label: "Editorial", description: "Noticias, eventos, recintos, categorías y biblioteca de medios", order: 1 },
   catalog: { label: "Guía y lugares", description: "Provincias, municipios, destinos y playas", order: 2 },
-  crm: { label: "Comunidad", description: "Solicitudes, mensajes y participantes", order: 3 },
+  data: { label: "Indicadores", description: "Loterías y sus resultados", order: 3 },
+  crm: { label: "Comunidad", description: "Solicitudes, mensajes y participantes", order: 3.5 },
   system: { label: "Equipo", description: "Usuarios y permisos", order: 4 },
 };
 
@@ -81,6 +83,7 @@ const ADMIN_TABS: AdminTab[] = [
   { value: "playas", label: "Playas", category: "catalog", capability: "staging.panel", allowRoles: ["admin", "editor"], icon: Waves, iconClass: "text-cyan-600", render: () => <StagingBeachesManager /> },
   { value: "eventos", label: "Eventos", category: "editorial", capability: "staging.panel", allowRoles: ["admin", "editor"], icon: CalendarDays, iconClass: "text-rose-500", render: () => <StagingEventsManager /> },
   { value: "recintos", label: "Recintos", category: "editorial", capability: "staging.panel", allowRoles: ["admin", "editor"], icon: Landmark, iconClass: "text-indigo-500", render: () => <StagingVenuesManager /> },
+  { value: "loterias", label: "Loterías", category: "data", capability: "staging.panel", allowRoles: ["admin", "editor"], icon: Ticket, iconClass: "text-amber-500", render: () => <StagingLotteriesManager /> },
   { value: "solicitudes-negocios", label: "Solicitudes de negocios", category: "crm", capability: "staging.panel", allowRoles: ["admin"], icon: Building2, iconClass: "text-orange-500", render: () => <StagingEstablishmentRequestsManager /> },
   { value: "mensajes", label: "Mensajes de contacto", category: "crm", capability: "staging.panel", allowRoles: ["admin"], icon: Mail, iconClass: "text-violet-500", render: () => <StagingContactMessagesManager /> },
   { value: "sorteo", label: "Sorteo y boletín", category: "crm", capability: "staging.panel", allowRoles: ["admin"], icon: Gift, iconClass: "text-pink-500", render: () => <StagingLeadsManager /> },

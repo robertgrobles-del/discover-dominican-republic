@@ -7,12 +7,10 @@ import { toast } from "sonner";
 import { useI18n } from "@/hooks/useI18n";
 import {
   LotteryResult,
-  DEFAULT_LOTTERY_RESULTS,
   COMPANIES_LIST,
 } from "@/data/loteriasData";
 import {
   fetchLotteryResults,
-  triggerLotterySync,
   adaptResultsForView,
 } from "@/services/lotteryService";
 import { LotteryHero } from "@/components/loterias/LotteryHero";
@@ -20,21 +18,16 @@ import { LotteryToolbar } from "@/components/loterias/LotteryToolbar";
 import { LotteryCard } from "@/components/loterias/LotteryCard";
 import { LotteryChecker } from "@/components/loterias/LotteryChecker";
 import { LotteryStatsSidebar } from "@/components/loterias/LotteryStatsSidebar";
-import { useAuth } from "@/hooks/useAuth";
 
 export default function Loterias() {
   const { t, locale } = useI18n();
-  const [results, setResults] = useState<LotteryResult[]>(DEFAULT_LOTTERY_RESULTS);
+  const [results, setResults] = useState<LotteryResult[]>([]);
   const [selectedCompany, setSelectedCompany] = useState<string>("all");
   const [selectedDate, setSelectedDate] = useState<string>(() => {
     const d = new Date();
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
   });
   const [searchQuery, setSearchQuery] = useState("");
-  const [isSyncing, setIsSyncing] = useState(false);
-  const { user } = useAuth();
-  const roles = (user?.app_metadata?.roles as string[] | undefined) ?? [];
-  const isStaff = roles.includes("admin") || roles.includes("editor"); // sincronizar escribe en la base: solo el equipo
   const [, startTransition] = useTransition();
 
   // Lucky Number Checker Tool
@@ -53,31 +46,16 @@ export default function Loterias() {
           setResults(adaptResultsForView(liveData, date));
         });
       } else {
-        // Usar baseline adaptado
-        setResults(DEFAULT_LOTTERY_RESULTS);
+        setResults([]); // sin resultados reales: la lista muestra «No hay sorteos disponibles»
       }
     } catch {
-      setResults(DEFAULT_LOTTERY_RESULTS);
+      setResults([]);
     }
   };
 
   useEffect(() => {
     loadData(selectedDate, selectedCompany);
   }, [selectedDate, selectedCompany]);
-
-  const handleManualSync = async () => {
-    setIsSyncing(true);
-    toast.info("Consultando sorteos en loteriasdominicanas.com...");
-    const report = await triggerLotterySync();
-    setIsSyncing(false);
-    if (report.success) {
-      toast.success(report.message || "Resultados sincronizados con éxito 🎉");
-      loadData(selectedDate, selectedCompany);
-    } else {
-      toast.warning("Usando resultados de referencia (servidor remoto protegido por Cloudflare).");
-      loadData(selectedDate, selectedCompany);
-    }
-  };
 
   const handleTestNumber = (e: React.FormEvent) => {
     e.preventDefault();
@@ -212,8 +190,6 @@ export default function Loterias() {
               companies={COMPANIES_LIST}
               selectedCompany={selectedCompany}
               onSelectCompany={setSelectedCompany}
-              onSync={isStaff ? handleManualSync : undefined}
-              isSyncing={isSyncing}
             />
 
             {/* TOOLBAR: DATE FILTER & CHECKER */}

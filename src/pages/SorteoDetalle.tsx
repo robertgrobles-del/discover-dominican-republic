@@ -17,7 +17,7 @@ import {
 import { toast } from "sonner";
 import { useI18n } from "@/hooks/useI18n";
 import { fetchDrawDetail, DrawDetailResponse } from "@/services/lotteryService";
-import { DEFAULT_LOTTERY_RESULTS, resolveDrawSlug } from "@/data/loteriasData";
+
 
 export default function SorteoDetalle() {
   const { lotterySlug = "leidsa", drawSlug = "quiniela-pale-leidsa" } = useParams<{
@@ -49,13 +49,12 @@ export default function SorteoDetalle() {
           if (res) {
             setData(res);
           } else {
-            // Generar fallback visual de contingencia si no hay red
-            setData(createFallbackDrawData(lotterySlug, drawSlug));
+            setData(null); // sin datos reales no se muestra nada inventado
           }
         }
       } catch {
         if (isMounted) {
-          setData(createFallbackDrawData(lotterySlug, drawSlug));
+          setData(null);
         }
       } finally {
         if (isMounted) setIsLoading(false);
@@ -584,68 +583,3 @@ export default function SorteoDetalle() {
     </PageTransition>
   );
 }
-
-/** Genera datos de contingencia en caso de que la API remota no esté disponible */
-function createFallbackDrawData(lotterySlug: string, drawSlug: string): DrawDetailResponse {
-  const match = DEFAULT_LOTTERY_RESULTS.find(
-    (r) => r.company === lotterySlug && (r.drawSlug === drawSlug || resolveDrawSlug(r.company, r.drawName) === drawSlug)
-  ) || DEFAULT_LOTTERY_RESULTS[0];
-
-  const today = new Date();
-  const mockResults = [0, 1, 2, 3, 4, 5, 6].map((offset) => {
-    const d = new Date(today);
-    d.setDate(d.getDate() - offset);
-    const dateStr = d.toISOString().split("T")[0];
-    return {
-      id: `fallback-${drawSlug}-${dateStr}`,
-      draw_id: `draw-${drawSlug}`,
-      draw_date: dateStr,
-      winning_numbers: match.winningNumbers.map((n) => Number(n)),
-      bonus_number: match.bonusNumber ?? null,
-      jackpot_amount: match.jackpotOrExtra ?? null,
-    };
-  });
-
-  return {
-    lottery: {
-      id: `lot-${lotterySlug}`,
-      slug: lotterySlug,
-      name: match.companyName,
-      country: "República Dominicana",
-      logo_url: null,
-      website_url: null,
-      description: null,
-      color_scheme: match.colorScheme,
-    },
-    draw: {
-      id: `draw-${drawSlug}`,
-      lottery_id: `lot-${lotterySlug}`,
-      slug: drawSlug,
-      name: match.drawName,
-      draw_days: ["lunes", "martes", "miercoles", "jueves", "viernes", "sabado", "domingo"],
-      draw_time: match.drawTime,
-      ball_range_min: 0,
-      ball_range_max: 99,
-      number_of_balls: match.winningNumbers.length,
-      tombolas_count: match.winningNumbers.length,
-      has_bonus: Boolean(match.bonusNumber),
-      bonus_name: match.bonusNumber ? "Bolo Extra" : null,
-      description: `Histórico oficial de sorteos de ${match.drawName}.`,
-      schedule_description: `Transmisión oficial diaria: ${match.drawTime}.`,
-    },
-    results: mockResults,
-    stats: {
-      total_draws: mockResults.length,
-      hot_numbers: match.winningNumbers.map((n, i) => ({ number: n, count: 12 - i * 2, percentage: 65 - i * 10 })),
-      cold_numbers: [{ number: "07", count: 2, percentage: 10 }, { number: "13", count: 1, percentage: 5 }],
-      latest_result: mockResults[0],
-    },
-    related_draws: DEFAULT_LOTTERY_RESULTS.filter((r) => r.company === lotterySlug && r.drawName !== match.drawName).map((r) => ({
-      id: r.id,
-      slug: r.drawSlug || resolveDrawSlug(r.company, r.drawName),
-      name: r.drawName,
-      draw_time: r.drawTime,
-    })),
-  };
-}
-

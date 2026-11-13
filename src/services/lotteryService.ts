@@ -1,5 +1,4 @@
-import { fetchApi } from "@/lib/fastifyClient";
-import { LotteryResult, DEFAULT_LOTTERY_RESULTS, resolveDrawSlug } from "@/data/loteriasData";
+import { LotteryResult, resolveDrawSlug } from "@/data/loteriasData";
 import { LotteryResultRelational, LotteryCompanyWithDraws } from "@/types/lotteryRelational";
 
 export interface DrawDetailResponse {
@@ -140,31 +139,10 @@ export async function fetchDrawDetail(
 }
 
 /**
- * Dispara la sincronización / scraping de resultados
- */
-export async function triggerLotterySync(htmlPayload?: string): Promise<{ success: boolean; syncedCount: number; message: string }> {
-  try {
-    // Con la sesión del equipo (fetchApi añade el token): la ruta exige editor o administrador.
-    const json = await fetchApi<{ data?: { success?: boolean; syncedCount?: number } }>("/admin/lotteries/sync", {
-      method: "POST",
-      body: JSON.stringify(htmlPayload ? { htmlContent: htmlPayload } : {}),
-    });
-    if (json.data?.success) {
-      return { success: true, syncedCount: json.data.syncedCount ?? 0, message: `Sincronizados ${json.data.syncedCount ?? 0} sorteos.` };
-    }
-    return { success: false, syncedCount: 0, message: "Error al sincronizar sorteos" };
-  } catch (err) {
-    return { success: false, syncedCount: 0, message: err instanceof Error ? err.message : "Error de red" };
-  }
-}
-
-/**
- * Convierte resultados relacionales o combina con DEFAULT_LOTTERY_RESULTS para la vista clásica
+ * Convierte resultados relacionales a la vista clásica (sin resultados, lista vacía)
  */
 export function adaptResultsForView(relational: LotteryResultRelational[], fallbackDate = "Hoy"): LotteryResult[] {
-  if (!relational || relational.length === 0) {
-    return DEFAULT_LOTTERY_RESULTS;
-  }
+  if (!relational || relational.length === 0) return [];
 
   return relational.map((r) => {
     const draw = r.lottery_draws;

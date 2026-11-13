@@ -5,14 +5,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createClient, type Client } from "@libsql/client";
 import { handle, hashPassword } from "./index";
-import {
-  parseEnLoteriaJsonLd,
-  parseLoteriasDominicanasHtml,
-  findDrawIdByTitle,
-  parseScrapedDate,
-  scrapeAndSyncLotteries,
-  normalizeDrawTitle,
-} from "./scraper/loterias";
+import { dueDraws, normalizeDrawTitle, parseEnLoteriaJsonLd, rdNow, scrapeAndSyncLotteries, sourceUrl } from "./scraper/loterias";
 
 const dir = mkdtempSync(join(tmpdir(), "descubre-loterias-test-"));
 let db: Client;
@@ -38,134 +31,58 @@ async function staffToken(): Promise<string> {
   return (r.body as { data: { tokens: { access_token: string } } }).data.tokens.access_token;
 }
 
+const ev = (name: string, startDate: string, nums: number[]) => JSON.stringify({ "@type": "Event", name, startDate, additionalProperty: nums.map((n) => ({ name: "Premio", value: String(n) })) });
+const page = (...events: string[]) => `<script type="application/ld+json">{ "@graph": [${events.join(",")}] }</script>`;
+
 describe("Scraper de Loterías Dominicanas", () => {
-  it("normaliza títulos de sorteos correctamente", () => {
-    expect(normalizeDrawTitle("Quiniela y Palé LEIDSA")).toBe("quiniela y pale leidsa");
+  it("normaliza títulos y calcula la hora de RD (UTC-4)", () => {
     expect(normalizeDrawTitle("Nacional Gana Más")).toBe("nacional gana mas");
+    expect(rdNow(new Date("2026-11-13T02:30:00Z"))).toEqual({ date: "2026-11-12", minutes: 22 * 60 + 30 });
   });
 
-  it("mapea títulos a slugs de sorteo conocidos", () => {
-    expect(findDrawIdByTitle("Quiniela y Palé LEIDSA")).toBe("draw-lei-quiniela");
-    expect(findDrawIdByTitle("Nacional Gana Más")).toBe("draw-nac-ganamas");
-    expect(findDrawIdByTitle("Gana Más")).toBe("draw-nac-ganamas");
-    expect(findDrawIdByTitle("Mega Chances Loteka")).toBe("draw-lot-megachances");
-    expect(findDrawIdByTitle("Real")).toBe("draw-rea-quiniela");
-    expect(findDrawIdByTitle("La Primera")).toBe("draw-pri-mediodia");
-    expect(findDrawIdByTitle("New York Tarde")).toBe("draw-ny-tarde");
+  it("usa la página de hoy o la de la fecha pedida", () => {
+    const now = new Date("2026-11-12T15:00:00Z");
+    expect(sourceUrl("2026-11-12", now)).toBe("https://enloteria.com/resultados-loterias-hoy");
+    expect(sourceUrl("2026-11-01", now)).toBe("https://enloteria.com/resultados-loterias-2026-11-01");
   });
 
-  it("parsea fechas en diferentes formatos", () => {
-    expect(parseScrapedDate("2026-11-12")).toBe("2026-11-12");
-    expect(parseScrapedDate("12-11-2026")).toBe("2026-11-12");
-    expect(parseScrapedDate("5/6/2026")).toBe("2026-06-05");
-  });
-
-  it("extrae sorteos desde JSON-LD Schema.org de enloteria.com", () => {
-    const mockJsonLd = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <script type="application/ld+json">
-          {
-            "@graph": [
-              {
-                "@type": "Event",
-                "name": "Nacional Gana Más",
-                "startDate": "2026-11-12T14:30:00-04:00",
-                "additionalProperty": [
-                  { "@type": "PropertyValue", "name": "Primer Premio", "value": "29" },
-                  { "@type": "PropertyValue", "name": "Segundo Premio", "value": "73" },
-                  { "@type": "PropertyValue", "name": "Tercer Premio", "value": "84" }
-                ]
-              },
-              {
-                "@type": "Event",
-                "name": "La Primera",
-                "startDate": "2026-11-12T12:00:00-04:00",
-                "description": "Los números ganadores son: 46, 71, 90."
-              }
-            ]
-          }
-          </script>
-        </head>
-      </html>
-    `;
-
-    const parsed = parseEnLoteriaJsonLd(mockJsonLd);
-    expect(parsed).toHaveLength(2);
-
-    expect(parsed[0].title).toBe("Nacional Gana Más");
-    expect(parsed[0].drawSlug).toBe("draw-nac-ganamas");
-    expect(parsed[0].date).toBe("2026-11-12");
-    expect(parsed[0].winningNumbers).toEqual([29, 73, 84]);
-
-    expect(parsed[1].title).toBe("La Primera");
-    expect(parsed[1].drawSlug).toBe("draw-pri-mediodia");
-    expect(parsed[1].date).toBe("2026-11-12");
-    expect(parsed[1].winningNumbers).toEqual([46, 71, 90]);
-  });
-
-  it("extrae bloques de sorteos de HTML estructurado de loteriasdominicanas.com", () => {
-    const mockHtml = `
-      <div class="game-block">
-        <div class="game-header">
-          <a href="/leidsa" class="game-title">Quiniela y Palé LEIDSA</a>
-          <div class="session-date">12-11-2026</div>
-        </div>
-        <div class="game-scores">
-          <span class="score">42</span>
-          <span class="score">18</span>
-          <span class="score">77</span>
-        </div>
-      </div>
-    `;
-
-    const parsed = parseLoteriasDominicanasHtml(mockHtml);
+  it("descarta los eventos sin números (sorteos aún no celebrados)", () => {
+    const parsed = parseEnLoteriaJsonLd(page(ev("Real", "2026-11-12T12:55:00-04:00", [46, 49, 85]), ev("Nacional Noche", "2026-11-12T21:00:00-04:00", [])));
     expect(parsed).toHaveLength(1);
-
-    expect(parsed[0].title).toBe("Quiniela y Palé LEIDSA");
-    expect(parsed[0].drawSlug).toBe("draw-lei-quiniela");
-    expect(parsed[0].date).toBe("2026-11-12");
-    expect(parsed[0].winningNumbers).toEqual([42, 18, 77]);
+    expect(parsed[0]).toMatchObject({ title: "Real", date: "2026-11-12", winningNumbers: [46, 49, 85] });
   });
 
-  it("sincroniza resultados con la base de datos mockeada", async () => {
-    const executedStmts: any[] = [];
-    const mockDb = {
-      execute: async (stmt: any) => {
-        executedStmts.push(stmt);
-        return { rows: [] };
-      },
-    };
-
-    const report = await scrapeAndSyncLotteries(mockDb, {
-      htmlContent: `
-        <script type="application/ld+json">
-        {
-          "@graph": [
-            {
-              "@type": "Event",
-              "name": "Real",
-              "startDate": "2026-11-12T12:55:00-04:00",
-              "additionalProperty": [
-                { "@type": "PropertyValue", "name": "Primer Premio", "value": "46" },
-                { "@type": "PropertyValue", "name": "Segundo Premio", "value": "49" },
-                { "@type": "PropertyValue", "name": "Tercer Premio", "value": "85" }
-              ]
-            }
-          ]
-        }
-        </script>
-      `,
+  it("valida fecha, hora, sorteo y números antes de guardar; nunca inventa resultados", async () => {
+    const now = new Date("2026-11-12T23:00:00Z"); // 19:00 en RD
+    const report = await scrapeAndSyncLotteries(db, {
+      date: "2026-11-12", now,
+      htmlContent: page(
+        ev("Real", "2026-11-12T12:55:00-04:00", [46, 49, 85]),
+        ev("La Primera", "2026-11-11T12:00:00-04:00", [1, 2, 3]),
+        ev("Nacional Noche", "2026-11-12T21:00:00-04:00", [7, 8, 9]),
+        ev("Loteka", "2026-11-12T10:55:00-04:00", [5]),
+        ev("Sorteo Desconocido", "2026-11-12T10:00:00-04:00", [1, 2, 3]),
+      ),
     });
-
-    expect(report.success).toBe(true);
-    expect(report.source).toBe("html_payload");
     expect(report.syncedCount).toBe(1);
-    expect(executedStmts.length).toBe(1);
-    expect(executedStmts[0].args[1]).toBe("draw-rea-quiniela");
-    expect(executedStmts[0].args[2]).toBe("2026-11-12");
-    expect(executedStmts[0].args[3]).toBe(JSON.stringify([46, 49, 85]));
+    const reasons = Object.fromEntries(report.skipped.map((x) => [x.title, x.reason]));
+    expect(reasons["La Primera"]).toMatch(/2026-11-11/);
+    expect(reasons["Nacional Noche"]).toMatch(/celebrado/);
+    expect(reasons["Loteka"]).toMatch(/números/);
+    expect(reasons["Sorteo Desconocido"]).toMatch(/no registrado/);
+    const rows = (await db.execute("SELECT draw_id, draw_date, winning_numbers FROM lottery_results WHERE draw_date = '2026-11-12'")).rows;
+    expect(rows).toEqual([expect.objectContaining({ draw_id: "draw-rea-quiniela", winning_numbers: "[46,49,85]" })]);
+
+    const empty = await scrapeAndSyncLotteries(db, { date: "2026-11-12", now, htmlContent: "<html></html>" });
+    expect(empty).toMatchObject({ success: false, syncedCount: 0 });
+  });
+
+  it("el cron sólo busca sorteos celebrados hace 0–5 minutos y sin resultado", async () => {
+    // Jueves 2026-11-12, 21:03 en RD: Nacional Noche (21:00) toca; Real (12:55) ya tiene resultado y no.
+    const due = await dueDraws(db, new Date("2026-11-13T01:03:00Z"));
+    expect(due).toContain("draw-nac-noche");
+    expect(due).not.toContain("draw-rea-quiniela");
+    expect(await dueDraws(db, new Date("2026-11-13T01:10:00Z"))).not.toContain("draw-nac-noche");
   });
 });
 
@@ -193,63 +110,34 @@ describe("API de Loterías (Endpoints en api/index.ts)", () => {
     expect(r.status).toBe(401);
   });
 
-  it("POST /api/v1/admin/lotteries/sync sincroniza sorteos y escribe resultados en Turso", async () => {
-    const syncRes = await handle(
-      {
-        method: "POST",
-        path: "/api/v1/admin/lotteries/sync",
-        headers: { authorization: `Bearer ${await staffToken()}` },
-        body: {
-          htmlContent: `
-            <script type="application/ld+json">
-            {
-              "@graph": [
-                {
-                  "@type": "Event",
-                  "name": "Quiniela y Palé LEIDSA",
-                  "startDate": "2026-11-12T20:55:00-04:00",
-                  "additionalProperty": [
-                    { "@type": "PropertyValue", "name": "Primer Premio", "value": "42" },
-                    { "@type": "PropertyValue", "name": "Segundo Premio", "value": "18" },
-                    { "@type": "PropertyValue", "name": "Tercer Premio", "value": "77" }
-                  ]
-                },
-                {
-                  "@type": "Event",
-                  "name": "Gana Más",
-                  "startDate": "2026-11-12T14:30:00-04:00",
-                  "additionalProperty": [
-                    { "@type": "PropertyValue", "name": "Primer Premio", "value": "29" },
-                    { "@type": "PropertyValue", "name": "Segundo Premio", "value": "73" },
-                    { "@type": "PropertyValue", "name": "Tercer Premio", "value": "84" }
-                  ]
-                }
-              ]
-            }
-            </script>
-          `,
-        },
-      },
-      db,
-      SECRET
-    );
-
+  it("POST /api/v1/admin/lotteries/sync guarda un día pasado y rechaza fechas futuras", async () => {
+    const auth = { authorization: `Bearer ${await staffToken()}` };
+    const html = page(ev("Leidsa", "2026-11-10T20:55:00-04:00", [42, 18, 77]), ev("Nacional Gana Más", "2026-11-10T14:30:00-04:00", [29, 73, 84]));
+    const syncRes = await handle({ method: "POST", path: "/api/v1/admin/lotteries/sync", headers: auth, body: { date: "2026-11-10", htmlContent: html } }, db, SECRET, false);
     expect(syncRes.status).toBe(200);
-    const body = syncRes.body as { data: { success: boolean; syncedCount: number } };
-    expect(body.data.success).toBe(true);
-    expect(body.data.syncedCount).toBe(2);
+    expect((syncRes.body as { data: { syncedCount: number } }).data.syncedCount).toBe(2);
 
-    // Verificar que GET /lotteries/results devuelve los nuevos resultados sincronizados
-    const resultsRes = await handle(
-      { method: "GET", path: "/api/v1/lotteries/results", headers: {}, body: {}, query: { date: "2026-11-12" } },
-      db,
-      SECRET
-    );
+    const future = await handle({ method: "POST", path: "/api/v1/admin/lotteries/sync", headers: auth, body: { date: "2999-01-01" } }, db, SECRET, false);
+    expect(future.status).toBe(422);
 
-    expect(resultsRes.status).toBe(200);
-    const resultsBody = resultsRes.body as { data: any[] };
-    expect(resultsBody.data.length).toBe(2);
-    expect(resultsBody.data[0].winning_numbers).toBeDefined();
+    const resultsRes = await handle({ method: "GET", path: "/api/v1/lotteries/results", headers: {}, body: {}, query: { date: "2026-11-10" } }, db, SECRET);
+    expect((resultsRes.body as { data: unknown[] }).data.length).toBe(2);
+  });
+
+  it("el panel crea una lotería y un sorteo con validación", async () => {
+    const auth = { authorization: `Bearer ${await staffToken()}` };
+    const lot = await handle({ method: "POST", path: "/api/v1/admin/lotteries", headers: auth, body: { name: "Lotería Prueba", slug: "loteria-prueba", is_active: true } }, db, SECRET, false);
+    expect(lot.status).toBe(201);
+    const lotteryId = (lot.body as { data: { id: string } }).data.id;
+    const bad = await handle({ method: "POST", path: "/api/v1/admin/lottery-draws", headers: auth, body: { lottery_id: lotteryId, name: "X", slug: "x-prueba", draw_days: ["lunes"], draw_time: "25:00" } }, db, SECRET, false);
+    expect(bad.status).toBe(422);
+    const draw = await handle({ method: "POST", path: "/api/v1/admin/lottery-draws", headers: auth, body: { lottery_id: lotteryId, name: "Prueba Noche", slug: "prueba-noche", source_name: "Prueba Noche", draw_days: ["lunes", "viernes"], draw_time: "20:00", number_of_balls: 3, is_active: true } }, db, SECRET, false);
+    expect(draw.status).toBe(201);
+    expect((draw.body as { data: { draw_days: string } }).data.draw_days).toBe('["lunes","viernes"]');
+    const locked = await handle({ method: "DELETE", path: `/api/v1/admin/lotteries/${lotteryId}`, headers: auth, body: {} }, db, SECRET, false);
+    expect(locked.status).toBe(409);
+    const anon = await handle({ method: "POST", path: "/api/v1/admin/lotteries", headers: {}, body: { name: "Y", slug: "y" } }, db, SECRET, false);
+    expect(anon.status).toBe(401);
   });
 
   it("GET /api/v1/lotteries/:slug devuelve detalle y sorteos de una empresa", async () => {
