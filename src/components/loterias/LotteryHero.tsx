@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { useI18n } from "@/hooks/useI18n";
-import { Sparkles, RefreshCw, Clock, Trophy, ShieldCheck, Zap, BarChart3, CheckCircle2, ChevronRight } from "lucide-react";
+import { RefreshCw, ShieldCheck, Zap, BarChart3, Sparkles, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
 
 interface LotteryHeroProps {
@@ -11,114 +11,88 @@ interface LotteryHeroProps {
   isSyncing?: boolean;
 }
 
-export function LotteryHero({
-  companies,
-  selectedCompany,
-  onSelectCompany,
-  onSync,
-  isSyncing,
-}: LotteryHeroProps) {
+// Bolos decorativos sin número: la portada nunca muestra números de ejemplo (regla de AGENTS.md).
+const BALL = {
+  blue: "from-sky-300 via-blue-500 to-blue-700",
+  gold: "from-yellow-200 via-amber-400 to-amber-600",
+  red: "from-rose-300 via-red-500 to-red-700",
+  green: "from-emerald-200 via-emerald-500 to-emerald-700",
+  purple: "from-violet-300 via-purple-500 to-purple-700",
+} as const;
+
+function Ball({ color, className }: { color: keyof typeof BALL; className: string }) {
+  return (
+    <span aria-hidden className={`absolute rounded-full bg-gradient-to-br ${BALL[color]} shadow-lg ring-1 ring-white/60 ${className}`}>
+      <span className="absolute left-[22%] top-[14%] h-[22%] w-[34%] rounded-full bg-white/70 blur-[1px]" />
+      <span className="absolute inset-[28%] rounded-full bg-white/90" />
+    </span>
+  );
+}
+
+const PILLARS = [
+  { icon: ShieldCheck, title: "Validados", text: "Fecha, cantidad y rango comprobados", tone: "bg-emerald-100 text-emerald-700" },
+  { icon: Zap, title: "Al instante", text: "Minutos después del sorteo", tone: "bg-sky-100 text-sky-700" },
+  { icon: BarChart3, title: "Estadísticas", text: "Calientes y fríos", tone: "bg-amber-100 text-amber-700" },
+  { icon: Sparkles, title: "Comprobador", text: "Verifica tu jugada", tone: "bg-violet-100 text-violet-700" },
+];
+
+export function LotteryHero({ companies, selectedCompany, onSelectCompany, onSync, isSyncing }: LotteryHeroProps) {
   const { t } = useI18n();
 
   return (
-    <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 border border-white/10 text-white p-6 sm:p-10 lg:p-12 shadow-2xl">
-      {/* Background ambient lighting effects */}
-      <div className="absolute -top-32 -left-32 w-[500px] h-[500px] bg-blue-600/15 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute -bottom-32 -right-32 w-[500px] h-[500px] bg-amber-500/15 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-white/5 via-transparent to-transparent pointer-events-none" />
+    <div className="relative overflow-hidden rounded-3xl border border-sky-100 bg-gradient-to-br from-white via-sky-50 to-blue-100 p-6 text-slate-900 shadow-xl sm:p-10 lg:p-12">
+      <div aria-hidden className="pointer-events-none absolute -right-24 -top-24 h-96 w-96 rounded-full bg-sky-200/50 blur-3xl" />
+      <div aria-hidden className="pointer-events-none absolute -bottom-32 left-1/3 h-80 w-80 rounded-full bg-amber-200/40 blur-3xl" />
 
-      <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
-        {/* Left Column: Editorial Presentation (7 cols) */}
-        <div className="lg:col-span-7 space-y-6">
-          {/* Top Badges & Real-time Indicator */}
+      <div className="relative z-10 grid grid-cols-1 items-center gap-8 lg:grid-cols-12 lg:gap-12">
+        <div className="space-y-6 lg:col-span-7">
           <div className="flex flex-wrap items-center gap-2.5">
-            <Badge className="bg-primary/20 text-primary border border-primary/30 backdrop-blur-md font-bold uppercase tracking-widest text-3xs px-3 py-1">
+            <Badge className="border border-blue-200 bg-blue-600 px-3 py-1 text-3xs font-bold uppercase tracking-widest text-white hover:bg-blue-600">
               🇩🇴 {t("lottery.badge")}
             </Badge>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-3xs font-semibold bg-white/10 backdrop-blur-md border border-white/15 text-white/90">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span>Resultados del día, actualizados tras cada sorteo</span>
-            </div>
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-sky-200 bg-white/80 px-3 py-1 text-3xs font-semibold text-slate-700">
+              <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
+              Resultados del día, actualizados tras cada sorteo
+            </span>
             {onSync && (
-              <button
-                onClick={onSync}
-                disabled={isSyncing}
-                className="ml-auto text-xs bg-white/10 hover:bg-white/20 border border-white/15 px-3.5 py-1 rounded-full text-slate-200 transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
-              >
+              <button type="button" onClick={onSync} disabled={isSyncing}
+                className="ml-auto flex items-center gap-1.5 rounded-full border border-sky-200 bg-white px-3.5 py-1 text-xs text-slate-700 transition hover:bg-sky-50 disabled:opacity-50">
                 <RefreshCw className={`h-3 w-3 ${isSyncing ? "animate-spin" : ""}`} />
-                <span>{isSyncing ? t("common.loading") : t("lottery.refresh")}</span>
+                {isSyncing ? t("common.loading") : t("lottery.refresh")}
               </button>
             )}
           </div>
 
-          {/* Main Title & Subtitle */}
           <div className="space-y-2">
-            <h1 className="font-display text-3xl sm:text-5xl lg:text-6xl font-black text-white leading-[1.05] tracking-tight">
+            <h1 className="font-display text-4xl font-black leading-[1.05] tracking-tight text-blue-700 sm:text-5xl lg:text-6xl">
               {t("lottery.title")}
-              <span className="block text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-yellow-200 to-amber-500 mt-1">
-                Resultados en Vivo
-              </span>
+              <span className="mt-1 block text-slate-800">Resultados de hoy</span>
             </h1>
-            <p className="text-sm sm:text-base text-slate-300 leading-relaxed max-w-xl font-normal pt-1">
-              {t("lottery.subtitle")}
-            </p>
+            <p className="max-w-xl pt-1 text-sm leading-relaxed text-slate-600 sm:text-base">{t("lottery.subtitle")}</p>
           </div>
 
-          {/* 4 Professional Trust Pillars (inspired by high-end gaming platforms) */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
-            <div className="p-3 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm space-y-1">
-              <div className="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
-                <ShieldCheck className="h-4 w-4" />
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {PILLARS.map(({ icon: Icon, title, text, tone }) => (
+              <div key={title} className="space-y-1 rounded-2xl border border-white bg-white/80 p-3 shadow-sm">
+                <span className={`flex h-8 w-8 items-center justify-center rounded-full ${tone}`}><Icon className="h-4 w-4" /></span>
+                <span className="block text-xs font-bold text-slate-900">{title}</span>
+                <span className="block text-3xs leading-tight text-slate-500">{text}</span>
               </div>
-              <span className="font-bold text-xs text-white block">Validados</span>
-              <span className="text-3xs text-slate-400 block leading-tight">Fecha, cantidad y rango comprobados</span>
-            </div>
-
-            <div className="p-3 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm space-y-1">
-              <div className="w-7 h-7 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center">
-                <Zap className="h-4 w-4" />
-              </div>
-              <span className="font-bold text-xs text-white block">Al Instante</span>
-              <span className="text-3xs text-slate-400 block leading-tight">Minutos después del sorteo</span>
-            </div>
-
-            <div className="p-3 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm space-y-1">
-              <div className="w-7 h-7 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center">
-                <BarChart3 className="h-4 w-4" />
-              </div>
-              <span className="font-bold text-xs text-white block">Estadísticas</span>
-              <span className="text-3xs text-slate-400 block leading-tight">Calientes y fríos</span>
-            </div>
-
-            <div className="p-3 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm space-y-1">
-              <div className="w-7 h-7 rounded-lg bg-purple-500/20 text-purple-400 flex items-center justify-center">
-                <Sparkles className="h-4 w-4" />
-              </div>
-              <span className="font-bold text-xs text-white block">Comprobador</span>
-              <span className="text-3xs text-slate-400 block leading-tight">Verificación rápida</span>
-            </div>
+            ))}
           </div>
 
-          {/* Company Filter Pills */}
-          <div className="pt-2">
-            <span className="text-3xs uppercase tracking-widest font-bold text-slate-400 mb-2.5 block">
-              Filtrar por Lotería Oficial
-            </span>
+          <div>
+            <span className="mb-2.5 block text-3xs font-bold uppercase tracking-widest text-slate-500">Filtrar por lotería</span>
             <div className="flex flex-wrap gap-2">
               {companies.map((comp) => {
                 const isSelected = selectedCompany === comp.id;
                 return (
-                  <button
-                    key={comp.id}
-                    onClick={() => onSelectCompany(comp.id)}
-                    className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                      isSelected
-                        ? "bg-primary text-primary-foreground shadow-lg shadow-primary/25 scale-[1.03] ring-2 ring-primary/40"
-                        : "bg-white/10 text-slate-200 hover:bg-white/20 border border-white/10 backdrop-blur-sm hover:scale-[1.01]"
-                    }`}
-                  >
-                    <span className="text-sm select-none">{comp.logo}</span>
-                    <span>{comp.name}</span>
+                  <button key={comp.id} type="button" onClick={() => onSelectCompany(comp.id)} aria-pressed={isSelected}
+                    className={`flex items-center gap-1.5 rounded-xl px-3.5 py-1.5 text-xs font-bold transition ${
+                      isSelected ? "bg-blue-600 text-white shadow-md shadow-blue-600/25" : "border border-sky-200 bg-white text-slate-700 hover:border-blue-300 hover:bg-sky-50"
+                    }`}>
+                    <span className="select-none text-sm">{comp.logo}</span>
+                    {comp.name}
                   </button>
                 );
               })}
@@ -126,39 +100,30 @@ export function LotteryHero({
           </div>
         </div>
 
-        {/* Right Column: 3D Live Lottery Cockpit Widget (5 cols) */}
-        <div className="hidden lg:flex lg:col-span-5 flex-col items-center justify-center">
-          <div className="w-full max-w-sm rounded-3xl border border-white/20 bg-gradient-to-b from-white/15 via-white/10 to-slate-950/60 backdrop-blur-2xl p-6 shadow-2xl relative overflow-hidden space-y-5">
-            {/* Glossy top reflection */}
-            <div className="absolute top-0 inset-x-0 h-28 bg-gradient-to-b from-white/15 to-transparent pointer-events-none" />
-
-            {/* Header of Cockpit Card */}
-            <div className="flex items-center justify-between pb-3 border-b border-white/15 relative z-10">
-              <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
-                <span className="text-xs font-mono font-bold tracking-wider text-white">LOTERÍAS RD EN VIVO</span>
-              </div>
+        {/* Bombo con bolos (decorativo) */}
+        <div className="hidden flex-col items-center lg:col-span-5 lg:flex">
+          <div className="relative h-80 w-80">
+            <div aria-hidden className="absolute inset-x-8 top-4 h-64 rounded-full border-4 border-white/90 bg-gradient-to-br from-white/70 via-sky-100/40 to-blue-200/50 shadow-[inset_0_-20px_40px_rgba(59,130,246,0.25)]">
+              <Ball color="gold" className="left-16 top-28 h-14 w-14" />
+              <Ball color="blue" className="left-28 top-36 h-14 w-14" />
+              <Ball color="red" className="left-40 top-24 h-12 w-12" />
+              <Ball color="green" className="left-10 top-44 h-12 w-12" />
+              <Ball color="purple" className="left-36 top-44 h-12 w-12" />
+              <span className="absolute left-10 top-6 h-16 w-24 rotate-[-25deg] rounded-full bg-white/60 blur-md" />
             </div>
-
-            <div className="space-y-2 relative z-10 text-center">
-              <p className="text-sm text-slate-200">Los números de cada sorteo aparecen aquí unos minutos después de celebrarse.</p>
-              <Link to="/loterias/juego-responsable" className="text-xs font-semibold text-amber-300 hover:underline">Juega con responsabilidad</Link>
-            </div>
-
-            {/* Bottom Verification Footer */}
-            <div className="pt-3 border-t border-white/15 flex items-center justify-between text-2xs text-slate-300 relative z-10">
-              <span className="flex items-center gap-1 font-medium">
-                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
-                No vendemos boletos ni recibimos apuestas
-              </span>
-              <Link to="/loterias/como-se-gana" className="text-primary hover:underline font-bold flex items-center gap-0.5">
-                Reglas <ChevronRight className="h-3 w-3" />
-              </Link>
-            </div>
+            <div aria-hidden className="absolute bottom-6 left-1/2 h-6 w-40 -translate-x-1/2 rounded-full bg-blue-600 shadow-lg" />
+            <div aria-hidden className="absolute bottom-10 left-1/2 h-8 w-6 -translate-x-1/2 bg-blue-500" />
+            <Ball color="blue" className="-left-2 bottom-0 h-20 w-20" />
+            <Ball color="gold" className="left-24 -bottom-4 h-16 w-16" />
+            <Ball color="purple" className="-right-2 bottom-2 h-20 w-20" />
           </div>
+          <div className="mt-6 flex items-center gap-4 text-xs">
+            <Link to="/loterias/como-se-gana" className="flex items-center gap-0.5 font-bold text-blue-700 hover:underline">Cómo se gana <ChevronRight className="h-3 w-3" /></Link>
+            <Link to="/loterias/juego-responsable" className="flex items-center gap-0.5 font-bold text-amber-700 hover:underline">Juego responsable <ChevronRight className="h-3 w-3" /></Link>
+          </div>
+          <p className="mt-2 text-2xs text-slate-500">No vendemos boletos ni recibimos apuestas.</p>
         </div>
       </div>
     </div>
   );
 }
-
