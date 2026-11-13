@@ -995,7 +995,7 @@ const AIRPORTS = ["aeropuerto-internacional-de-punta-cana", "aeropuerto-internac
 const PORTS = ["sans-souci", "amber-cove", "taino-bay", "cabo-rojo", "la-romana", "puerto-caucedo", "puerto-haina", "manzanillo"];
 const MARINAS = ["casa-de-campo", "cap-cana", "ocean-world", "marina-zar-par", "puerto-bahia", "luperon"];
 export const STATIC_PAGES = [
-  "/eventos", "/playas", "/loterias", "/requisitos-viaje", "/e-ticket", "/aeropuerto", ...AIRPORTS.map((x) => `/aeropuerto/${x}`),
+  "/eventos", "/playas", "/loterias", "/loterias/como-se-gana", "/loterias/juego-responsable", "/requisitos-viaje", "/e-ticket", "/aeropuerto", ...AIRPORTS.map((x) => `/aeropuerto/${x}`),
   "/puertos-marinas", ...PORTS.map((x) => `/puerto/${x}`), ...MARINAS.map((x) => `/marina/${x}`),
   "/provincias", "/negocios", "/anunciate", "/registra-tu-negocio", "/contacto", "/privacidad", "/terminos",
 ];
@@ -1185,6 +1185,8 @@ function llmsTxt(rows: NewsRow[], extras: PublicExtras = { events: [], businesse
     + `- [Puertos de cruceros y marinas](${siteUrl()}/puertos-marinas): ${PORTS.length} puertos (Amber Cove, Taíno Bay, Sans Souci, Cabo Rojo…) y ${MARINAS.length} marinas (Cap Cana, Casa de Campo, Ocean World…).\n`
     + `- [Playas de República Dominicana](${siteUrl()}/playas): directorio de playas por provincia, tipo de arena, oleaje, actividades y servicios.\n`
     + `- [Loterías Dominicanas](${siteUrl()}/loterias): resultados oficiales en vivo de LEIDSA, Lotería Nacional, LOTEKA, Real, La Primera, New York y Florida.\n`
+    + `- [Cómo se gana en cada lotería](${siteUrl()}/loterias/como-se-gana): reglas por sorteo (cuántos números salen, rango y jugadas).\n`
+    + `- [Juego responsable](${siteUrl()}/loterias/juego-responsable): consejos, señales de alerta y dónde pedir ayuda en RD.\n`
     + `- [Eventos en República Dominicana](${siteUrl()}/eventos): conciertos, festivales y deportes con fecha, lugar y provincia.\n`
     + `- [Directorio de negocios turísticos](${siteUrl()}/negocios): negocios y servicios turísticos por provincia.\n\n`
     + `## Opcional\n\n- [Todas las noticias en un solo archivo](${siteUrl()}/llms-full.txt)\n`
@@ -1648,7 +1650,7 @@ function getIndicatorsDb(mainDb: Client): Client {
 
 async function handleGetLotteries(db: Client, dateParam?: string): Promise<ApiResponse> {
   const lotteriesRes = await db.execute("SELECT id, slug, name, country, logo_url, website_url, description, color_scheme, is_active FROM lotteries WHERE is_active = 1 ORDER BY name COLLATE NOCASE");
-  const drawsRes = await db.execute("SELECT id, lottery_id, slug, name, draw_days, draw_time, ball_range_min, ball_range_max, number_of_balls, tombolas_count, has_bonus, bonus_name, is_active FROM lottery_draws WHERE is_active = 1 ORDER BY draw_time");
+  const drawsRes = await db.execute("SELECT id, lottery_id, slug, name, draw_days, draw_time, ball_range_min, ball_range_max, number_of_balls, tombolas_count, has_bonus, bonus_name, schedule_description, how_to_play, is_active FROM lottery_draws WHERE is_active = 1 ORDER BY draw_time");
 
   const resultsRes = dateParam
     ? await db.execute({ sql: "SELECT id, draw_id, draw_date, winning_numbers, bonus_number, jackpot_amount FROM lottery_results WHERE draw_date = ? AND is_active = 1", args: [dateParam] })
@@ -1690,6 +1692,8 @@ async function handleGetLotteries(db: Client, dateParam?: string): Promise<ApiRe
       tombolas_count: Number(d.tombolas_count),
       has_bonus: Boolean(d.has_bonus),
       bonus_name: d.bonus_name ? String(d.bonus_name) : null,
+      schedule_description: d.schedule_description ? String(d.schedule_description) : null,
+      how_to_play: d.how_to_play ? String(d.how_to_play) : null,
       latest_result: resultsByDraw.get(String(d.id)) || null,
     });
   }
@@ -1780,7 +1784,7 @@ async function handleGetLotteryDetail(db: Client, slug: string): Promise<ApiResp
   const lot = lotRes.rows[0];
 
   const drawsRes = await db.execute({
-    sql: "SELECT id, slug, name, draw_days, draw_time, ball_range_min, ball_range_max, number_of_balls, tombolas_count, has_bonus, bonus_name, description, schedule_description FROM lottery_draws WHERE lottery_id = ? AND is_active = 1 ORDER BY draw_time",
+    sql: "SELECT id, slug, name, draw_days, draw_time, ball_range_min, ball_range_max, number_of_balls, tombolas_count, has_bonus, bonus_name, description, schedule_description, how_to_play FROM lottery_draws WHERE lottery_id = ? AND is_active = 1 ORDER BY draw_time",
     args: [lot.id],
   });
 
@@ -1828,6 +1832,7 @@ async function handleGetLotteryDetail(db: Client, slug: string): Promise<ApiResp
           bonus_name: d.bonus_name ? String(d.bonus_name) : null,
           description: d.description ? String(d.description) : null,
           schedule_description: d.schedule_description ? String(d.schedule_description) : null,
+          how_to_play: d.how_to_play ? String(d.how_to_play) : null,
         })),
         recent_results: results,
       },
@@ -1851,7 +1856,7 @@ async function handleGetDrawDetail(
 
   const drawRes = await db.execute({
     sql: `SELECT id, lottery_id, slug, name, draw_days, draw_time, ball_range_min, ball_range_max,
-                 number_of_balls, tombolas_count, has_bonus, bonus_name, description, schedule_description
+                 number_of_balls, tombolas_count, has_bonus, bonus_name, description, schedule_description, how_to_play
           FROM lottery_draws
           WHERE (slug = ? OR id = ?) AND (lottery_id = ? OR lottery_id = ?)`,
     args: [drawSlug, drawSlug, String(lot.id), `lot-${companySlug}`],
@@ -1951,6 +1956,7 @@ async function handleGetDrawDetail(
           bonus_name: draw.bonus_name ? String(draw.bonus_name) : null,
           description: draw.description ? String(draw.description) : null,
           schedule_description: draw.schedule_description ? String(draw.schedule_description) : null,
+          how_to_play: draw.how_to_play ? String(draw.how_to_play) : null,
         },
         results,
         stats: {
@@ -1985,7 +1991,7 @@ async function handleSyncLotteries(db: Client, body: Fields): Promise<ApiRespons
 async function handleLotteryCron(db: Client): Promise<ApiResponse> {
   const due = await dueDraws(db);
   if (!due.length) return { status: 200, body: { data: { due: 0 } } };
-  const report = await scrapeAndSyncLotteries(db);
+  const report = await scrapeAndSyncLotteries(db, { drawIds: due });
   return { status: 200, body: { data: { due: due.length, ...report } } };
 }
 

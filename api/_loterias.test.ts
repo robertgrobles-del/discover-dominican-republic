@@ -69,7 +69,7 @@ describe("Scraper de Loterías Dominicanas", () => {
     expect(reasons["La Primera"]).toMatch(/2026-11-11/);
     expect(reasons["Nacional Noche"]).toMatch(/celebrado/);
     expect(reasons["Loteka"]).toMatch(/números/);
-    expect(reasons["Sorteo Desconocido"]).toMatch(/no registrado/);
+    expect(reasons["1 sorteos no registrados"]).toMatch(/Sorteo Desconocido/);
     const rows = (await db.execute("SELECT draw_id, draw_date, winning_numbers FROM lottery_results WHERE draw_date = '2026-11-12'")).rows;
     expect(rows).toEqual([expect.objectContaining({ draw_id: "draw-rea-quiniela", winning_numbers: "[46,49,85]" })]);
 

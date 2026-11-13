@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { useState, useEffect, useTransition, useMemo } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -230,6 +231,10 @@ export default function Loterias() {
                 />
 
                 <LotteryStatsSidebar />
+                <nav aria-label="Más sobre loterías" className="rounded-2xl border border-border bg-card p-4 text-sm">
+                  <Link to="/loterias/como-se-gana" className="block font-semibold text-primary hover:underline">Cómo se gana en cada lotería</Link>
+                  <Link to="/loterias/juego-responsable" className="mt-2 block font-semibold text-primary hover:underline">Juego responsable</Link>
+                </nav>
               </div>
             </div>
           </div>

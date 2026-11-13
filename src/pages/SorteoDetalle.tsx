@@ -209,6 +209,14 @@ export default function SorteoDetalle() {
                       <span>{data.draw.schedule_description}</span>
                     </div>
                   )}
+
+                  {data?.draw.how_to_play && (
+                    <section aria-labelledby="como-se-gana" className="max-w-2xl rounded-2xl border border-border/80 bg-muted/30 p-4">
+                      <h2 id="como-se-gana" className="text-sm font-bold text-foreground">Cómo se gana</h2>
+                      <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{data.draw.how_to_play}</p>
+                      <Link to="/loterias/como-se-gana" className="mt-2 inline-block text-xs font-semibold text-primary hover:underline">Reglas de todas las loterías</Link>
+                    </section>
+                  )}
                 </div>
 
                 {/* Último Resultado Destacado */}

@@ -27,6 +27,7 @@ export interface DrawDetailResponse {
     bonus_name?: string | null;
     description?: string | null;
     schedule_description?: string | null;
+    how_to_play?: string | null;
   };
   results: {
     id: string;

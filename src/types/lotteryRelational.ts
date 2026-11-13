@@ -55,6 +55,8 @@ export interface LotteryCompanyWithDraws {
     tombolas_count: number;
     has_bonus: boolean;
     bonus_name?: string | null;
+    schedule_description?: string | null;
+    how_to_play?: string | null;
     latest_result?: {
       id: string;
       draw_date: string;

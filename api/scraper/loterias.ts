@@ -110,9 +110,10 @@ export async function syncResults(db: Db, parsed: ScrapedDrawResult[], date: str
   const skipped: SkippedResult[] = [];
   const errors: string[] = [];
   const otherDates = new Map<string, string[]>();
+  const unknown = new Set<string>(); // sorteos de la fuente que no están en el panel: una sola línea en el informe
   for (const res of parsed) {
     const draw = byName.get(normalizeDrawTitle(res.title));
-    if (!draw) { skipped.push({ title: res.title, reason: "Sorteo no registrado (añádelo o pon su nombre de la fuente)" }); continue; }
+    if (!draw) { unknown.add(res.title); continue; }
     if (res.date !== date) { otherDates.set(res.title, [...(otherDates.get(res.title) ?? []), res.date]); continue; }
     if (Date.parse(res.startDate) > now.getTime()) { skipped.push({ title: res.title, reason: "Aún no se ha celebrado" }); continue; }
     // Regla fija: un sorteo saca exactamente `number_of_balls` números; ni más ni menos.
@@ -137,6 +138,7 @@ export async function syncResults(db: Db, parsed: ScrapedDrawResult[], date: str
   for (const [title, dates] of otherDates) {
     skipped.push({ title, reason: dates.length === 1 ? `Es del ${dates[0]}, no del ${date}` : `${dates.length} resultados de otras fechas (${dates[dates.length - 1]} a ${dates[0]})` });
   }
+  if (unknown.size) skipped.push({ title: `${unknown.size} sorteos no registrados`, reason: `${[...unknown].join(", ")}. No se guardan: añádelos en Sorteos si los quieres.` });
   return { synced, skipped, errors };
 }
 
@@ -146,7 +148,8 @@ export function drawPageUrl(path: string, date: string, now = new Date()): strin
   return date === rdNow(now).date ? `https://enloteria.com/${path}` : `https://enloteria.com/${path}-${date}`;
 }
 
-export async function scrapeAndSyncLotteries(db: Db, options: { htmlContent?: string; date?: string; now?: Date } = {}): Promise<LotterySyncReport> {
+/** `drawIds`: sólo descarga las páginas de esos sorteos (el cron, con los que tocan); sin él, todas. */
+export async function scrapeAndSyncLotteries(db: Db, options: { htmlContent?: string; date?: string; now?: Date; drawIds?: string[] } = {}): Promise<LotterySyncReport> {
   const now = options.now ?? new Date();
   const date = options.date ?? rdNow(now).date;
   const errors: string[] = [];
@@ -156,9 +159,11 @@ export async function scrapeAndSyncLotteries(db: Db, options: { htmlContent?: st
     pages.push(options.htmlContent);
     source = "html_payload";
   } else {
-    const paths = rowsOf(await db.execute("SELECT DISTINCT source_path FROM lottery_draws WHERE is_active = 1 AND source_path IS NOT NULL AND source_path != ''"))
-      .map((r) => String(r.source_path)).filter((p) => /^[a-z0-9-]+$/.test(p));
-    const urls = [sourceUrl(date, now), ...paths.map((p) => drawPageUrl(p, date, now))];
+    const rows = rowsOf(await db.execute("SELECT id, source_path FROM lottery_draws WHERE is_active = 1"))
+      .filter((r) => !options.drawIds || options.drawIds.includes(String(r.id)));
+    const paths = [...new Set(rows.map((r) => String(r.source_path ?? "")).filter((p) => /^[a-z0-9-]+$/.test(p)))];
+    const needsGeneral = rows.some((r) => !r.source_path); // los que salen en la página general
+    const urls = [...(needsGeneral ? [sourceUrl(date, now)] : []), ...paths.map((p) => drawPageUrl(p, date, now))];
     const got = await Promise.all(urls.map(async (url) => {
       try {
         const r = await fetch(url, { headers: { "User-Agent": "DescubreRD-Loterias/1.0", Accept: "text/html" } });

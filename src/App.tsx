@@ -51,6 +51,8 @@ const NegocioDetalle = lazy(() => import("./pages/NegocioDetalle"));
 const Loterias = lazy(() => import("./pages/Loterias"));
 const LoteriaDetalle = lazy(() => import("./pages/LoteriaDetalle"));
 const SorteoDetalle = lazy(() => import("./pages/SorteoDetalle"));
+const LoteriasComoSeGana = lazy(() => import("./pages/LoteriasComoSeGana"));
+const LoteriasJuegoResponsable = lazy(() => import("./pages/LoteriasJuegoResponsable"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 /** Páginas públicas que existen en staging: la landing, noticias, eventos, requisitos de viaje, aeropuertos, puertos y marinas, y directorio de negocios. */
@@ -188,6 +190,8 @@ function AnimatedRoutes() {
             <Route path="/playa" element={<Navigate to="/playas" replace />} />
             <Route path="/playa/:slug" element={<PlayaDetalle />} />
             <Route path="/loterias" element={<Loterias />} />
+            <Route path="/loterias/como-se-gana" element={<LoteriasComoSeGana />} />
+            <Route path="/loterias/juego-responsable" element={<LoteriasJuegoResponsable />} />
             <Route path="/loteria" element={<Navigate to="/loterias" replace />} />
             <Route path="/loteria/:slug" element={<LoteriaDetalle />} />
             <Route path="/loteria/:lotterySlug/:drawSlug" element={<SorteoDetalle />} />

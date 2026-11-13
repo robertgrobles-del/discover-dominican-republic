@@ -124,11 +124,11 @@ function ListView({ kind, onEdit }: { kind: Kind; onEdit: (row: Row | "new") => 
   );
 }
 
-function Field({ id, label, value, onChange, type = "text", hint, required }: { id: string; label: string; value: string; onChange: (v: string) => void; type?: string; hint?: string; required?: boolean }) {
+function Field({ id, label, value, onChange, type = "text", hint, required, max }: { id: string; label: string; value: string; onChange: (v: string) => void; type?: string; hint?: string; required?: boolean; max?: string }) {
   return (
     <div className="space-y-1">
       <Label htmlFor={id}>{label}{required ? " *" : ""}</Label>
-      <Input id={id} type={type} value={value} onChange={(e) => onChange(e.target.value)} required={required} />
+      <Input id={id} type={type} value={value} onChange={(e) => onChange(e.target.value)} required={required} max={max} />
       {hint ? <p className="text-xs text-muted-foreground">{hint}</p> : null}
     </div>
   );
@@ -259,8 +259,10 @@ function SyncPanel() {
   const [reports, setReports] = useState<Report[]>([]);
   const run = async () => {
     if (from > to) return toast.error("La fecha inicial debe ser anterior a la final");
+    if (from > today) return toast.error("No hay resultados de días futuros: elige hoy o una fecha pasada");
+    const last = to > today ? today : to; // los días futuros aún no tienen sorteos
     const dates: string[] = [];
-    for (let d = from; d <= to && dates.length < 92; d = addDay(d)) dates.push(d);
+    for (let d = from; d <= last && dates.length < 92; d = addDay(d)) dates.push(d);
     setRunning(true);
     setReports([]);
     for (const date of dates) { // de uno en uno: cada día es una descarga y la función tiene tiempo limitado
@@ -296,8 +298,8 @@ function SyncPanel() {
       </div>
       <aside className="space-y-4">
         <Box title="Sincronizar resultados">
-          <Field id="sync-from" label="Desde" type="date" value={from} onChange={setFrom} />
-          <Field id="sync-to" label="Hasta" type="date" value={to} onChange={setTo} hint="Hasta 92 días por tanda. Para un solo día, pon la misma fecha." />
+          <Field id="sync-from" label="Desde" type="date" value={from} onChange={setFrom} max={today} />
+          <Field id="sync-to" label="Hasta" type="date" value={to} onChange={setTo} max={today} hint="Hasta 92 días por tanda. Para un solo día, pon la misma fecha." />
           <Button type="button" className="w-full" disabled={running} onClick={() => void run()}>
             {running ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
             {running ? `Sincronizando ${reports.length + 1}…` : "Sincronizar"}</Button>
