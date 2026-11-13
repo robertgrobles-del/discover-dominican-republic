@@ -228,7 +228,7 @@ export function BeachEditor({ row, onClose, onNew }: { row: Row | "new"; onClose
 
   const save = useMutation({
     mutationFn: async (nextStatus?: string) => {
-      const targetId = autosave.effectiveId ?? (id || null);
+      const targetId = (await autosave.settledId()) ?? (id || null);
       const body = buildPayload(beachSnapshot, nextStatus ?? status);
       const saved = await fetchApi<{ data: Row }>(targetId ? `/admin/beaches/${targetId}` : "/admin/beaches", {
         method: targetId ? "PUT" : "POST",
@@ -250,7 +250,7 @@ export function BeachEditor({ row, onClose, onNew }: { row: Row | "new"; onClose
   });
 
   const remove = async () => {
-    const targetId = autosave.effectiveId ?? (id || null);
+    const targetId = (await autosave.settledId()) ?? (id || null);
     if (!targetId || !window.confirm(`¿Eliminar definitivamente "${name || "esta playa"}"?`)) return;
     setDeleting(true);
     try {

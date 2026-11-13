@@ -116,7 +116,7 @@ export function PlaceEditor({ kind, row, onClose, onNew }: { kind: PlaceKind; ro
 
   const save = useMutation({
     mutationFn: async (status: string) => {
-      const targetId = autosave.effectiveId ?? id;
+      const targetId = (await autosave.settledId()) ?? id;
       const body = buildPayload(placeSnapshot, status);
       return (await fetchApi<{ data: Row }>(`/admin/${kind}${targetId ? `/${targetId}` : ""}`, { method: targetId ? "PUT" : "POST", body: JSON.stringify(body) })).data;
     },

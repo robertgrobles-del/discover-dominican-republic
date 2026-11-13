@@ -187,7 +187,7 @@ export function NewsEditor({ row, onClose, onNew }: { row: Row | "new"; onClose:
 
   const save = useMutation({
     mutationFn: async (status: "draft" | "published") => {
-      const targetId = autosave.effectiveId ?? id;
+      const targetId = (await autosave.settledId()) ?? id;
       const body = {
         ...Object.fromEntries(Object.entries(base).map(([k, v]) => [k, v || null])),
         featured: base.featured === "1", status, published_at: fromLocalInput(base.published_at),

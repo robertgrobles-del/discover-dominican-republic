@@ -379,6 +379,7 @@ export function useDraftAutosave<T>({
 
   // Ejecución de autoguardado al servidor como borrador
   const syncInFlightRef = useRef(false);
+  const syncPromiseRef = useRef<Promise<boolean> | null>(null);
   const syncDraftToServer = useCallback(async (force = false): Promise<boolean> => {
     const cur = latestRef.current;
     if (cur.disabled || syncInFlightRef.current) return false;
@@ -400,6 +401,9 @@ export function useDraftAutosave<T>({
     }
 
     syncInFlightRef.current = true;
+    let done!: (v: boolean) => void;
+    syncPromiseRef.current = new Promise<boolean>((r) => { done = r; });
+    let ok = false;
     setIsSavingAuto(true);
     setLastAutoError(null);
     const snapshotSerializedAtStart = cur.serialized;
@@ -436,6 +440,7 @@ export function useDraftAutosave<T>({
         setDirtySince(now);
         flushLocalNow(false, null);
       }
+      ok = true;
       return true;
     } catch (e) {
       const msg = e instanceof Error ? e.message : "No se pudo sincronizar el borrador";
@@ -445,6 +450,8 @@ export function useDraftAutosave<T>({
       return false;
     } finally {
       syncInFlightRef.current = false;
+      syncPromiseRef.current = null;
+      done(ok);
       setIsSavingAuto(false);
     }
   }, [flushLocalNow]);
@@ -527,9 +534,32 @@ export function useDraftAutosave<T>({
     setRecoveryDraft(null);
   }, [resource, initialId]);
 
+  /**
+   * ID con el que guardar a mano: espera al autoguardado en curso. Si no, «Publicar» mientras se creaba el borrador
+   * hacía un POST nuevo y el borrador quedaba suelto en la lista.
+   */
+  const settledId = useCallback(async () => {
+    if (syncPromiseRef.current) await syncPromiseRef.current;
+    return latestRef.current.effectiveId;
+  }, []);
+
+  // Tras guardar a mano, el editor cambia su estado (p. ej. status → published) en el mismo render que markSavedClean.
+  // Ese estado ya está guardado: se adopta como base para que no reaparezca como borrador local.
+  const adoptCleanRef = useRef(false);
+  useEffect(() => {
+    if (!adoptCleanRef.current) return;
+    adoptCleanRef.current = false;
+    setBaselineSerialized(serialized);
+    discardLocalDraftRecord(resource, storageId);
+    // Sin dependencias a propósito: debe correr tras el render siguiente aunque el contenido no cambie, o la
+    // bandera quedaría puesta y se tragaría la próxima edición. La bandera impide el bucle.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  });
+
   /** Llamar tras guardar o enviar a la papelera manualmente desde el editor. */
   const markSavedClean = useCallback(
     (savedId?: string | null) => {
+      adoptCleanRef.current = true;
       discardLocalDraftRecord(resource, "new");
       if (savedId) discardLocalDraftRecord(resource, savedId);
       if (effectiveId) discardLocalDraftRecord(resource, effectiveId);
@@ -568,6 +598,7 @@ export function useDraftAutosave<T>({
     restoreRecovery,
     discardRecovery,
     triggerServerDraftSave: () => syncDraftToServer(true),
+    settledId,
     markSavedClean,
   };
 }

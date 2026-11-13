@@ -97,7 +97,7 @@ export function EventEditor({ row, onClose, onNew }: { row: Row | "new"; onClose
 
   const save = useMutation({
     mutationFn: async (status: string) => {
-      const targetId = autosave.effectiveId ?? id;
+      const targetId = (await autosave.settledId()) ?? id;
       const body = { ...Object.fromEntries(FIELDS.map((k) => [k, f[k] || null])), status, is_featured: featured };
       return (await fetchApi<{ data: Row }>(`/admin/events${targetId ? `/${targetId}` : ""}`, { method: targetId ? "PUT" : "POST", body: JSON.stringify(body) })).data;
     },

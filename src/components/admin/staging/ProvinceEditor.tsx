@@ -242,7 +242,7 @@ export function ProvinceEditor({ row, onClose, onNew }: { row: Row | "new"; onCl
 
   const save = useMutation({
     mutationFn: async (status: string) => {
-      const targetId = autosave.effectiveId ?? id;
+      const targetId = (await autosave.settledId()) ?? id;
       const body = buildPayload(provinceSnapshot, status);
       return (await fetchApi<{ data: Row }>(`/admin/provinces${targetId ? `/${targetId}` : ""}`, { method: targetId ? "PUT" : "POST", body: JSON.stringify(body) })).data;
     },
