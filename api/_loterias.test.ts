@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createClient, type Client } from "@libsql/client";
 import { handle, hashPassword } from "./index";
-import { dueDraws, normalizeDrawTitle, parseEnLoteriaJsonLd, rdNow, scrapeAndSyncLotteries, sourceUrl } from "./scraper/loterias";
+import { dueDraws, isIsoDate, normalizeDrawTitle, parseEnLoteriaJsonLd, rdNow, scrapeAndSyncLotteries, sourceUrl } from "./scraper/loterias";
 
 const dir = mkdtempSync(join(tmpdir(), "descubre-loterias-test-"));
 let db: Client;
@@ -111,6 +111,27 @@ describe("API de Loterías (Endpoints en api/index.ts)", () => {
     expect(leidsa.name).toBe("LEIDSA");
     expect(Array.isArray(leidsa.draws)).toBe(true);
     expect(leidsa.draws.length).toBeGreaterThanOrEqual(3);
+  });
+
+  it("valida fechas reales, enlaces del hero y logos solo https", async () => {
+    expect(isIsoDate("2026-02-31")).toBe(false);
+    expect(isIsoDate("2024-02-29")).toBe(true);
+    const bad = await handle({ method: "GET", path: "/api/v1/lotteries", headers: {}, body: {}, query: { date: "2026-13-01" } }, db, SECRET);
+    expect(bad.status).toBe(422);
+    const auth = { authorization: `Bearer ${await staffToken()}` };
+    for (const link_url of ["/\\evil.example", "//evil.example"]) {
+      const r = await handle({ method: "POST", path: "/api/v1/admin/lottery-hero", headers: auth, body: { title: "X", link_url } }, db, SECRET, false);
+      expect(r.status).toBe(422);
+    }
+    const http = await handle({ method: "POST", path: "/api/v1/admin/lotteries", headers: auth, body: { name: "L", slug: "l-http", logo_url: "http://x.example/a.png" } }, db, SECRET, false);
+    expect(http.status).toBe(422);
+  });
+
+  it("una fila con números dañados no tumba el listado", async () => {
+    await db.execute("INSERT INTO lottery_results (id, draw_id, draw_date, winning_numbers, is_active) VALUES ('res-roto', 'draw-rea-quiniela', '2026-11-11', 'no-json', 1)");
+    const r = await handle({ method: "GET", path: "/api/v1/lotteries", headers: {}, body: {}, query: { date: "2026-11-11" } }, db, SECRET);
+    expect(r.status).toBe(200);
+    await db.execute("DELETE FROM lottery_results WHERE id = 'res-roto'");
   });
 
   it("sin sesión ni CRON_SECRET no se puede sincronizar (escribe resultados)", async () => {

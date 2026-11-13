@@ -48,7 +48,8 @@ export function rdNow(now = new Date()): { date: string; minutes: number } {
   return { date: local.slice(0, 10), minutes: Number(local.slice(11, 13)) * 60 + Number(local.slice(14, 16)) };
 }
 
-export const isIsoDate = (v: unknown): v is string => typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v) && !Number.isNaN(Date.parse(`${v}T00:00:00Z`));
+// Ida y vuelta: Date.parse acepta 2026-02-31 (lo pasa a marzo); se exige que la fecha sea la misma.
+export const isIsoDate = (v: unknown): v is string => typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v) && !Number.isNaN(Date.parse(`${v}T00:00:00Z`)) && new Date(`${v}T00:00:00Z`).toISOString().slice(0, 10) === v;
 
 export function sourceUrl(date: string, now = new Date()): string {
   return date === rdNow(now).date

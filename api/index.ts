@@ -1711,6 +1711,7 @@ async function handleGetLotteryStats(db: Client, drawId?: string, daysParam?: st
 }
 
 async function handleGetLotteries(db: Client, dateParam?: string): Promise<ApiResponse> {
+  if (dateParam && !isIsoDate(dateParam)) return err(422, "Fecha no válida: usa AAAA-MM-DD");
   const lotteriesRes = await db.execute("SELECT id, slug, name, country, logo_url, website_url, description, color_scheme, phone, address, tv_channels, founded, slogan, is_active FROM lotteries WHERE is_active = 1 ORDER BY name COLLATE NOCASE");
   const drawsRes = await db.execute("SELECT id, lottery_id, slug, name, draw_days, draw_time, ball_range_min, ball_range_max, number_of_balls, tombolas_count, has_bonus, bonus_name, schedule_description, how_to_play, logo_url, is_active FROM lottery_draws WHERE is_active = 1 ORDER BY draw_time");
 
@@ -1732,7 +1733,7 @@ async function handleGetLotteries(db: Client, dateParam?: string): Promise<ApiRe
     resultsByDraw.set(String(r.draw_id), {
       id: String(r.id),
       draw_date: String(r.draw_date),
-      winning_numbers: typeof r.winning_numbers === "string" ? (JSON.parse(r.winning_numbers) as number[]) : [],
+      winning_numbers: (() => { try { const a: unknown = JSON.parse(String(r.winning_numbers)); return Array.isArray(a) ? (a as number[]) : []; } catch { return []; } })(),
       bonus_number: r.bonus_number !== null ? Number(r.bonus_number) : null,
       jackpot_amount: r.jackpot_amount ? String(r.jackpot_amount) : null,
     });
@@ -1778,6 +1779,7 @@ async function handleGetLotteries(db: Client, dateParam?: string): Promise<ApiRe
 }
 
 async function handleGetLotteryResults(db: Client, dateParam?: string, companySlug?: string): Promise<ApiResponse> {
+  if (dateParam && !isIsoDate(dateParam)) return err(422, "Fecha no válida: usa AAAA-MM-DD");
   let sql = `
     SELECT
       r.id, r.draw_id, r.draw_date, r.winning_numbers, r.bonus_number, r.jackpot_amount, r.is_active,
@@ -2121,13 +2123,15 @@ async function listLotteryPrizes(db: Client, drawId: string): Promise<ApiRespons
 }
 
 // ---------- loterías y sorteos (panel) ----------
+/** Logos y webs de loterías: solo https:// o imagen subida al propio sitio. */
+const httpsUrl = (b: Fields, key: string) => { const v = url(b, key); return typeof v === "string" && v.startsWith("http:") ? new Error(`${key} debe empezar por https://`) : v; };
 const DAYS = ["lunes", "martes", "miercoles", "jueves", "viernes", "sabado", "domingo"];
 const lotterySpec = (b: Fields) => ({
   slug: slugOf(b, 80),
   name: () => str(b, "name", 120, true),
   country: () => str(b, "country", 80) ?? "República Dominicana",
-  logo_url: () => url(b, "logo_url"),
-  website_url: () => url(b, "website_url"),
+  logo_url: () => httpsUrl(b, "logo_url"),
+  website_url: () => httpsUrl(b, "website_url"),
   description: () => str(b, "description", 1000),
   color_scheme: () => str(b, "color_scheme", 80),
   phone: () => str(b, "phone", 80),
@@ -2142,7 +2146,7 @@ const heroSpec = (b: Fields) => ({
   prize: () => str(b, "prize", 80),
   caption: () => str(b, "caption", 200),
   draw_id: () => str(b, "draw_id", 64),
-  link_url: () => { const v = str(b, "link_url", 300); return v instanceof Error || v === null || /^(\/[^/]|https:\/\/)/.test(v) ? v : new Error("link_url: usa una ruta del sitio (/loterias/...) o un enlace https://"); },
+  link_url: () => { const v = str(b, "link_url", 300); return v instanceof Error || v === null || /^(\/(?![/\\])|https:\/\/)/.test(v) ? v : new Error("link_url: usa una ruta del sitio (/loterias/...) o un enlace https://"); },
   sort_order: () => int(b, "sort_order", 0, 999) ?? 0,
   is_active: () => bool(b, "is_active"),
 });
@@ -2173,7 +2177,7 @@ const drawSpec = (b: Fields) => ({
   description: () => str(b, "description", 1000),
   schedule_description: () => str(b, "schedule_description", 200),
   how_to_play: () => str(b, "how_to_play", 2000),
-  logo_url: () => url(b, "logo_url"),
+  logo_url: () => httpsUrl(b, "logo_url"),
   is_active: () => bool(b, "is_active"),
 });
 
