@@ -1,10 +1,10 @@
 // Panel de loterías: sorteos y loterías (lista + editor de dos columnas, como Noticias) y sincronización de resultados
 // por fecha o rango de fechas (histórico). Los datos viven en la base de indicadores (api/index.ts → lotteryAdmin).
-import { useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ArrowLeft, Loader2, RefreshCw } from "lucide-react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { fetchApi } from "@/lib/fastifyClient";
 import { HttpError } from "@/lib/httpClient";
 import { Button } from "@/components/ui/button";
@@ -55,6 +55,7 @@ export function StagingLotteriesManager() {
         </div>
       </header>
       <Summary />
+      <MissingAlert />
       <nav aria-label="Secciones de loterías" className="-mx-1 flex gap-1 overflow-x-auto border-b border-border px-1 text-sm">
         {TABS.map(([v, l]) => (
           <Link key={v} to={`/admin/loterias/${v}`} aria-current={tab === v ? "page" : undefined}
@@ -64,6 +65,32 @@ export function StagingLotteriesManager() {
       {tab === "sincronizar" ? <SyncPanel /> : tab === "resultados" ? <PrizePanel />
         : listKind ? <ListView key={listKind} kind={listKind} onEdit={(row) => navigate(`${base}/${row === "new" ? "nuevo" : encodeURIComponent(row.id)}`)} /> : null}
     </section>
+  );
+}
+
+type Missing = { draw_id: string; draw_name: string; lottery_name: string; date: string };
+
+/** Aviso de sorteos sin resultado en días pasados (últimos 14), con enlace para cargarlos a mano. */
+function MissingAlert() {
+  const { data = [] } = useQuery({ queryKey: ["staging", "lottery-missing"], queryFn: async () => (await fetchApi<{ data: Missing[] }>("/admin/lotteries/missing")).data });
+  const [all, setAll] = useState(false);
+  if (!data.length) return null;
+  const shown = all ? data : data.slice(0, 6);
+  return (
+    <div role="alert" className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-200">
+      <p className="font-semibold">Faltan {data.length} {data.length === 1 ? "resultado" : "resultados"} de días pasados</p>
+      <p className="mt-0.5 text-xs">Sorteos que debían salir y no tienen números guardados. Complétalos a mano.</p>
+      <ul className="mt-2 space-y-1">
+        {shown.map((x) => (
+          <li key={`${x.draw_id}|${x.date}`}>
+            <Link className="underline hover:no-underline" to={`/admin/loterias/resultados?sorteo=${encodeURIComponent(x.draw_id)}&fecha=${x.date}`}>
+              {x.lottery_name} · {x.draw_name} — {x.date}
+            </Link>
+          </li>
+        ))}
+      </ul>
+      {data.length > 6 ? <button type="button" className="mt-2 text-xs font-semibold underline" onClick={() => setAll((v) => !v)}>{all ? "Ver menos" : `Ver los ${data.length}`}</button> : null}
+    </div>
   );
 }
 
@@ -393,8 +420,15 @@ type Prize = { date: string; jackpot_amount: string | null; has_result: boolean;
 /** Resultados y premios a mano por sorteo y fecha: para los sorteos que la fuente no publica y para los premios. */
 function PrizePanel() {
   const { data: draws = [] } = useRows("lottery-draws");
-  const [drawId, setDrawId] = useState("");
-  const [date, setDate] = useState(rdToday());
+  const [params] = useSearchParams();
+  const qc = useQueryClient();
+  const [drawId, setDrawId] = useState(params.get("sorteo") ?? "");
+  const [date, setDate] = useState(params.get("fecha") ?? rdToday());
+  useEffect(() => {
+    const d = params.get("sorteo"), f = params.get("fecha");
+    if (d) setDrawId(d);
+    if (f) setDate(f);
+  }, [params]);
   const [amount, setAmount] = useState("");
   const [numbers, setNumbers] = useState("");
   const [bonus, setBonus] = useState("");
@@ -412,7 +446,7 @@ function PrizePanel() {
     mutationFn: () => fetchApi("/admin/lotteries/result", { method: "POST", body: JSON.stringify({
       draw_id: drawId, date, numbers: numbers.split(/[\s,;-]+/).filter(Boolean).map(Number), bonus_number: bonus.trim() === "" ? null : Number(bonus),
     }) }),
-    onSuccess: () => { toast.success("Resultado publicado"); void prizes.refetch(); },
+    onSuccess: () => { toast.success("Resultado publicado"); void prizes.refetch(); void qc.invalidateQueries({ queryKey: ["staging", "lottery-missing"] }); },
     onError: (e) => toast.error(apiMessage(e)),
   });
   const pick = (p: Prize) => { setDate(p.date); setAmount(p.jackpot_amount ?? ""); setNumbers(p.winning_numbers.join(" ")); setBonus(p.bonus_number === null ? "" : String(p.bonus_number)); };

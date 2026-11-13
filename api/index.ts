@@ -2110,6 +2110,34 @@ async function setManualResult(db: Client, body: Fields): Promise<ApiResponse> {
   return { status: 200, body: { data: { draw_id: drawId, date, winning_numbers: nums, bonus_number: bonus } } };
 }
 
+const MISSING_DAYS = 14;
+const WEEKDAYS = ["domingo", "lunes", "martes", "miercoles", "jueves", "viernes", "sabado"];
+
+/**
+ * Sorteos activos sin resultado en un día pasado en que debían salir (últimos 14 días), para completarlos a mano.
+ * Solo cuenta desde el primer resultado guardado de cada sorteo: un sorteo cuyo histórico nunca se importó no avisa.
+ */
+async function missingLotteryResults(db: Client, today: string): Promise<ApiResponse> {
+  const [draws, results] = await Promise.all([
+    db.execute("SELECT d.id, d.name, d.draw_days, l.name AS lottery_name, (SELECT MIN(draw_date) FROM lottery_results r WHERE r.draw_id = d.id AND r.is_active = 1) AS first FROM lottery_draws d JOIN lotteries l ON l.id = d.lottery_id WHERE d.is_active = 1 AND l.is_active = 1"),
+    db.execute({ sql: "SELECT draw_id, draw_date FROM lottery_results WHERE is_active = 1 AND draw_date >= date(?, ?)", args: [today, `-${MISSING_DAYS} days`] }),
+  ]);
+  const have = new Set(results.rows.map((r) => `${r.draw_id}|${r.draw_date}`));
+  const data: { draw_id: string; draw_name: string; lottery_name: string; date: string }[] = [];
+  for (let i = 1; i <= MISSING_DAYS; i++) {
+    const date = new Date(Date.parse(`${today}T12:00:00Z`) - i * 86_400_000).toISOString().slice(0, 10);
+    const weekday = WEEKDAYS[new Date(`${date}T12:00:00Z`).getUTCDay()];
+    for (const d of draws.rows) {
+      if (!d.first || date < String(d.first)) continue;
+      let days: unknown = [];
+      try { days = JSON.parse(String(d.draw_days ?? "[]")); } catch { /* días dañados: se trata como todos */ }
+      if (Array.isArray(days) && days.length && !days.includes(weekday)) continue;
+      if (!have.has(`${d.id}|${date}`)) data.push({ draw_id: String(d.id), draw_name: String(d.name), lottery_name: String(d.lottery_name), date });
+    }
+  }
+  return { status: 200, body: { data } };
+}
+
 async function listLotteryPrizes(db: Client, drawId: string): Promise<ApiResponse> {
   const r = await db.execute({
     sql: "SELECT draw_date, jackpot_amount, is_active, winning_numbers, bonus_number FROM lottery_results WHERE draw_id = ? AND (jackpot_amount IS NOT NULL OR is_active = 1) ORDER BY draw_date DESC LIMIT 60",
@@ -2332,6 +2360,7 @@ export async function handle(req: ApiRequest, db: Client, secret: string, secure
   if (path === "/admin/lotteries/prize" && m === "POST") {
     return manager ? setLotteryPrize(getIndicatorsDb(db), body) : err(403, "Solo un editor o administrador registra premios");
   }
+  if (path === "/admin/lotteries/missing" && m === "GET") return manager ? missingLotteryResults(getIndicatorsDb(db), rdNow().date) : err(403, "Sin permisos");
   const prizes = path.match(/^\/admin\/lotteries\/prizes\/([A-Za-z0-9-]+)$/);
   if (prizes && m === "GET") return manager ? listLotteryPrizes(getIndicatorsDb(db), prizes[1]) : err(403, "Sin permisos");
   const lot = path.match(/^\/admin\/(lotteries|lottery-draws|lottery-hero)(?:\/([A-Za-z0-9-]+))?$/);

@@ -42,7 +42,7 @@ jobs:
           npx eslint api src/components/admin/staging src/lib/stagingContent.ts src/App.tsx src/pages/AdminPanel.tsx
           src/components/DestinationsSection.tsx src/components/NewsSection.tsx src/lib/editorialApi.ts src/lib/stagingMedia.ts
 
-      - name: El esquema de Turso se crea sin errores (antes de los tests: copian este SQLite con todas las migraciones)
+      - name: El esquema de Turso se crea sin errores (antes de los tests, que copian este SQLite)
         run: |
           node staging/db.mjs build
           cp staging/descubre-staging.sqlite "$RUNNER_TEMP/ci.sqlite"

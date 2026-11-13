@@ -216,6 +216,21 @@ describe("API de Loterías (Endpoints en api/index.ts)", () => {
     expect(badRange.status).toBe(422);
   });
 
+  it("avisa de los resultados que faltan en días pasados, solo desde el primer resultado guardado", async () => {
+    const auth = { authorization: `Bearer ${await staffToken()}` };
+    const day = (n: number) => new Date(Date.parse(`${rdNow().date}T12:00:00Z`) - n * 86_400_000).toISOString().slice(0, 10);
+    // Fantasy 5 Día sale todos los días: con resultado hace 3 días, faltan los de hace 2 y 1; antes no avisa.
+    for (const [date, numbers] of [[day(3), [1, 2, 3, 4, 5]]] as const) {
+      expect((await handle({ method: "POST", path: "/api/v1/admin/lotteries/result", headers: auth, body: { draw_id: "draw-fl-fantasy5-dia", date, numbers } }, db, SECRET, false)).status).toBe(200);
+    }
+    const miss = async () => ((await handle({ method: "GET", path: "/api/v1/admin/lotteries/missing", headers: auth, body: {} }, db, SECRET)).body as { data: { draw_id: string; date: string }[] }).data
+      .filter((x) => x.draw_id === "draw-fl-fantasy5-dia").map((x) => x.date).sort();
+    expect(await miss()).toEqual([day(2), day(1)]);
+    await handle({ method: "POST", path: "/api/v1/admin/lotteries/result", headers: auth, body: { draw_id: "draw-fl-fantasy5-dia", date: day(1), numbers: [6, 7, 8, 9, 10] } }, db, SECRET, false);
+    expect(await miss()).toEqual([day(2)]);
+    expect((await handle({ method: "GET", path: "/api/v1/admin/lotteries/missing", headers: {}, body: {} }, db, SECRET)).status).toBe(401);
+  });
+
   it("el panel crea una lotería y un sorteo con validación", async () => {
     const auth = { authorization: `Bearer ${await staffToken()}` };
     const lot = await handle({ method: "POST", path: "/api/v1/admin/lotteries", headers: auth, body: { name: "Lotería Prueba", slug: "loteria-prueba", is_active: true } }, db, SECRET, false);
