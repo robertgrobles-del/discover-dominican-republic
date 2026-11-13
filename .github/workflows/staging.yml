@@ -42,14 +42,14 @@ jobs:
           npx eslint api src/components/admin/staging src/lib/stagingContent.ts src/App.tsx src/pages/AdminPanel.tsx
           src/components/DestinationsSection.tsx src/components/NewsSection.tsx src/lib/editorialApi.ts src/lib/stagingMedia.ts
 
-      - name: Tests (incluye el mini backend contra un SQLite temporal)
-        run: npm test
-
-      - name: El esquema de Turso se crea sin errores
+      - name: El esquema de Turso se crea sin errores (antes de los tests: copian este SQLite con todas las migraciones)
         run: |
           node staging/db.mjs build
           cp staging/descubre-staging.sqlite "$RUNNER_TEMP/ci.sqlite"
           TURSO_DATABASE_URL="file:$RUNNER_TEMP/ci.sqlite" node staging/db.mjs admin ci@example.com "clave-de-ci-123456" admin
+
+      - name: Tests (incluye el mini backend contra un SQLite temporal)
+        run: npm test
 
       - name: Build igual que en Vercel
         run: VITE_AUTH_SOURCE=api VITE_DATA_SOURCE=mock VITE_ALLOW_MOCK_BUILD=true VITE_STAGING_API=true npx vite build
