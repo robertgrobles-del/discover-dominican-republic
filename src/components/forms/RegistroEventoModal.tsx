@@ -1,30 +1,21 @@
+// Formulario público «Registra tu evento»: en 3 pasos y enviado a la API (POST /events/submissions).
+// El evento entra como borrador y un administrador lo revisa antes de publicarlo.
 import { Honeypot } from "@/components/forms/Honeypot";
-import { useState } from "react";
-import { 
-  Calendar, Ticket, Globe, Sparkles, Building2, 
-  Clock, MapPin, DollarSign, Image as ImageIcon,
-  Send, AlertCircle, ExternalLink, ShieldCheck
-} from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { useState, type ReactNode } from "react";
+import { ArrowLeft, ArrowRight, Building2, Check, CheckCircle2, Globe, Loader2, Send } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { useAuth } from "@/hooks/useAuth";
-import { HAS_BACKEND_SESSION } from "@/lib/authSource";
 import { fetchApi } from "@/lib/fastifyClient";
 
-import { activateOnKey } from "@/lib/a11y";
-/** Cómo se entra al evento, en el vocabulario del servidor. */
-const TICKET_MODE = { website_redirect: "external", native_checkout: "free_pass", door_only: "none" } as const;
+/** Cómo se entra al evento, en el vocabulario del servidor. La venta en Descubre RD es de una segunda etapa. */
+const TICKET_MODE = { website_redirect: "external", door_only: "none" } as const;
+type TicketOption = keyof typeof TICKET_MODE;
+const STEPS = ["El evento", "Entradas", "Organizador"] as const;
 
 interface RegistroEventoModalProps {
   open: boolean;
@@ -32,462 +23,239 @@ interface RegistroEventoModalProps {
   onOpenChange?: (open: boolean) => void;
 }
 
-export function RegistroEventoModal({ open, onClose }: RegistroEventoModalProps) {
-  const { user } = useAuth();
-  const [step, setStep] = useState<1 | 2>(1);
-  /** El evento llegó al servidor y espera la aprobación de un administrador. */
-  const [sentForReview, setSentForReview] = useState(false);
+const withHttps = (u: string) => (/^https?:\/\//i.test(u) ? u : `https://${u}`);
+
+function Field({ id, label, hint, children }: { id: string; label: string; hint?: string; children: ReactNode }) {
+  return (
+    <div className="space-y-1.5">
+      <Label htmlFor={id} className="text-sm font-medium">{label}</Label>
+      {children}
+      {hint ? <p className="text-xs text-muted-foreground">{hint}</p> : null}
+    </div>
+  );
+}
+
+export function RegistroEventoModal({ open, onClose, onOpenChange }: RegistroEventoModalProps) {
+  const [step, setStep] = useState(0); // 0-2 pasos del formulario, 3 enviado
   const [loading, setLoading] = useState(false);
 
-  // Form states
   const [eventName, setEventName] = useState("");
-  const [organizerName, setOrganizerName] = useState("");
-  const [organizerEmail, setOrganizerEmail] = useState("");
-  const [organizerPhone, setOrganizerPhone] = useState("");
   const [category, setCategory] = useState("concierto");
   const [destination, setDestination] = useState("Santo Domingo");
   const [venue, setVenue] = useState("");
   const [startDate, setStartDate] = useState("");
   const [startTime, setStartTime] = useState("18:00");
+  const [description, setDescription] = useState("");
+  const [ticketOption, setTicketOption] = useState<TicketOption>("website_redirect");
+  const [websiteTicketUrl, setWebsiteTicketUrl] = useState("");
   const [priceType, setPriceType] = useState<"free" | "paid">("paid");
   const [priceRange, setPriceRange] = useState("");
-  const [ticketSalesOption, setTicketSalesOption] = useState<"website_redirect" | "native_checkout" | "door_only">("website_redirect");
-  const [websiteTicketUrl, setWebsiteTicketUrl] = useState("");
-  const [description, setDescription] = useState("");
-  const [promotionalTier, setPromotionalTier] = useState<"standard" | "featured_banner" | "push_newsletter">("featured_banner");
+  const [organizerName, setOrganizerName] = useState("");
+  const [organizerEmail, setOrganizerEmail] = useState("");
+  const [organizerPhone, setOrganizerPhone] = useState("");
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const today = new Date(Date.now() - 4 * 3600_000).toISOString().slice(0, 10);
+
+  /** Qué falta en cada paso; null si se puede seguir. */
+  const missing = (s: number): string | null => {
+    if (s === 0) {
+      if (!eventName.trim()) return "Escribe el nombre del evento.";
+      if (!venue.trim()) return "Indica el lugar o recinto.";
+      if (!startDate) return "Elige la fecha.";
+      if (description.trim().length < 20) return "Describe el evento con al menos 20 caracteres.";
+    }
+    if (s === 1 && ticketOption === "website_redirect" && !websiteTicketUrl.trim()) return "Pega el enlace donde se compran las entradas.";
+    if (s === 2) {
+      if (!organizerName.trim()) return "Escribe el nombre del organizador.";
+      if (!/^\S+@\S+\.\S+$/.test(organizerEmail.trim())) return "Escribe un correo válido.";
+    }
+    return null;
+  };
+
+  const reset = () => {
+    setStep(0); setEventName(""); setVenue(""); setStartDate(""); setStartTime("18:00"); setDescription("");
+    setWebsiteTicketUrl(""); setPriceRange(""); setOrganizerName(""); setOrganizerEmail(""); setOrganizerPhone("");
+  };
+  const close = () => { reset(); onClose?.(); onOpenChange?.(false); };
+
+  const next = () => {
+    const m = missing(step);
+    if (m) { toast.error(m); return; }
+    setStep((s) => s + 1);
+  };
+
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!eventName.trim() || !organizerName.trim() || !organizerEmail.trim() || !venue.trim() || !startDate) {
-      toast.error("Por favor completa los campos obligatorios del evento.");
-      return;
+    if (step < 2) { next(); return; }
+    for (const s of [0, 1, 2]) {
+      const m = missing(s);
+      if (m) { setStep(s); toast.error(m); return; }
     }
-
-    if (HAS_BACKEND_SESSION) {
-      // En staging no hay cuentas de visitante: el evento entra como borrador y el equipo lo revisa.
-      if (!user && import.meta.env.VITE_STAGING_API !== "true") { toast.error("Inicia sesión para enviar tu evento a revisión."); return; }
-      if (description.trim().length < 20) { toast.error("Describe el evento con al menos 20 caracteres."); return; }
-      setLoading(true);
-      try {
-        await fetchApi("/events/submissions", {
-          method: "POST",
-          body: JSON.stringify({
-            title: eventName.trim(),
-            start_date: startDate,
-            start_time: startTime || undefined,
-            location: `${venue.trim()}, ${destination}`,
-            description: description.trim(),
-            category,
-            organizer_name: organizerName.trim(),
-            organizer_email: organizerEmail.trim(),
-            organizer_phone: organizerPhone.trim() || undefined,
-            ticket_mode: TICKET_MODE[ticketSalesOption],
-            ticket_url: ticketSalesOption === "website_redirect" && websiteTicketUrl.trim()
-              ? (websiteTicketUrl.trim().startsWith("http://") || websiteTicketUrl.trim().startsWith("https://")
-                  ? websiteTicketUrl.trim()
-                  : `https://${websiteTicketUrl.trim()}`)
-              : undefined,
-            price_info: priceType === "free" ? "Entrada libre" : priceRange.trim() || undefined,
-          }),
-        });
-        setSentForReview(true);
-        setStep(2);
-        toast.success("Evento enviado a revisión");
-      } catch (err) {
-        toast.error("No se pudo enviar el evento", { description: err instanceof Error ? err.message : undefined });
-      } finally {
-        setLoading(false);
-      }
-      return;
-    }
-
     setLoading(true);
-
     try {
-      // Save to organizer events repository in localStorage
-      const newOrganizerEvent = {
-        id: `evt-${Date.now()}`,
-        name: eventName.trim(),
-        event_type: category.charAt(0).toUpperCase() + category.slice(1),
-        province: destination,
-        venue: venue.trim(),
-        start_date: startDate,
-        start_time: startTime,
-        price_type: priceType,
-        price_range: priceType === "free" ? "Entrada Libre (Gratis)" : priceRange || "RD$ 500+",
-        status: "draft",
-        ticket_sales_option: ticketSalesOption,
-        website_ticket_url: websiteTicketUrl || null,
-        max_capacity: 500,
-        total_registered: 0,
-        organizer: organizerName.trim(),
-        image_url: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=600&fit=crop&q=80"
-      };
-
-      const existingEvents = JSON.parse(localStorage.getItem("dr_organizer_events") || "[]");
-      existingEvents.unshift(newOrganizerEvent);
-      localStorage.setItem("dr_organizer_events", JSON.stringify(existingEvents));
-
-      setStep(2);
-      toast.info("Borrador guardado en este navegador", {
-        description: "La solicitud no se envio al equipo ni se publico en el portal."
+      await fetchApi("/events/submissions", {
+        method: "POST",
+        body: JSON.stringify({
+          title: eventName.trim(),
+          start_date: startDate,
+          start_time: startTime || undefined,
+          location: `${venue.trim()}, ${destination}`,
+          description: description.trim(),
+          category,
+          organizer_name: organizerName.trim(),
+          organizer_email: organizerEmail.trim(),
+          organizer_phone: organizerPhone.trim() || undefined,
+          ticket_mode: TICKET_MODE[ticketOption],
+          ticket_url: ticketOption === "website_redirect" ? withHttps(websiteTicketUrl.trim()) : undefined,
+          price_info: priceType === "free" ? "Entrada libre" : priceRange.trim() || undefined,
+        }),
       });
+      setStep(3);
     } catch (err) {
-      toast.error("No se pudo guardar el borrador local. Intenta nuevamente.");
+      toast.error("No se pudo enviar el evento", { description: err instanceof Error ? err.message : undefined });
     } finally {
       setLoading(false);
     }
   };
 
-  const handleReset = () => {
-    setStep(1);
-    setSentForReview(false);
-    setEventName("");
-    setOrganizerName("");
-    setOrganizerEmail("");
-    setOrganizerPhone("");
-    setVenue("");
-    setStartDate("");
-    setPriceRange("");
-    setWebsiteTicketUrl("");
-    setDescription("");
-    onClose();
-  };
+  const option = (value: TicketOption, Icon: typeof Globe, title: string, text: string) => (
+    <label className={`flex cursor-pointer gap-3 rounded-xl border p-4 transition-colors ${ticketOption === value ? "border-primary bg-primary/5 ring-1 ring-primary" : "border-border hover:border-primary/40"}`}>
+      <input type="radio" name="ticket-option" className="sr-only" checked={ticketOption === value} onChange={() => setTicketOption(value)} />
+      <Icon className="mt-0.5 h-5 w-5 shrink-0 text-primary" aria-hidden />
+      <span>
+        <span className="block text-sm font-semibold text-foreground">{title}</span>
+        <span className="mt-0.5 block text-sm text-muted-foreground">{text}</span>
+      </span>
+    </label>
+  );
 
   return (
-    <Dialog open={open} onOpenChange={(isOpen) => (!isOpen ? handleReset() : undefined)}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto rounded-3xl p-6 sm:p-8 border-border bg-card">
-        {step === 1 ? (
-          <div>
-            <DialogHeader className="mb-6 text-left">
-              <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary/10 text-primary rounded-full text-xs font-semibold mb-2 w-fit">
-                <Ticket className="h-3.5 w-3.5" /> Portal B2B para Organizadores de Eventos
-              </div>
-              <DialogTitle className="font-display text-2xl font-bold text-foreground">
-                Registra tu Evento en Descubre RD
-              </DialogTitle>
-              <DialogDescription className="text-xs text-muted-foreground">
-                Gana visibilidad ante cientos de miles de turistas y dominicanos. Redirige a tu boletería oficial o activa la venta directa de taquillas.
-                <span className="block mt-2 font-medium">Vista previa local: no se envian solicitudes ni datos de contacto al equipo.</span>
-              </DialogDescription>
-            </DialogHeader>
-
-            <form onSubmit={handleSubmit} className="space-y-6"><Honeypot />
-              {/* Información Básica */}
-              <div className="space-y-4">
-                <h4 className="text-xs font-bold text-foreground uppercase tracking-wider flex items-center gap-1.5 border-b border-border/80 pb-2">
-                  <Sparkles className="h-4 w-4 text-primary" /> Datos Principales del Evento
-                </h4>
-
-                <div className="grid sm:grid-cols-2 gap-4">
-                  <div className="sm:col-span-2">
-                    <label htmlFor="registro-evento-modal-f12" className="block text-xs font-semibold text-foreground mb-1">
-                      Nombre del Evento *
-                    </label>
-                    <Input id="registro-evento-modal-f12"
-                      placeholder="Ej. Festival de Jazz Punta Cana 2026 / Concierto Sinfónico"
-                      value={eventName}
-                      onChange={(e) => setEventName(e.target.value)}
-                      required
-                      className="rounded-xl text-xs"
-                    />
-                  </div>
-
-                  <div>
-                    <label htmlFor="registro-evento-modal-f11" className="block text-xs font-semibold text-foreground mb-1">
-                      Categoría del Evento
-                    </label>
-                    <Select value={category} onValueChange={setCategory}>
-                      <SelectTrigger id="registro-evento-modal-f11" className="rounded-xl text-xs">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="concierto">Concierto / Música en Vivo</SelectItem>
-                        <SelectItem value="festival">Festival Cultural / Gastronómico</SelectItem>
-                        <SelectItem value="teatro">Teatro & Artes Escénicas</SelectItem>
-                        <SelectItem value="deportes">Torneo Deportivo / Golf / Surf</SelectItem>
-                        <SelectItem value="conferencia">Feria Comercial / Congreso (MICE)</SelectItem>
-                        <SelectItem value="vida_nocturna">Fiesta & Vida Nocturna</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <label htmlFor="registro-evento-modal-f10" className="block text-xs font-semibold text-foreground mb-1">
-                      Destino / Provincia
-                    </label>
-                    <Select value={destination} onValueChange={setDestination}>
-                      <SelectTrigger id="registro-evento-modal-f10" className="rounded-xl text-xs">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Santo Domingo">Santo Domingo / Distrito Nacional</SelectItem>
-                        <SelectItem value="Punta Cana">Punta Cana / Bávaro / Cap Cana</SelectItem>
-                        <SelectItem value="Puerto Plata">Puerto Plata / Cabarete / Sosúa</SelectItem>
-                        <SelectItem value="Samaná">Samaná / Las Terrenas</SelectItem>
-                        <SelectItem value="Santiago">Santiago de los Caballeros</SelectItem>
-                        <SelectItem value="La Romana">La Romana / Bayahibe</SelectItem>
-                        <SelectItem value="Jarabacoa">Jarabacoa / Constanza</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <label htmlFor="registro-evento-modal-f9" className="block text-xs font-semibold text-foreground mb-1">
-                      Lugar o Recinto (Venue) *
-                    </label>
-                    <Input id="registro-evento-modal-f9"
-                      placeholder="Ej. Estadio Olímpico / Anfiteatro Altos de Chavón"
-                      value={venue}
-                      onChange={(e) => setVenue(e.target.value)}
-                      required
-                      className="rounded-xl text-xs"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <label htmlFor="registro-evento-modal-f8" className="block text-xs font-semibold text-foreground mb-1">
-                        Fecha *
-                      </label>
-                      <Input id="registro-evento-modal-f8"
-                        type="date"
-                        value={startDate}
-                        onChange={(e) => setStartDate(e.target.value)}
-                        required
-                        className="rounded-xl text-xs"
-                      />
-                    </div>
-                    <div>
-                      <label htmlFor="registro-evento-modal-f7" className="block text-xs font-semibold text-foreground mb-1">
-                        Hora
-                      </label>
-                      <Input id="registro-evento-modal-f7"
-                        type="time"
-                        value={startTime}
-                        onChange={(e) => setStartTime(e.target.value)}
-                        className="rounded-xl text-xs"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Opciones de Venta de Boletas & Taquillas */}
-              <div className="space-y-4">
-                <h4 className="text-xs font-bold text-foreground uppercase tracking-wider flex items-center gap-1.5 border-b border-border/80 pb-2">
-                  <Ticket className="h-4 w-4 text-primary" /> Modalidad de Taquillas & Venta
-                </h4>
-
-                <div className="grid sm:grid-cols-3 gap-3">
-                  <div role="button" tabIndex={0} onKeyDown={activateOnKey} 
-                    onClick={() => setTicketSalesOption("website_redirect")}
-                    className={`p-3.5 rounded-2xl border text-left cursor-pointer transition-all ${
-                      ticketSalesOption === "website_redirect" 
-                        ? "border-primary bg-primary/10 ring-2 ring-primary/20 shadow-sm" 
-                        : "border-border bg-background hover:border-primary/40"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-1.5">
-                      <Globe className="h-4 w-4 text-primary" />
-                      <Badge variant="secondary" className="text-3xs">Recomendado</Badge>
-                    </div>
-                    <p className="text-xs font-bold text-foreground">Redirección a mi Web / Boletería</p>
-                    <p className="text-3xs text-muted-foreground mt-1">
-                      Uea.com, Tuboleta, TuTicket o tu propia web oficial.
-                    </p>
-                  </div>
-
-                  <div role="button" tabIndex={0} onKeyDown={activateOnKey} 
-                    onClick={() => setTicketSalesOption("native_checkout")}
-                    className={`p-3.5 rounded-2xl border text-left cursor-pointer transition-all ${
-                      ticketSalesOption === "native_checkout" 
-                        ? "border-primary bg-primary/10 ring-2 ring-primary/20 shadow-sm" 
-                        : "border-border bg-background hover:border-primary/40"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-1.5">
-                      <Ticket className="h-4 w-4 text-amber-500" />
-                      <Badge className="bg-amber-500/20 text-amber-600 dark:text-amber-400 text-3xs border-0">Segunda Etapa</Badge>
-                    </div>
-                    <p className="text-xs font-bold text-foreground">Comprar Taquillas en Descubre RD</p>
-                    <p className="text-3xs text-muted-foreground mt-1">
-                      Venta directa con tarjeta / Apple Pay integrado (Fase 2).
-                    </p>
-                  </div>
-
-                  <div role="button" tabIndex={0} onKeyDown={activateOnKey} 
-                    onClick={() => setTicketSalesOption("door_only")}
-                    className={`p-3.5 rounded-2xl border text-left cursor-pointer transition-all ${
-                      ticketSalesOption === "door_only" 
-                        ? "border-primary bg-primary/10 ring-2 ring-primary/20 shadow-sm" 
-                        : "border-border bg-background hover:border-primary/40"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-1.5">
-                      <Building2 className="h-4 w-4 text-muted-foreground" />
-                    </div>
-                    <p className="text-xs font-bold text-foreground">Venta Solo en Puerta</p>
-                    <p className="text-3xs text-muted-foreground mt-1">
-                      Venta presencial o evento de entrada libre.
-                    </p>
-                  </div>
-                </div>
-
-                {ticketSalesOption === "website_redirect" && (
-                  <div className="animate-in fade-in duration-200">
-                    <label htmlFor="registro-evento-modal-f6" className="block text-xs font-semibold text-foreground mb-1">
-                      Enlace Oficial de Compra / Sitio Web *
-                    </label>
-                    <Input id="registro-evento-modal-f6"
-                      type="url"
-                      placeholder="https://tuboleta.com.do/evento o https://mifestival.com"
-                      value={websiteTicketUrl}
-                      onChange={(e) => setWebsiteTicketUrl(e.target.value)}
-                      required={ticketSalesOption === "website_redirect"}
-                      className="rounded-xl text-xs font-mono"
-                    />
-                  </div>
-                )}
-
-                <div className="grid sm:grid-cols-2 gap-4">
-                  <div>
-                    <p className="block text-xs font-semibold text-foreground mb-1">
-                      Tipo de Entrada
-                    </p>
-                    <div className="flex gap-2">
-                      <Button
-                        type="button"
-                        variant={priceType === "paid" ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => setPriceType("paid")}
-                        className="w-1/2 text-xs rounded-xl"
-                      >
-                        De Pago
-                      </Button>
-                      <Button
-                        type="button"
-                        variant={priceType === "free" ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => setPriceType("free")}
-                        className="w-1/2 text-xs rounded-xl"
-                      >
-                        Entrada Gratis
-                      </Button>
-                    </div>
-                  </div>
-
-                  {priceType === "paid" && (
-                    <div>
-                      <label htmlFor="registro-evento-modal-f5" className="block text-xs font-semibold text-foreground mb-1">
-                        Rango de Precio Estimado
-                      </label>
-                      <Input id="registro-evento-modal-f5"
-                        placeholder="Ej. RD$ 1,500 - RD$ 4,500 / US$ 50"
-                        value={priceRange}
-                        onChange={(e) => setPriceRange(e.target.value)}
-                        className="rounded-xl text-xs"
-                      />
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Datos de Contacto del Organizador */}
-              <div className="space-y-4">
-                <h4 className="text-xs font-bold text-foreground uppercase tracking-wider flex items-center gap-1.5 border-b border-border/80 pb-2">
-                  <Building2 className="h-4 w-4 text-primary" /> Datos del Organizador o Productora
-                </h4>
-
-                <div className="grid sm:grid-cols-3 gap-4">
-                  <div>
-                    <label htmlFor="registro-evento-modal-f4" className="block text-xs font-semibold text-foreground mb-1">
-                      Empresa / Productora *
-                    </label>
-                    <Input id="registro-evento-modal-f4"
-                      placeholder="Ej. Producciones SD / Hotel Resort"
-                      value={organizerName}
-                      onChange={(e) => setOrganizerName(e.target.value)}
-                      required
-                      className="rounded-xl text-xs"
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor="registro-evento-modal-f3" className="block text-xs font-semibold text-foreground mb-1">
-                      Email de Contacto *
-                    </label>
-                    <Input id="registro-evento-modal-f3"
-                      type="email"
-                      placeholder="eventos@tuempresa.com"
-                      value={organizerEmail}
-                      onChange={(e) => setOrganizerEmail(e.target.value)}
-                      required
-                      className="rounded-xl text-xs"
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor="registro-evento-modal-f2" className="block text-xs font-semibold text-foreground mb-1">
-                      Teléfono / WhatsApp *
-                    </label>
-                    <Input id="registro-evento-modal-f2"
-                      type="tel"
-                      placeholder="+1 (809) 000-0000"
-                      value={organizerPhone}
-                      onChange={(e) => setOrganizerPhone(e.target.value)}
-                      required
-                      className="rounded-xl text-xs"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label htmlFor="registro-evento-modal-f1" className="block text-xs font-semibold text-foreground mb-1">
-                    Descripción del Evento & Artistas Invitados
-                  </label>
-                  <Textarea id="registro-evento-modal-f1"
-                    placeholder="Describe los headliners, experiencia, tipo de público y detalles que enamoren al viajero..."
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    rows={3}
-                    className="rounded-xl text-xs resize-none"
-                  />
-                </div>
-              </div>
-
-              {/* Botón de Envío */}
-              <div className="pt-2 flex items-center justify-between gap-4">
-                <Button type="button" variant="ghost" onClick={onClose} className="rounded-xl text-xs">
-                  Cancelar
-                </Button>
-                <Button 
-                  type="submit" 
-                  disabled={loading} 
-                  className="rounded-xl text-xs font-bold gap-2 px-6 h-11 bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20"
-                >
-                  <Send className="h-4 w-4" />
-                  {loading ? "Guardando borrador..." : "Guardar borrador local"}
-                </Button>
-              </div>
-            </form>
+    <Dialog open={open} onOpenChange={(isOpen) => (!isOpen ? close() : undefined)}>
+      <DialogContent className="flex max-h-[92dvh] w-[calc(100%-2rem)] max-w-xl flex-col gap-0 overflow-hidden rounded-2xl border-border bg-card p-0">
+        {step === 3 ? (
+          <div className="space-y-4 px-6 py-12 text-center sm:px-10">
+            <CheckCircle2 className="mx-auto h-14 w-14 text-emerald-600" aria-hidden />
+            <DialogTitle className="font-display text-2xl font-bold">Evento enviado</DialogTitle>
+            <DialogDescription className="mx-auto max-w-sm text-sm leading-relaxed">
+              Recibimos <strong className="text-foreground">{eventName}</strong>. El equipo lo revisará y, si lo aprueba, saldrá en la agenda de eventos.
+              Te escribiremos a {organizerEmail} si necesitamos algo más.
+            </DialogDescription>
+            <Button onClick={close} className="mt-2 px-8">Volver a Eventos</Button>
           </div>
         ) : (
-          <div className="py-8 text-center space-y-4">
-            <div className="w-16 h-16 rounded-full bg-amber-500/15 text-amber-600 flex items-center justify-center mx-auto mb-2">
-              <AlertCircle className="h-8 w-8" />
+          <form onSubmit={submit} className="flex min-h-0 flex-1 flex-col"><Honeypot />
+            <DialogHeader className="space-y-4 border-b border-border px-6 pb-5 pt-6 text-left sm:px-8">
+              <div>
+                <DialogTitle className="font-display text-2xl font-bold">Registra tu evento</DialogTitle>
+                <DialogDescription className="mt-1 text-sm">
+                  Gratis. Lo revisamos y, si encaja, lo publicamos en la agenda de Descubre RD.
+                </DialogDescription>
+              </div>
+              <ol className="flex items-center gap-2" aria-label="Pasos">
+                {STEPS.map((label, i) => (
+                  <li key={label} className="flex flex-1 items-center gap-2" aria-current={i === step ? "step" : undefined}>
+                    <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${i < step ? "bg-primary text-primary-foreground" : i === step ? "border-2 border-primary text-primary" : "border border-border text-muted-foreground"}`}>
+                      {i < step ? <Check className="h-4 w-4" aria-hidden /> : i + 1}
+                    </span>
+                    <span className={`truncate text-sm ${i === step ? "font-semibold text-foreground" : "text-muted-foreground"}`}>{label}</span>
+                  </li>
+                ))}
+              </ol>
+            </DialogHeader>
+
+            <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-6 py-6 sm:px-8">
+              {step === 0 ? <>
+                <Field id="ev-name" label="Nombre del evento">
+                  <Input id="ev-name" value={eventName} onChange={(e) => setEventName(e.target.value)} placeholder="Ej. Festival de Jazz de Punta Cana" maxLength={200} autoFocus />
+                </Field>
+                <div className="grid gap-5 sm:grid-cols-2">
+                  <Field id="ev-cat" label="Categoría">
+                    <Select value={category} onValueChange={setCategory}>
+                      <SelectTrigger id="ev-cat"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="concierto">Concierto o música en vivo</SelectItem>
+                        <SelectItem value="festival">Festival cultural o gastronómico</SelectItem>
+                        <SelectItem value="teatro">Teatro y artes escénicas</SelectItem>
+                        <SelectItem value="deportes">Deportes</SelectItem>
+                        <SelectItem value="conferencia">Feria o congreso</SelectItem>
+                        <SelectItem value="vida_nocturna">Fiesta y vida nocturna</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </Field>
+                  <Field id="ev-dest" label="Destino">
+                    <Select value={destination} onValueChange={setDestination}>
+                      <SelectTrigger id="ev-dest"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Santo Domingo">Santo Domingo</SelectItem>
+                        <SelectItem value="Punta Cana">Punta Cana y Bávaro</SelectItem>
+                        <SelectItem value="Puerto Plata">Puerto Plata, Cabarete y Sosúa</SelectItem>
+                        <SelectItem value="Samaná">Samaná y Las Terrenas</SelectItem>
+                        <SelectItem value="Santiago">Santiago</SelectItem>
+                        <SelectItem value="La Romana">La Romana y Bayahíbe</SelectItem>
+                        <SelectItem value="Jarabacoa">Jarabacoa y Constanza</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </Field>
+                </div>
+                <Field id="ev-venue" label="Lugar o recinto">
+                  <Input id="ev-venue" value={venue} onChange={(e) => setVenue(e.target.value)} placeholder="Ej. Anfiteatro de Altos de Chavón" maxLength={250} />
+                </Field>
+                <div className="grid gap-5 sm:grid-cols-2">
+                  <Field id="ev-date" label="Fecha"><Input id="ev-date" type="date" min={today} value={startDate} onChange={(e) => setStartDate(e.target.value)} /></Field>
+                  <Field id="ev-time" label="Hora (opcional)"><Input id="ev-time" type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} /></Field>
+                </div>
+                <Field id="ev-desc" label="Descripción" hint={`Artistas, público, qué se va a vivir. Mínimo 20 caracteres (${description.trim().length}).`}>
+                  <Textarea id="ev-desc" rows={5} value={description} onChange={(e) => setDescription(e.target.value)} maxLength={5000} className="resize-y" />
+                </Field>
+              </> : null}
+
+              {step === 1 ? <>
+                <fieldset className="space-y-3">
+                  <legend className="mb-1 text-sm font-medium">¿Cómo se consiguen las entradas?</legend>
+                  {option("website_redirect", Globe, "En otra web o boletería", "Uepa Tickets, Tuboleta, tu propia web… Enlazamos ahí.")}
+                  {option("door_only", Building2, "En la puerta o entrada libre", "Sin venta previa en internet.")}
+                </fieldset>
+                {ticketOption === "website_redirect" ? (
+                  <Field id="ev-url" label="Enlace de compra">
+                    <Input id="ev-url" type="url" inputMode="url" value={websiteTicketUrl} onChange={(e) => setWebsiteTicketUrl(e.target.value)} placeholder="https://…" />
+                  </Field>
+                ) : null}
+                <fieldset className="space-y-1.5">
+                  <legend className="text-sm font-medium">Precio</legend>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button type="button" variant={priceType === "paid" ? "default" : "outline"} aria-pressed={priceType === "paid"} onClick={() => setPriceType("paid")}>De pago</Button>
+                    <Button type="button" variant={priceType === "free" ? "default" : "outline"} aria-pressed={priceType === "free"} onClick={() => setPriceType("free")}>Gratis</Button>
+                  </div>
+                </fieldset>
+                {priceType === "paid" ? (
+                  <Field id="ev-price" label="Precio o rango (opcional)">
+                    <Input id="ev-price" value={priceRange} onChange={(e) => setPriceRange(e.target.value)} placeholder="Ej. RD$ 1,500 – 4,500" maxLength={120} />
+                  </Field>
+                ) : null}
+              </> : null}
+
+              {step === 2 ? <>
+                <Field id="ev-org" label="Organizador o productora">
+                  <Input id="ev-org" value={organizerName} onChange={(e) => setOrganizerName(e.target.value)} autoComplete="organization" maxLength={200} />
+                </Field>
+                <Field id="ev-email" label="Correo de contacto" hint="No se publica. Solo lo usamos para hablar contigo sobre el evento.">
+                  <Input id="ev-email" type="email" value={organizerEmail} onChange={(e) => setOrganizerEmail(e.target.value)} autoComplete="email" />
+                </Field>
+                <Field id="ev-phone" label="Teléfono o WhatsApp (opcional)">
+                  <Input id="ev-phone" type="tel" value={organizerPhone} onChange={(e) => setOrganizerPhone(e.target.value)} autoComplete="tel" placeholder="+1 809 000 0000" />
+                </Field>
+              </> : null}
             </div>
-            <h3 className="font-display text-2xl font-bold text-foreground">
-              {sentForReview ? "Evento enviado a revisión" : "Borrador local creado"}
-            </h3>
-            <p className="text-xs text-muted-foreground max-w-md mx-auto leading-relaxed">
-              {sentForReview
-                ? <>Recibimos <strong>{eventName}</strong>. Todavía no es público: un administrador lo revisará y, si lo aprueba, aparecerá en la agenda de eventos.</>
-                : <>El borrador de <strong>{eventName}</strong> solo está guardado en este navegador. No se envió al equipo ni se publicará.</>}
-            </p>
-            <Button onClick={handleReset} className="rounded-xl text-xs font-bold px-8 mt-4">
-              Entendido, volver a Eventos
-            </Button>
-          </div>
+
+            <div className="flex items-center justify-between gap-3 border-t border-border px-6 py-4 sm:px-8">
+              {step === 0
+                ? <Button type="button" variant="ghost" onClick={close}>Cancelar</Button>
+                : <Button type="button" variant="ghost" onClick={() => setStep((s) => s - 1)}><ArrowLeft className="mr-1.5 h-4 w-4" />Atrás</Button>}
+              {step < 2
+                ? <Button type="button" onClick={next}>Siguiente<ArrowRight className="ml-1.5 h-4 w-4" /></Button>
+                : <Button type="submit" disabled={loading}>{loading ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <Send className="mr-1.5 h-4 w-4" />}Enviar a revisión</Button>}
+            </div>
+          </form>
         )}
       </DialogContent>
     </Dialog>
