@@ -10,7 +10,7 @@
  *   1. La fecha del evento (startDate, hora local del sorteo) es la fecha pedida.
  *   2. El sorteo ya se celebró (startDate <= ahora). Los futuros vienen sin números o con datos de otro día.
  *   3. Se reconoce el sorteo: `lottery_draws.source_name` (nombre exacto en enloteria) o su `name`.
- *   4. Trae al menos `number_of_balls` números y todos están en [ball_range_min, ball_range_max].
+ *   4. Trae exactamente `number_of_balls` números y todos están en [ball_range_min, ball_range_max].
  */
 import type { InArgs } from "@libsql/client";
 
@@ -115,8 +115,9 @@ export async function syncResults(db: Db, parsed: ScrapedDrawResult[], date: str
     if (!draw) { skipped.push({ title: res.title, reason: "Sorteo no registrado (añádelo o pon su nombre de la fuente)" }); continue; }
     if (res.date !== date) { otherDates.set(res.title, [...(otherDates.get(res.title) ?? []), res.date]); continue; }
     if (Date.parse(res.startDate) > now.getTime()) { skipped.push({ title: res.title, reason: "Aún no se ha celebrado" }); continue; }
-    const nums = res.winningNumbers.slice(0, draw.number_of_balls);
-    if (nums.length < draw.number_of_balls) { skipped.push({ title: res.title, reason: `Trae ${nums.length} números y el sorteo tiene ${draw.number_of_balls}` }); continue; }
+    // Regla fija: un sorteo saca exactamente `number_of_balls` números; ni más ni menos.
+    const nums = res.winningNumbers;
+    if (nums.length !== draw.number_of_balls) { skipped.push({ title: res.title, reason: `Trae ${nums.length} números y el sorteo saca ${draw.number_of_balls}` }); continue; }
     if (nums.some((n) => n < draw.ball_range_min || n > draw.ball_range_max)) { skipped.push({ title: res.title, reason: "Números fuera del rango del sorteo" }); continue; }
     try {
       await db.execute({

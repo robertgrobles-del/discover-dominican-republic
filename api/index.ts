@@ -2026,6 +2026,7 @@ const drawSpec = (b: Fields) => ({
   bonus_name: () => str(b, "bonus_name", 80),
   description: () => str(b, "description", 1000),
   schedule_description: () => str(b, "schedule_description", 200),
+  how_to_play: () => str(b, "how_to_play", 2000),
   is_active: () => bool(b, "is_active"),
 });
 

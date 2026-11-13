@@ -191,7 +191,7 @@ function DrawEditor({ row, onClose }: { row: Row | "new"; onClose: () => void })
   const [f, setF] = useState({
     lottery_id: init("lottery_id"), name: init("name"), slug: init("slug"), source_name: init("source_name"), source_path: init("source_path"), draw_time: init("draw_time", "20:00"),
     ball_range_min: init("ball_range_min", "0"), ball_range_max: init("ball_range_max", "99"), number_of_balls: init("number_of_balls", "3"),
-    tombolas_count: init("tombolas_count", "1"), bonus_name: init("bonus_name"), description: init("description"), schedule_description: init("schedule_description"),
+    tombolas_count: init("tombolas_count", "1"), bonus_name: init("bonus_name"), description: init("description"), schedule_description: init("schedule_description"), how_to_play: init("how_to_play"),
   });
   const [days, setDays] = useState<string[]>(row === "new" ? DAYS.map(([d]) => d) : parseDays(row.draw_days));
   const [bonus, setBonus] = useState(row !== "new" && Number(row.has_bonus) === 1);
@@ -228,9 +228,13 @@ function DrawEditor({ row, onClose }: { row: Row | "new"; onClose: () => void })
           hint="Solo si el sorteo no sale en la página general: la parte final de su dirección, ej.: «resultados-loto»." />
         <div className="space-y-1"><Label htmlFor="draw-desc">Descripción</Label><Textarea id="draw-desc" rows={3} value={f.description} onChange={(e) => set("description")(e.target.value)} /></div>
       </Box>
+      <Box title="Cómo se gana">
+        <Label htmlFor="draw-rules" className="sr-only">Cómo se gana</Label>
+        <Textarea id="draw-rules" rows={4} value={f.how_to_play} onChange={(e) => set("how_to_play")(e.target.value)} placeholder="Qué se elige, cuántos números salen y con cuántos aciertos se gana." />
+      </Box>
       <Box title="Bolos">
         <div className="grid gap-3 sm:grid-cols-4">
-          <Field id="draw-balls" label="Números premiados" type="number" value={f.number_of_balls} onChange={set("number_of_balls")} required />
+          <Field id="draw-balls" label="Números que salen (exactos)" type="number" value={f.number_of_balls} onChange={set("number_of_balls")} required />
           <Field id="draw-min" label="Mínimo" type="number" value={f.ball_range_min} onChange={set("ball_range_min")} />
           <Field id="draw-max" label="Máximo" type="number" value={f.ball_range_max} onChange={set("ball_range_max")} />
           <Field id="draw-tomb" label="Tómbolas" type="number" value={f.tombolas_count} onChange={set("tombolas_count")} />
