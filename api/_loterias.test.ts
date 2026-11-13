@@ -86,6 +86,12 @@ describe("Scraper de Loterías Dominicanas", () => {
     expect(await dueDraws(db, new Date("2026-11-13T01:10:00Z"))).toContain("draw-nac-noche");
     expect(await dueDraws(db, new Date("2026-11-13T01:11:00Z"))).not.toContain("draw-nac-noche");
   });
+
+  it("el domingo usa la hora del domingo si el sorteo la tiene", async () => {
+    // domingo 2026-11-15: Nacional Noche a las 18:00 RD (22:00 UTC), no a las 21:00
+    expect(await dueDraws(db, new Date("2026-11-15T22:03:00Z"))).toContain("draw-nac-noche");
+    expect(await dueDraws(db, new Date("2026-11-16T01:03:00Z"))).not.toContain("draw-nac-noche");
+  });
 });
 
 describe("API de Loterías (Endpoints en api/index.ts)", () => {

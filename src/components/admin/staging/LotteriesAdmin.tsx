@@ -107,7 +107,7 @@ function ListView({ kind, onEdit }: { kind: Kind; onEdit: (row: Row | "new") => 
                 </td>
                 {isDraw ? <>
                   <td className="p-3">{s(r.lottery_name)}</td>
-                  <td className="p-3 tabular-nums">{s(r.draw_time)}<span className="block text-xs text-muted-foreground">{parseDays(r.draw_days).length === 7 ? "Todos los días" : parseDays(r.draw_days).join(", ")}</span></td>
+                  <td className="p-3 tabular-nums">{s(r.draw_time)}{r.sunday_time ? ` · dom ${s(r.sunday_time)}` : ""}<span className="block text-xs text-muted-foreground">{parseDays(r.draw_days).length === 7 ? "Todos los días" : parseDays(r.draw_days).join(", ")}</span></td>
                   <td className="p-3">{s(r.source_name) || <span className="text-amber-600">Sin nombre: no se sincroniza</span>}</td>
                   <td className="p-3 tabular-nums">{s(r.last_result) || "—"}</td>
                 </> : <>
@@ -189,7 +189,7 @@ function DrawEditor({ row, onClose }: { row: Row | "new"; onClose: () => void })
   const { data: lotteries = [] } = useRows("lotteries");
   const init = (k: string, d = "") => (row === "new" ? d : s(row[k]) || d);
   const [f, setF] = useState({
-    lottery_id: init("lottery_id"), name: init("name"), slug: init("slug"), source_name: init("source_name"), source_path: init("source_path"), draw_time: init("draw_time", "20:00"),
+    lottery_id: init("lottery_id"), name: init("name"), slug: init("slug"), source_name: init("source_name"), source_path: init("source_path"), draw_time: init("draw_time", "20:00"), sunday_time: init("sunday_time"),
     ball_range_min: init("ball_range_min", "0"), ball_range_max: init("ball_range_max", "99"), number_of_balls: init("number_of_balls", "3"),
     tombolas_count: init("tombolas_count", "1"), bonus_name: init("bonus_name"), description: init("description"), schedule_description: init("schedule_description"), how_to_play: init("how_to_play"),
   });
@@ -210,6 +210,7 @@ function DrawEditor({ row, onClose }: { row: Row | "new"; onClose: () => void })
         </Box>
         <Box title="Horario (hora de RD)">
           <Field id="draw-time" label="Hora del sorteo" type="time" value={f.draw_time} onChange={set("draw_time")} required hint="El sincronizador automático lo busca 3, 5 y 10 minutos después de esta hora (cada intento solo si el anterior no lo encontró)." />
+          <Field id="draw-sunday" label="Hora del domingo (si cambia)" type="time" value={f.sunday_time} onChange={set("sunday_time")} hint="Déjala vacía si el domingo se sortea a la misma hora." />
           <fieldset><legend className="mb-1 text-sm font-medium">Días</legend>
             <div className="flex flex-wrap gap-1.5">{DAYS.map(([d, l]) => (
               <label key={d} className={`cursor-pointer rounded border px-2 py-1 text-xs ${days.includes(d) ? "border-primary bg-primary/10" : "border-border"}`}>

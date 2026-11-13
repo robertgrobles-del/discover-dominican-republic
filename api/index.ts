@@ -2051,6 +2051,7 @@ const drawSpec = (b: Fields) => ({
     return JSON.stringify(DAYS.filter((d) => list.includes(d)));
   },
   draw_time: () => { const t = str(b, "draw_time", 5, true); return t instanceof Error || /^([01]\d|2[0-3]):[0-5]\d$/.test(t!) ? t : new Error("draw_time debe ser HH:MM (hora de RD)"); },
+  sunday_time: () => { const t = str(b, "sunday_time", 5); return t instanceof Error || t === null || /^([01]\d|2[0-3]):[0-5]\d$/.test(t) ? t : new Error("sunday_time debe ser HH:MM o quedar vacío"); },
   ball_range_min: () => int(b, "ball_range_min", 0, 99) ?? 0,
   ball_range_max: () => int(b, "ball_range_max", 1, 99) ?? 99,
   number_of_balls: () => int(b, "number_of_balls", 1, 20) ?? 3,

@@ -204,12 +204,12 @@ export async function dueDraws(db: Db, now = new Date(), retries = RETRY_MINUTES
   const { date, minutes } = rdNow(now);
   const day = ["domingo", "lunes", "martes", "miercoles", "jueves", "viernes", "sabado"][new Date(`${date}T12:00:00Z`).getUTCDay()];
   const r = await db.execute({
-    sql: `SELECT d.id, d.draw_time, d.draw_days FROM lottery_draws d
+    sql: `SELECT d.id, d.draw_time, d.sunday_time, d.draw_days FROM lottery_draws d
           WHERE d.is_active = 1 AND NOT EXISTS (SELECT 1 FROM lottery_results r WHERE r.draw_id = d.id AND r.draw_date = ? AND r.is_active = 1)`,
     args: [date],
   });
   return rowsOf(r).filter((x) => {
-    const [h, m] = String(x.draw_time).split(":").map(Number);
+    const [h, m] = String(day === "domingo" && x.sunday_time ? x.sunday_time : x.draw_time).split(":").map(Number);
     let days: string[] = [];
     try { days = JSON.parse(String(x.draw_days)); } catch { /* sin días: no toca */ }
     const since = minutes - (h * 60 + m);
