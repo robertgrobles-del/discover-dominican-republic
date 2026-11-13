@@ -1,6 +1,6 @@
 // Números calientes y fríos por sorteo, calculados con los resultados reales guardados (api: /lotteries/stats).
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { Flame, Snowflake } from "lucide-react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -19,6 +19,7 @@ const pct = (x: number) => `${(x * 100).toLocaleString("es-DO", { maximumFractio
 const ago = (d: number | null) => (d === null ? "Sin salir en el periodo" : d === 0 ? "Salió hoy" : d === 1 ? "Salió ayer" : `Hace ${d} días`);
 
 export default function LoteriasEstadisticas() {
+  const [params] = useSearchParams();
   const [lotteries, setLotteries] = useState<LotteryCompanyWithDraws[]>([]);
   const [lotterySlug, setLotterySlug] = useState("");
   const [drawId, setDrawId] = useState("");
@@ -29,10 +30,12 @@ export default function LoteriasEstadisticas() {
   useEffect(() => {
     void fetchLotteries().then((l) => {
       setLotteries(l);
-      const first = l.find((x) => x.draws.length);
-      if (first) { setLotterySlug(first.slug); setDrawId(first.draws[0].id); }
+      const wanted = params.get("draw");
+      const owner = wanted ? l.find((x) => x.draws.some((d) => d.id === wanted)) : undefined;
+      const first = owner ?? l.find((x) => x.draws.length);
+      if (first) { setLotterySlug(first.slug); setDrawId(owner && wanted ? wanted : first.draws[0].id); }
     });
-  }, []);
+  }, [params]);
 
   useEffect(() => {
     if (!drawId) return;
