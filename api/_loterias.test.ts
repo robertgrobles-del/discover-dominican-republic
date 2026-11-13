@@ -148,7 +148,7 @@ describe("API de Loterías (Endpoints en api/index.ts)", () => {
     await handle({ method: "POST", path: "/api/v1/admin/lotteries/sync", headers: auth, body: { date: "2026-11-09", htmlContent: page(ev("Quiniela Real", "2026-11-09T12:55:00-04:00", [1, 2, 3])) } }, db, SECRET, false);
     expect((await day())?.jackpot_amount).toBe("RD$ 5 millones");
     const list = await handle({ method: "GET", path: "/api/v1/admin/lotteries/prizes/draw-rea-quiniela", headers: auth, body: {} }, db, SECRET, false);
-    expect((list.body as { data: { date: string; has_result: boolean }[] }).data[0]).toMatchObject({ date: "2026-11-09", has_result: true });
+    expect((list.body as { data: { date: string; has_result: boolean; jackpot_amount: string | null }[] }).data.find((x) => x.date === "2026-11-09")).toMatchObject({ has_result: true, jackpot_amount: "RD$ 5 millones" });
     const anon = await handle({ method: "POST", path: "/api/v1/admin/lotteries/prize", headers: {}, body: {} }, db, SECRET, false);
     expect(anon.status).toBe(401);
   });
@@ -172,6 +172,23 @@ describe("API de Loterías (Endpoints en api/index.ts)", () => {
     const slides = (pub.body as { data: { title: string; link_url: string | null }[] }).data;
     expect(slides.map((s) => s.title)).toEqual(["Loto Leidsa"]);
     expect(slides[0].link_url).toBe("/loteria/leidsa/loto-leidsa");
+  });
+
+  it("un resultado manual se valida, se publica y cuenta en las estadísticas", async () => {
+    const auth = { authorization: `Bearer ${await staffToken()}` };
+    const today = rdNow().date;
+    const bad = await handle({ method: "POST", path: "/api/v1/admin/lotteries/result", headers: auth, body: { draw_id: "draw-us-powerball", date: today, numbers: [1, 2, 3] } }, db, SECRET, false);
+    expect(bad.status).toBe(422);
+    const ok = await handle({ method: "POST", path: "/api/v1/admin/lotteries/result", headers: auth, body: { draw_id: "draw-us-powerball", date: today, numbers: [5, 12, 33, 41, 69], bonus_number: 7 } }, db, SECRET, false);
+    expect(ok.status).toBe(200);
+    const future = await handle({ method: "POST", path: "/api/v1/admin/lotteries/result", headers: auth, body: { draw_id: "draw-us-powerball", date: "2999-01-01", numbers: [5, 12, 33, 41, 69] } }, db, SECRET, false);
+    expect(future.status).toBe(422);
+    const st = await handle({ method: "GET", path: "/api/v1/lotteries/stats", headers: {}, body: {}, query: { draw: "draw-us-powerball", days: "30" } }, db, SECRET);
+    const data = (st.body as { data: { total_draws: number; numbers: { n: number; count: number }[] } }).data;
+    expect(data.total_draws).toBe(1);
+    expect(data.numbers.find((x) => x.n === 69)?.count).toBe(1);
+    expect(data.numbers.find((x) => x.n === 1)?.count).toBe(0);
+    expect(await dueDraws(db)).not.toContain("draw-us-powerball");
   });
 
   it("el panel crea una lotería y un sorteo con validación", async () => {

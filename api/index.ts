@@ -995,7 +995,7 @@ const AIRPORTS = ["aeropuerto-internacional-de-punta-cana", "aeropuerto-internac
 const PORTS = ["sans-souci", "amber-cove", "taino-bay", "cabo-rojo", "la-romana", "puerto-caucedo", "puerto-haina", "manzanillo"];
 const MARINAS = ["casa-de-campo", "cap-cana", "ocean-world", "marina-zar-par", "puerto-bahia", "luperon"];
 export const STATIC_PAGES = [
-  "/eventos", "/playas", "/loterias", "/loterias/como-se-gana", "/loterias/juego-responsable", "/requisitos-viaje", "/e-ticket", "/aeropuerto", ...AIRPORTS.map((x) => `/aeropuerto/${x}`),
+  "/eventos", "/playas", "/loterias", "/loterias/como-se-gana", "/loterias/juego-responsable", "/loterias/estadisticas", "/requisitos-viaje", "/e-ticket", "/aeropuerto", ...AIRPORTS.map((x) => `/aeropuerto/${x}`),
   "/puertos-marinas", ...PORTS.map((x) => `/puerto/${x}`), ...MARINAS.map((x) => `/marina/${x}`),
   "/provincias", "/negocios", "/anunciate", "/registra-tu-negocio", "/contacto", "/privacidad", "/terminos",
 ];
@@ -1186,6 +1186,7 @@ function llmsTxt(rows: NewsRow[], extras: PublicExtras = { events: [], businesse
     + `- [Playas de República Dominicana](${siteUrl()}/playas): directorio de playas por provincia, tipo de arena, oleaje, actividades y servicios.\n`
     + `- [Loterías Dominicanas](${siteUrl()}/loterias): resultados oficiales en vivo de LEIDSA, Lotería Nacional, LOTEKA, Real, La Primera, New York y Florida.\n`
     + `- [Cómo se gana en cada lotería](${siteUrl()}/loterias/como-se-gana): reglas por sorteo (cuántos números salen, rango y jugadas).\n`
+    + `- [Números calientes y fríos](${siteUrl()}/loterias/estadisticas): cuántas veces salió cada número por sorteo y cuándo salió por última vez.\n`
     + `- [Juego responsable](${siteUrl()}/loterias/juego-responsable): consejos, señales de alerta y dónde pedir ayuda en RD.\n`
     + `- [Eventos en República Dominicana](${siteUrl()}/eventos): conciertos, festivales y deportes con fecha, lugar y provincia.\n`
     + `- [Directorio de negocios turísticos](${siteUrl()}/negocios): negocios y servicios turísticos por provincia.\n\n`
@@ -1665,6 +1666,47 @@ async function handleGetLotteryHero(db: Client): Promise<ApiResponse> {
   })) }, headers: PUBLIC_CACHE };
 }
 
+/**
+ * Números calientes y fríos de un sorteo: cuántas veces salió cada número en los últimos N días (30 a 365),
+ * su porcentaje sobre los sorteos y cuándo salió por última vez. Solo con resultados reales guardados.
+ */
+async function handleGetLotteryStats(db: Client, drawId?: string, daysParam?: string): Promise<ApiResponse> {
+  if (!drawId || !/^[A-Za-z0-9-]{1,64}$/.test(drawId)) return err(422, "Indica el sorteo (draw)");
+  const days = Math.min(365, Math.max(30, Number(daysParam) || 90));
+  const d = (await db.execute({ sql: "SELECT id, name, ball_range_min, ball_range_max, number_of_balls FROM lottery_draws WHERE id = ? AND is_active = 1", args: [drawId] })).rows[0];
+  if (!d) return err(404, "Sorteo no encontrado");
+  const today = rdNow().date;
+  const rows = (await db.execute({
+    sql: "SELECT draw_date, winning_numbers FROM lottery_results WHERE draw_id = ? AND is_active = 1 AND draw_date > date(?, ?) AND draw_date <= ? ORDER BY draw_date",
+    args: [drawId, today, `-${days} days`, today],
+  })).rows;
+  const min = Number(d.ball_range_min), max = Number(d.ball_range_max);
+  const stats = new Map<number, { count: number; last: string | null }>();
+  for (let n = min; n <= max; n++) stats.set(n, { count: 0, last: null });
+  for (const r of rows) {
+    let nums: unknown = [];
+    try { nums = JSON.parse(String(r.winning_numbers)); } catch { /* fila dañada: se ignora */ }
+    if (!Array.isArray(nums)) continue;
+    for (const n of new Set(nums as number[])) {
+      const s = stats.get(n);
+      if (s) { s.count++; s.last = String(r.draw_date); }
+    }
+  }
+  const total = rows.length;
+  const daysSince = (date: string | null) => (date ? Math.round((Date.parse(`${today}T00:00:00Z`) - Date.parse(`${date}T00:00:00Z`)) / 86_400_000) : null);
+  return {
+    status: 200,
+    body: { data: {
+      draw: { id: String(d.id), name: String(d.name), ball_range_min: min, ball_range_max: max, number_of_balls: Number(d.number_of_balls) },
+      days, total_draws: total, from: rows.length ? String(rows[0].draw_date) : null, to: rows.length ? String(rows[rows.length - 1].draw_date) : null,
+      // Probabilidad de que un número concreto salga en un sorteo (bolos sin reposición): bolos / números posibles.
+      probability: Math.min(1, Number(d.number_of_balls) / (max - min + 1)),
+      numbers: [...stats].map(([n, s]) => ({ n, count: s.count, pct: total ? s.count / total : 0, last_date: s.last, days_since: daysSince(s.last) })),
+    } },
+    headers: PUBLIC_CACHE,
+  };
+}
+
 async function handleGetLotteries(db: Client, dateParam?: string): Promise<ApiResponse> {
   const lotteriesRes = await db.execute("SELECT id, slug, name, country, logo_url, website_url, description, color_scheme, phone, address, tv_channels, founded, slogan, is_active FROM lotteries WHERE is_active = 1 ORDER BY name COLLATE NOCASE");
   const drawsRes = await db.execute("SELECT id, lottery_id, slug, name, draw_days, draw_time, ball_range_min, ball_range_max, number_of_balls, tombolas_count, has_bonus, bonus_name, schedule_description, how_to_play, is_active FROM lottery_draws WHERE is_active = 1 ORDER BY draw_time");
@@ -2033,12 +2075,43 @@ async function setLotteryPrize(db: Client, body: Fields): Promise<ApiResponse> {
   return { status: 200, body: { data: { draw_id: drawId, date, jackpot_amount: prize ?? null } } };
 }
 
+/**
+ * Resultado cargado a mano (sorteos que la fuente no publica). Misma validación que el sincronizador: fecha no futura,
+ * cantidad exacta de números y rango del sorteo. Conserva el premio si ya había uno.
+ */
+async function setManualResult(db: Client, body: Fields): Promise<ApiResponse> {
+  const drawId = typeof body.draw_id === "string" ? body.draw_id : "";
+  const date = body.date;
+  if (!isIsoDate(date) || date > rdNow().date || date < "2000-01-01") return err(422, "Fecha no válida: usa AAAA-MM-DD, hoy o un día pasado");
+  const d = (await db.execute({ sql: "SELECT number_of_balls, ball_range_min, ball_range_max, has_bonus FROM lottery_draws WHERE id = ?", args: [drawId] })).rows[0];
+  if (!d) return err(404, "Sorteo no encontrado");
+  const nums = Array.isArray(body.numbers) ? body.numbers.map(Number) : [];
+  const [count, min, max] = [Number(d.number_of_balls), Number(d.ball_range_min), Number(d.ball_range_max)];
+  if (nums.length !== count) return err(422, `Este sorteo saca ${count} números y enviaste ${nums.length}`);
+  if (nums.some((n) => !Number.isInteger(n) || n < min || n > max)) return err(422, `Los números deben estar entre ${min} y ${max}`);
+  const bonusRaw = body.bonus_number;
+  const bonus = bonusRaw === undefined || bonusRaw === null || bonusRaw === "" ? null : Number(bonusRaw);
+  if (bonus !== null && (!Number(d.has_bonus) || !Number.isInteger(bonus) || bonus < 0 || bonus > 99)) return err(422, "Bolo adicional no válido para este sorteo");
+  await db.execute({
+    sql: `INSERT INTO lottery_results (id, draw_id, draw_date, winning_numbers, bonus_number, is_active, updated_at)
+          VALUES (?, ?, ?, ?, ?, 1, strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+          ON CONFLICT (draw_id, draw_date) DO UPDATE SET winning_numbers = excluded.winning_numbers, bonus_number = excluded.bonus_number,
+            is_active = 1, updated_at = excluded.updated_at`,
+    args: [`res-${drawId}-${date}`, drawId, date, JSON.stringify(nums), bonus],
+  });
+  return { status: 200, body: { data: { draw_id: drawId, date, winning_numbers: nums, bonus_number: bonus } } };
+}
+
 async function listLotteryPrizes(db: Client, drawId: string): Promise<ApiResponse> {
   const r = await db.execute({
-    sql: "SELECT draw_date, jackpot_amount, is_active FROM lottery_results WHERE draw_id = ? AND jackpot_amount IS NOT NULL ORDER BY draw_date DESC LIMIT 60",
+    sql: "SELECT draw_date, jackpot_amount, is_active, winning_numbers, bonus_number FROM lottery_results WHERE draw_id = ? AND (jackpot_amount IS NOT NULL OR is_active = 1) ORDER BY draw_date DESC LIMIT 60",
     args: [drawId],
   });
-  return { status: 200, body: { data: r.rows.map((x) => ({ date: String(x.draw_date), jackpot_amount: String(x.jackpot_amount), has_result: Number(x.is_active) === 1 })) } };
+  const nums = (v: unknown) => { try { const a = JSON.parse(String(v)); return Array.isArray(a) ? (a as number[]) : []; } catch { return []; } };
+  return { status: 200, body: { data: r.rows.map((x) => ({
+    date: String(x.draw_date), jackpot_amount: x.jackpot_amount ? String(x.jackpot_amount) : null, has_result: Number(x.is_active) === 1,
+    winning_numbers: Number(x.is_active) === 1 ? nums(x.winning_numbers) : [], bonus_number: x.bonus_number === null ? null : Number(x.bonus_number),
+  })) } };
 }
 
 // ---------- loterías y sorteos (panel) ----------
@@ -2160,6 +2233,7 @@ export async function handle(req: ApiRequest, db: Client, secret: string, secure
     return handleGetLotteryResults(indicatorsDb, req.query?.date, req.query?.company);
   }
   if (m === "GET" && (path === "/lotteries/hero" || path === "/public/lotteries/hero")) return handleGetLotteryHero(indicatorsDb);
+  if (m === "GET" && (path === "/lotteries/stats" || path === "/public/lotteries/stats")) return handleGetLotteryStats(indicatorsDb, req.query?.draw, req.query?.days);
   const drawMatch = m === "GET" && path.match(/^\/(?:public\/)?lotteries\/([a-z0-9-]+)\/(?:draws\/)?([a-z0-9-]+)$/);
   if (drawMatch && drawMatch[1] !== "sync" && drawMatch[1] !== "results") {
     return handleGetDrawDetail(indicatorsDb, drawMatch[1], drawMatch[2], req.query);
@@ -2240,6 +2314,9 @@ export async function handle(req: ApiRequest, db: Client, secret: string, secure
   const manager = roles.includes("admin") || roles.includes("editor"); // gestiona todo el contenido
   if (path === "/admin/lotteries/sync" && m === "POST") {
     return manager ? handleSyncLotteries(getIndicatorsDb(db), body) : err(403, "Solo un editor o administrador sincroniza loterías");
+  }
+  if (path === "/admin/lotteries/result" && m === "POST") {
+    return manager ? setManualResult(getIndicatorsDb(db), body) : err(403, "Solo un editor o administrador carga resultados");
   }
   if (path === "/admin/lotteries/prize" && m === "POST") {
     return manager ? setLotteryPrize(getIndicatorsDb(db), body) : err(403, "Solo un editor o administrador registra premios");

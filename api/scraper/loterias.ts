@@ -206,7 +206,8 @@ export async function dueDraws(db: Db, now = new Date(), retries = RETRY_MINUTES
   const day = ["domingo", "lunes", "martes", "miercoles", "jueves", "viernes", "sabado"][new Date(`${date}T12:00:00Z`).getUTCDay()];
   const r = await db.execute({
     sql: `SELECT d.id, d.draw_time, d.sunday_time, d.draw_days FROM lottery_draws d
-          WHERE d.is_active = 1 AND NOT EXISTS (SELECT 1 FROM lottery_results r WHERE r.draw_id = d.id AND r.draw_date = ? AND r.is_active = 1)`,
+          WHERE d.is_active = 1 AND (d.source_name IS NOT NULL OR d.source_path IS NOT NULL) -- sin fuente: se carga a mano
+            AND NOT EXISTS (SELECT 1 FROM lottery_results r WHERE r.draw_id = d.id AND r.draw_date = ? AND r.is_active = 1)`,
     args: [date],
   });
   return rowsOf(r).filter((x) => {

@@ -52,6 +52,7 @@ const Loterias = lazy(() => import("./pages/Loterias"));
 const LoteriaDetalle = lazy(() => import("./pages/LoteriaDetalle"));
 const SorteoDetalle = lazy(() => import("./pages/SorteoDetalle"));
 const LoteriasComoSeGana = lazy(() => import("./pages/LoteriasComoSeGana"));
+const LoteriasEstadisticas = lazy(() => import("./pages/LoteriasEstadisticas"));
 const LoteriasJuegoResponsable = lazy(() => import("./pages/LoteriasJuegoResponsable"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
@@ -191,6 +192,7 @@ function AnimatedRoutes() {
             <Route path="/playa/:slug" element={<PlayaDetalle />} />
             <Route path="/loterias" element={<Loterias />} />
             <Route path="/loterias/como-se-gana" element={<LoteriasComoSeGana />} />
+            <Route path="/loterias/estadisticas" element={<LoteriasEstadisticas />} />
             <Route path="/loterias/juego-responsable" element={<LoteriasJuegoResponsable />} />
             <Route path="/loteria" element={<Navigate to="/loterias" replace />} />
             <Route path="/loteria/:slug" element={<LoteriaDetalle />} />

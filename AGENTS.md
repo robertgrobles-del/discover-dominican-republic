@@ -45,7 +45,7 @@ Estas reglas valen desde ahora para todo el trabajo. Cada regla nueva que pida e
 ## Git y trabajo en paralelo
 - Hay varios agentes trabajando a la vez. Confirmar solo archivos propios y preguntar antes de incluir trabajo ajeno.
 - Los mensajes de commit terminan con la línea `Co-Authored-By` del agente, y sus líneas no pasan de 100 caracteres.
-- Antes de push, pasar lo mismo que el CI de staging (`.github/workflows/staging.yml`): `tsc` del frontend y de la API, eslint, `npm test` y construir el esquema de Turso.
+- Antes de cada commit (y de cada push), pasar lo mismo que el CI de staging (`.github/workflows/staging.yml`): `tsc` del frontend y de la API, eslint, `npm test` y construir el esquema de Turso.
 - El build local de Vite falla en este equipo con «Access is denied» de esbuild. Es un límite del equipo, no del código: se valida en el CI.
 
 ## Datos privados y seguridad

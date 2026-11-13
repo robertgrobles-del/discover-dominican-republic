@@ -20,7 +20,6 @@ import { LotteryHero } from "@/components/loterias/LotteryHero";
 import { LotteryToolbar } from "@/components/loterias/LotteryToolbar";
 import { LotteryCard } from "@/components/loterias/LotteryCard";
 import { LotteryChecker } from "@/components/loterias/LotteryChecker";
-import { LotteryStatsSidebar } from "@/components/loterias/LotteryStatsSidebar";
 
 export default function Loterias() {
   const { t, locale } = useI18n();
@@ -239,26 +238,27 @@ export default function Loterias() {
       <div className="min-h-screen bg-background flex flex-col justify-between">
         <Header />
 
-        <main className="flex-grow pt-28 pb-20">
-          <div className="container mx-auto px-4 lg:px-8 space-y-8">
-            {/* BREADCRUMB */}
-            <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs text-muted-foreground">
-              <Link to="/" className="hover:text-primary transition-colors">Inicio</Link>
-              <span>/</span>
-              <span className="text-foreground font-semibold">Loterías Dominicanas</span>
-            </nav>
+        <main className="flex-grow pt-16 pb-20">
+          {/* HERO a todo el ancho, pegado al menú */}
+          <LotteryHero />
 
-            {/* HERO SECTION */}
-            <LotteryHero
-              companies={companies}
-              selectedCompany={selectedCompany}
-              onSelectCompany={setSelectedCompany}
+          <div className="container mx-auto px-4 lg:px-8 space-y-8 pt-8">
+            {/* Comprobador en línea, entre el hero y los resultados */}
+            <LotteryChecker
+              checkNumber={checkNumber}
+              onCheckNumberChange={setCheckNumber}
+              onSubmit={handleTestNumber}
+              checkResult={checkResult}
             />
 
-            {/* TOOLBAR: DATE FILTER & CHECKER */}
-            <div className="grid lg:grid-cols-12 gap-8 items-start">
-              {/* Left Column: Date & Search Toolbar + Results (8 cols) */}
-              <div className="lg:col-span-8 space-y-6">
+            <nav aria-label="Más sobre loterías" className="flex flex-wrap gap-2 text-xs">
+              <Link to="/loterias/estadisticas" className="rounded-full border border-sky-200 bg-white px-3.5 py-1.5 font-semibold text-blue-700 hover:bg-sky-50 dark:bg-card">Números calientes y fríos</Link>
+              <Link to="/loterias/como-se-gana" className="rounded-full border border-sky-200 bg-white px-3.5 py-1.5 font-semibold text-blue-700 hover:bg-sky-50 dark:bg-card">Cómo se gana</Link>
+              <Link to="/loterias/juego-responsable" className="rounded-full border border-sky-200 bg-white px-3.5 py-1.5 font-semibold text-blue-700 hover:bg-sky-50 dark:bg-card">Juego responsable</Link>
+            </nav>
+
+            <div className="space-y-6">
+              <div className="space-y-6">
                 <LotteryToolbar
                   searchQuery={searchQuery}
                   onSearchChange={setSearchQuery}
@@ -315,7 +315,7 @@ export default function Loterias() {
                       </div>
 
                       {/* Draws grid for this company */}
-                      <div className="grid sm:grid-cols-2 gap-5">
+                      <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-5">
                         {group.draws.map((result) => (
                           <LotteryCard key={result.id} result={result} selectedDate={selectedDate} />
                         ))}
@@ -334,22 +334,6 @@ export default function Loterias() {
                 </div>
               </div>
 
-              {/* Right Column: Lucky Number Checker & Hot/Cold Stats (4 cols) */}
-              <div className="lg:col-span-4 space-y-6 lg:sticky lg:top-24">
-                <LotteryChecker
-                  checkNumber={checkNumber}
-                  onCheckNumberChange={setCheckNumber}
-                  onSubmit={handleTestNumber}
-                  checkResult={checkResult}
-                />
-
-                <LotteryStatsSidebar />
-                <nav aria-label="Más sobre loterías" className="rounded-2xl border border-border/70 bg-card/80 backdrop-blur-sm p-4 text-xs space-y-2 shadow-2xs">
-                  <span className="font-bold text-foreground block text-2xs uppercase tracking-wider text-muted-foreground">Guías y Normativas</span>
-                  <Link to="/loterias/como-se-gana" className="block font-semibold text-primary hover:underline">Cómo se gana en cada lotería</Link>
-                  <Link to="/loterias/juego-responsable" className="block font-semibold text-muted-foreground hover:text-foreground">Juego responsable</Link>
-                </nav>
-              </div>
             </div>
           </div>
         </main>

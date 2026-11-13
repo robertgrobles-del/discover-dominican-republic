@@ -39,7 +39,7 @@ export function StagingLotteriesManager() {
       <div className="flex flex-wrap items-center gap-3">
         <h2 className="text-2xl font-normal">Loterías</h2>
         <nav aria-label="Secciones de loterías" className="flex gap-1 rounded-md border border-border p-1 text-sm">
-          {([["draws", "Sorteos"], ["lotteries", "Loterías"], ["hero", "Carrusel del hero"], ["prizes", "Premios"], ["sync", "Sincronizar resultados"]] as const).map(([v, l]) => (
+          {([["draws", "Sorteos"], ["lotteries", "Loterías"], ["hero", "Carrusel del hero"], ["prizes", "Resultados y premios"], ["sync", "Sincronizar resultados"]] as const).map(([v, l]) => (
             <button key={v} type="button" aria-current={tab === v ? "page" : undefined} onClick={() => setTab(v)}
               className={`rounded px-3 py-1.5 ${tab === v ? "bg-primary text-primary-foreground" : "hover:bg-muted"}`}>{l}</button>
           ))}
@@ -115,7 +115,7 @@ function ListView({ kind, onEdit }: { kind: Kind; onEdit: (row: Row | "new") => 
                 </> : isDraw ? <>
                   <td className="p-3">{s(r.lottery_name)}</td>
                   <td className="p-3 tabular-nums">{s(r.draw_time)}{r.sunday_time ? ` · dom ${s(r.sunday_time)}` : ""}<span className="block text-xs text-muted-foreground">{parseDays(r.draw_days).length === 7 ? "Todos los días" : parseDays(r.draw_days).join(", ")}</span></td>
-                  <td className="p-3">{s(r.source_name) || <span className="text-amber-600">Sin nombre: no se sincroniza</span>}</td>
+                  <td className="p-3">{s(r.source_name) || <span className="text-amber-600">Manual: resultados en «Resultados y premios»</span>}</td>
                   <td className="p-3 tabular-nums">{s(r.last_result) || "—"}</td>
                 </> : <>
                   <td className="p-3">{s(r.country)}</td>
@@ -328,14 +328,17 @@ function SyncPanel() {
   );
 }
 
-type Prize = { date: string; jackpot_amount: string; has_result: boolean };
+type Prize = { date: string; jackpot_amount: string | null; has_result: boolean; winning_numbers: number[]; bonus_number: number | null };
 
-/** Premio manual por sorteo y fecha (texto libre). Se muestra junto al resultado de ese día. */
+/** Resultados y premios a mano por sorteo y fecha: para los sorteos que la fuente no publica y para los premios. */
 function PrizePanel() {
   const { data: draws = [] } = useRows("lottery-draws");
   const [drawId, setDrawId] = useState("");
   const [date, setDate] = useState(rdToday());
   const [amount, setAmount] = useState("");
+  const [numbers, setNumbers] = useState("");
+  const [bonus, setBonus] = useState("");
+  const draw = draws.find((d) => d.id === drawId);
   const prizes = useQuery({
     queryKey: ["staging", "lottery-prizes", drawId], enabled: !!drawId,
     queryFn: async () => (await fetchApi<{ data: Prize[] }>(`/admin/lotteries/prizes/${drawId}`)).data,
@@ -345,34 +348,52 @@ function PrizePanel() {
     onSuccess: (_r, v) => { toast.success(v ? "Premio guardado" : "Premio borrado"); void prizes.refetch(); },
     onError: (e) => toast.error(apiMessage(e)),
   });
-  const pick = (p: Prize) => { setDate(p.date); setAmount(p.jackpot_amount); };
+  const saveResult = useMutation({
+    mutationFn: () => fetchApi("/admin/lotteries/result", { method: "POST", body: JSON.stringify({
+      draw_id: drawId, date, numbers: numbers.split(/[\s,;-]+/).filter(Boolean).map(Number), bonus_number: bonus.trim() === "" ? null : Number(bonus),
+    }) }),
+    onSuccess: () => { toast.success("Resultado publicado"); void prizes.refetch(); },
+    onError: (e) => toast.error(apiMessage(e)),
+  });
+  const pick = (p: Prize) => { setDate(p.date); setAmount(p.jackpot_amount ?? ""); setNumbers(p.winning_numbers.join(" ")); setBonus(p.bonus_number === null ? "" : String(p.bonus_number)); };
   return (
-    <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">
+    <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
       <div>
-        {!drawId ? <p className="text-sm text-muted-foreground">Elige un sorteo para ver y registrar sus premios por fecha.</p>
+        {!drawId ? <p className="text-sm text-muted-foreground">Elige un sorteo para ver y cargar sus resultados y premios por fecha.</p>
           : prizes.isLoading ? <Loader2 className="h-5 w-5 animate-spin" />
-          : !prizes.data?.length ? <p className="text-sm text-muted-foreground">Este sorteo no tiene premios registrados.</p>
+          : !prizes.data?.length ? <p className="text-sm text-muted-foreground">Este sorteo aún no tiene resultados ni premios.</p>
           : (
             <table className="w-full text-sm">
-              <thead><tr className="border-b border-border text-left text-muted-foreground"><th className="py-2">Fecha</th><th>Premio</th><th>Resultado</th></tr></thead>
+              <thead><tr className="border-b border-border text-left text-muted-foreground"><th className="py-2">Fecha</th><th>Números</th><th>Premio</th><th>Estado</th></tr></thead>
               <tbody>{prizes.data.map((p) => (
                 <tr key={p.date} className="cursor-pointer border-b border-border hover:bg-muted" onClick={() => pick(p)}>
-                  <td className="py-2 tabular-nums">{p.date}</td><td>{p.jackpot_amount}</td>
+                  <td className="py-2 tabular-nums">{p.date}</td>
+                  <td className="font-mono">{p.winning_numbers.map((n) => String(n).padStart(2, "0")).join(" ")}{p.bonus_number !== null ? ` + ${p.bonus_number}` : ""}</td>
+                  <td>{p.jackpot_amount ?? "—"}</td>
                   <td className="text-muted-foreground">{p.has_result ? "Publicado" : "Esperando números"}</td>
                 </tr>))}</tbody>
             </table>
           )}
       </div>
       <aside className="space-y-4">
-        <Box title="Registrar premio">
+        <Box title="Sorteo y fecha">
           <div className="space-y-1.5">
             <Label htmlFor="prize-draw">Sorteo</Label>
             <select id="prize-draw" value={drawId} onChange={(e) => setDrawId(e.target.value)} className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm">
               <option value="">Elige un sorteo…</option>
-              {draws.map((d) => <option key={d.id} value={d.id}>{s(d.lottery_name)} · {s(d.name)}</option>)}
+              {draws.map((d) => <option key={d.id} value={d.id}>{s(d.lottery_name)} · {s(d.name)}{d.source_name || d.source_path ? "" : " (manual)"}</option>)}
             </select>
           </div>
           <Field id="prize-date" label="Fecha del sorteo" type="date" value={date} onChange={setDate} />
+        </Box>
+        <Box title="Resultado (números)">
+          <Field id="result-numbers" label="Números ganadores" value={numbers} onChange={setNumbers}
+            hint={draw ? `Separados por espacios. Este sorteo saca ${s(draw.number_of_balls)} del ${s(draw.ball_range_min)} al ${s(draw.ball_range_max)}.` : "Separados por espacios."} />
+          {draw && Number(draw.has_bonus) === 1 ? <Field id="result-bonus" label={s(draw.bonus_name) || "Bolo adicional"} value={bonus} onChange={setBonus} /> : null}
+          <Button type="button" className="w-full" disabled={!drawId || !date || !numbers.trim() || saveResult.isPending} onClick={() => saveResult.mutate()}>Publicar resultado</Button>
+          <p className="text-xs text-muted-foreground">Se valida como los sincronizados: fecha no futura, cantidad exacta y rango. Si ya había resultado ese día, se sustituye.</p>
+        </Box>
+        <Box title="Premio">
           <Field id="prize-amount" label="Premio" value={amount} onChange={setAmount} hint="Texto libre, ej.: RD$ 120 millones. Sale junto al resultado de ese día; si aún no hay números, se publica cuando lleguen." />
           <div className="flex gap-2">
             <Button type="button" className="flex-1" disabled={!drawId || !date || !amount.trim() || save.isPending} onClick={() => save.mutate(amount.trim())}>Guardar</Button>

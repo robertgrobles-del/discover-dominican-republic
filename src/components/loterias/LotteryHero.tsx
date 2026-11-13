@@ -6,9 +6,6 @@ import { useEffect, useState } from "react";
 import { fetchLotteryHero, type LotteryHeroSlide } from "@/services/lotteryService";
 
 interface LotteryHeroProps {
-  companies: { id: string; name: string; logo: string }[];
-  selectedCompany: string;
-  onSelectCompany: (id: string) => void;
   onSync?: () => void;
   isSyncing?: boolean;
 }
@@ -38,7 +35,7 @@ const PILLARS = [
   { icon: Sparkles, title: "Comprobador", text: "Verifica tu jugada", tone: "bg-violet-100 text-violet-700" },
 ];
 
-export function LotteryHero({ companies, selectedCompany, onSelectCompany, onSync, isSyncing }: LotteryHeroProps) {
+export function LotteryHero({ onSync, isSyncing }: LotteryHeroProps) {
   const { t } = useI18n();
   const [slides, setSlides] = useState<LotteryHeroSlide[]>([]);
   const [idx, setIdx] = useState(0);
@@ -50,11 +47,11 @@ export function LotteryHero({ companies, selectedCompany, onSelectCompany, onSyn
   }, [slides.length]);
 
   return (
-    <div className="relative overflow-hidden rounded-3xl border border-sky-100 bg-gradient-to-br from-white via-sky-50 to-blue-100 p-6 text-slate-900 shadow-xl sm:p-10 lg:p-12">
+    <section className="relative w-full overflow-hidden border-b border-sky-100 bg-gradient-to-br from-white via-sky-50 to-blue-100 text-slate-900">
       <div aria-hidden className="pointer-events-none absolute -right-24 -top-24 h-96 w-96 rounded-full bg-sky-200/50 blur-3xl" />
       <div aria-hidden className="pointer-events-none absolute -bottom-32 left-1/3 h-80 w-80 rounded-full bg-amber-200/40 blur-3xl" />
 
-      <div className="relative z-10 grid grid-cols-1 items-center gap-8 lg:grid-cols-12 lg:gap-12">
+      <div className="container relative z-10 mx-auto grid grid-cols-1 items-center gap-8 px-4 py-10 sm:py-14 lg:grid-cols-12 lg:gap-12 lg:px-8">
         <div className="space-y-6 lg:col-span-7">
           <div className="flex flex-wrap items-center gap-2.5">
             <Badge className="border border-blue-200 bg-blue-600 px-3 py-1 text-3xs font-bold uppercase tracking-widest text-white hover:bg-blue-600">
@@ -90,24 +87,6 @@ export function LotteryHero({ companies, selectedCompany, onSelectCompany, onSyn
               </div>
             ))}
           </div>
-
-          <div>
-            <span className="mb-2.5 block text-3xs font-bold uppercase tracking-widest text-slate-500">Filtrar por lotería</span>
-            <div className="flex flex-wrap gap-2">
-              {companies.map((comp) => {
-                const isSelected = selectedCompany === comp.id;
-                return (
-                  <button key={comp.id} type="button" onClick={() => onSelectCompany(comp.id)} aria-pressed={isSelected}
-                    className={`flex items-center gap-1.5 rounded-xl px-3.5 py-1.5 text-xs font-bold transition ${
-                      isSelected ? "bg-blue-600 text-white shadow-md shadow-blue-600/25" : "border border-sky-200 bg-white text-slate-700 hover:border-blue-300 hover:bg-sky-50"
-                    }`}>
-                    <span className="select-none text-sm">{comp.logo}</span>
-                    {comp.name}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
         </div>
 
         {/* Carrusel de premios (panel) o, sin diapositivas, el bombo decorativo */}
@@ -136,7 +115,7 @@ export function LotteryHero({ companies, selectedCompany, onSelectCompany, onSyn
           <p className="mt-2 text-2xs text-slate-500">No vendemos boletos ni recibimos apuestas.</p>
         </div>
       </div>
-    </div>
+    </section>
   );
 }
 
