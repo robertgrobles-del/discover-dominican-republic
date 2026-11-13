@@ -132,6 +132,21 @@ describe("API de Loterías (Endpoints en api/index.ts)", () => {
     expect((resultsRes.body as { data: unknown[] }).data.length).toBe(2);
   });
 
+  it("un premio manual antes de los números queda oculto y sale cuando llega el resultado", async () => {
+    const auth = { authorization: `Bearer ${await staffToken()}` };
+    const set = await handle({ method: "POST", path: "/api/v1/admin/lotteries/prize", headers: auth, body: { draw_id: "draw-rea-quiniela", date: "2026-11-09", jackpot_amount: "RD$ 5 millones" } }, db, SECRET, false);
+    expect(set.status).toBe(200);
+    const day = async () => ((await handle({ method: "GET", path: "/api/v1/lotteries/results", headers: {}, body: {}, query: { date: "2026-11-09" } }, db, SECRET)).body as { data: { draw_id: string; draw_date: string; jackpot_amount: string | null }[] }).data
+      .find((x) => x.draw_id === "draw-rea-quiniela" && x.draw_date === "2026-11-09");
+    expect(await day()).toBeUndefined();
+    await handle({ method: "POST", path: "/api/v1/admin/lotteries/sync", headers: auth, body: { date: "2026-11-09", htmlContent: page(ev("Quiniela Real", "2026-11-09T12:55:00-04:00", [1, 2, 3])) } }, db, SECRET, false);
+    expect((await day())?.jackpot_amount).toBe("RD$ 5 millones");
+    const list = await handle({ method: "GET", path: "/api/v1/admin/lotteries/prizes/draw-rea-quiniela", headers: auth, body: {} }, db, SECRET, false);
+    expect((list.body as { data: { date: string; has_result: boolean }[] }).data[0]).toMatchObject({ date: "2026-11-09", has_result: true });
+    const anon = await handle({ method: "POST", path: "/api/v1/admin/lotteries/prize", headers: {}, body: {} }, db, SECRET, false);
+    expect(anon.status).toBe(401);
+  });
+
   it("el panel crea una lotería y un sorteo con validación", async () => {
     const auth = { authorization: `Bearer ${await staffToken()}` };
     const lot = await handle({ method: "POST", path: "/api/v1/admin/lotteries", headers: auth, body: { name: "Lotería Prueba", slug: "loteria-prueba", is_active: true } }, db, SECRET, false);

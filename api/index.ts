@@ -1995,6 +1995,33 @@ async function handleLotteryCron(db: Client): Promise<ApiResponse> {
   return { status: 200, body: { data: { due: due.length, ...report } } };
 }
 
+/** Premio manual (texto libre, ej. «RD$ 120 millones») de un sorteo en una fecha. Vacío lo borra.
+ * Si el día aún no tiene resultado se crea la fila oculta (is_active = 0) y el sincronizador la activa al guardar los números. */
+async function setLotteryPrize(db: Client, body: Fields): Promise<ApiResponse> {
+  const drawId = typeof body.draw_id === "string" ? body.draw_id : "";
+  const date = body.date;
+  if (!isIsoDate(date) || date < "2000-01-01") return err(422, "Fecha no válida: usa AAAA-MM-DD");
+  const prize = str(body, "jackpot_amount", 120);
+  if (prize instanceof Error) return err(422, prize.message);
+  const draw = await db.execute({ sql: "SELECT id FROM lottery_draws WHERE id = ?", args: [drawId] });
+  if (!draw.rows.length) return err(404, "Sorteo no encontrado");
+  await db.execute({
+    sql: `INSERT INTO lottery_results (id, draw_id, draw_date, winning_numbers, jackpot_amount, is_active, updated_at)
+          VALUES (?, ?, ?, '[]', ?, 0, strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+          ON CONFLICT (draw_id, draw_date) DO UPDATE SET jackpot_amount = excluded.jackpot_amount, updated_at = excluded.updated_at`,
+    args: [`res-${drawId}-${date}`, drawId, date, prize ?? null],
+  });
+  return { status: 200, body: { data: { draw_id: drawId, date, jackpot_amount: prize ?? null } } };
+}
+
+async function listLotteryPrizes(db: Client, drawId: string): Promise<ApiResponse> {
+  const r = await db.execute({
+    sql: "SELECT draw_date, jackpot_amount, is_active FROM lottery_results WHERE draw_id = ? AND jackpot_amount IS NOT NULL ORDER BY draw_date DESC LIMIT 60",
+    args: [drawId],
+  });
+  return { status: 200, body: { data: r.rows.map((x) => ({ date: String(x.draw_date), jackpot_amount: String(x.jackpot_amount), has_result: Number(x.is_active) === 1 })) } };
+}
+
 // ---------- loterías y sorteos (panel) ----------
 const DAYS = ["lunes", "martes", "miercoles", "jueves", "viernes", "sabado", "domingo"];
 const lotterySpec = (b: Fields) => ({
@@ -2040,7 +2067,7 @@ async function lotteryAdmin(db: Client, kind: "lotteries" | "lottery_draws", met
   if (method === "GET" && !id) {
     const sql = kind === "lotteries"
       ? "SELECT l.*, (SELECT COUNT(*) FROM lottery_draws d WHERE d.lottery_id = l.id) AS draws_count FROM lotteries l ORDER BY l.name COLLATE NOCASE"
-      : "SELECT d.*, l.name AS lottery_name, (SELECT MAX(draw_date) FROM lottery_results r WHERE r.draw_id = d.id) AS last_result FROM lottery_draws d JOIN lotteries l ON l.id = d.lottery_id ORDER BY l.name COLLATE NOCASE, d.draw_time";
+      : "SELECT d.*, l.name AS lottery_name, (SELECT MAX(draw_date) FROM lottery_results r WHERE r.draw_id = d.id AND r.is_active = 1) AS last_result FROM lottery_draws d JOIN lotteries l ON l.id = d.lottery_id ORDER BY l.name COLLATE NOCASE, d.draw_time";
     return { status: 200, body: { data: (await db.execute(sql)).rows } };
   }
   if (method === "DELETE" && id) {
@@ -2174,6 +2201,11 @@ export async function handle(req: ApiRequest, db: Client, secret: string, secure
   if (path === "/admin/lotteries/sync" && m === "POST") {
     return manager ? handleSyncLotteries(getIndicatorsDb(db), body) : err(403, "Solo un editor o administrador sincroniza loterías");
   }
+  if (path === "/admin/lotteries/prize" && m === "POST") {
+    return manager ? setLotteryPrize(getIndicatorsDb(db), body) : err(403, "Solo un editor o administrador registra premios");
+  }
+  const prizes = path.match(/^\/admin\/lotteries\/prizes\/([A-Za-z0-9-]+)$/);
+  if (prizes && m === "GET") return manager ? listLotteryPrizes(getIndicatorsDb(db), prizes[1]) : err(403, "Sin permisos");
   const lot = path.match(/^\/admin\/(lotteries|lottery-draws)(?:\/([A-Za-z0-9-]+))?$/);
   if (lot) return manager ? lotteryAdmin(getIndicatorsDb(db), lot[1] === "lotteries" ? "lotteries" : "lottery_draws", m, lot[2], body) : err(403, "Solo un editor o administrador gestiona loterías");
   if (path === "/admin/media" && m === "POST") {

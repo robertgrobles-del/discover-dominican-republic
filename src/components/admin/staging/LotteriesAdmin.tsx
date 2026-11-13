@@ -25,7 +25,7 @@ function useRows(kind: Kind) {
 }
 
 export function StagingLotteriesManager() {
-  const [tab, setTab] = useState<"draws" | "lotteries" | "sync">("draws");
+  const [tab, setTab] = useState<"draws" | "lotteries" | "prizes" | "sync">("draws");
   const [editing, setEditing] = useState<{ kind: Kind; row: Row | "new" } | null>(null);
   if (editing) {
     const close = () => setEditing(null);
@@ -38,13 +38,13 @@ export function StagingLotteriesManager() {
       <div className="flex flex-wrap items-center gap-3">
         <h2 className="text-2xl font-normal">Loterías</h2>
         <nav aria-label="Secciones de loterías" className="flex gap-1 rounded-md border border-border p-1 text-sm">
-          {([["draws", "Sorteos"], ["lotteries", "Loterías"], ["sync", "Sincronizar resultados"]] as const).map(([v, l]) => (
+          {([["draws", "Sorteos"], ["lotteries", "Loterías"], ["prizes", "Premios"], ["sync", "Sincronizar resultados"]] as const).map(([v, l]) => (
             <button key={v} type="button" aria-current={tab === v ? "page" : undefined} onClick={() => setTab(v)}
               className={`rounded px-3 py-1.5 ${tab === v ? "bg-primary text-primary-foreground" : "hover:bg-muted"}`}>{l}</button>
           ))}
         </nav>
       </div>
-      {tab === "sync" ? <SyncPanel /> : <ListView kind={tab === "draws" ? "lottery-draws" : "lotteries"} onEdit={(row) => setEditing({ kind: tab === "draws" ? "lottery-draws" : "lotteries", row })} />}
+      {tab === "sync" ? <SyncPanel /> : tab === "prizes" ? <PrizePanel /> : <ListView kind={tab === "draws" ? "lottery-draws" : "lotteries"} onEdit={(row) => setEditing({ kind: tab === "draws" ? "lottery-draws" : "lotteries", row })} />}
     </section>
   );
 }
@@ -304,6 +304,62 @@ function SyncPanel() {
             {running ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
             {running ? `Sincronizando ${reports.length + 1}…` : "Sincronizar"}</Button>
           {reports.length > 0 && !running ? <p className="text-xs text-muted-foreground">{total} resultados guardados en {reports.length} día{reports.length === 1 ? "" : "s"}.</p> : null}
+        </Box>
+      </aside>
+    </div>
+  );
+}
+
+type Prize = { date: string; jackpot_amount: string; has_result: boolean };
+
+/** Premio manual por sorteo y fecha (texto libre). Se muestra junto al resultado de ese día. */
+function PrizePanel() {
+  const { data: draws = [] } = useRows("lottery-draws");
+  const [drawId, setDrawId] = useState("");
+  const [date, setDate] = useState(rdToday());
+  const [amount, setAmount] = useState("");
+  const prizes = useQuery({
+    queryKey: ["staging", "lottery-prizes", drawId], enabled: !!drawId,
+    queryFn: async () => (await fetchApi<{ data: Prize[] }>(`/admin/lotteries/prizes/${drawId}`)).data,
+  });
+  const save = useMutation({
+    mutationFn: (jackpot_amount: string) => fetchApi("/admin/lotteries/prize", { method: "POST", body: JSON.stringify({ draw_id: drawId, date, jackpot_amount }) }),
+    onSuccess: (_r, v) => { toast.success(v ? "Premio guardado" : "Premio borrado"); void prizes.refetch(); },
+    onError: (e) => toast.error(apiMessage(e)),
+  });
+  const pick = (p: Prize) => { setDate(p.date); setAmount(p.jackpot_amount); };
+  return (
+    <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">
+      <div>
+        {!drawId ? <p className="text-sm text-muted-foreground">Elige un sorteo para ver y registrar sus premios por fecha.</p>
+          : prizes.isLoading ? <Loader2 className="h-5 w-5 animate-spin" />
+          : !prizes.data?.length ? <p className="text-sm text-muted-foreground">Este sorteo no tiene premios registrados.</p>
+          : (
+            <table className="w-full text-sm">
+              <thead><tr className="border-b border-border text-left text-muted-foreground"><th className="py-2">Fecha</th><th>Premio</th><th>Resultado</th></tr></thead>
+              <tbody>{prizes.data.map((p) => (
+                <tr key={p.date} className="cursor-pointer border-b border-border hover:bg-muted" onClick={() => pick(p)}>
+                  <td className="py-2 tabular-nums">{p.date}</td><td>{p.jackpot_amount}</td>
+                  <td className="text-muted-foreground">{p.has_result ? "Publicado" : "Esperando números"}</td>
+                </tr>))}</tbody>
+            </table>
+          )}
+      </div>
+      <aside className="space-y-4">
+        <Box title="Registrar premio">
+          <div className="space-y-1.5">
+            <Label htmlFor="prize-draw">Sorteo</Label>
+            <select id="prize-draw" value={drawId} onChange={(e) => setDrawId(e.target.value)} className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm">
+              <option value="">Elige un sorteo…</option>
+              {draws.map((d) => <option key={d.id} value={d.id}>{s(d.lottery_name)} · {s(d.name)}</option>)}
+            </select>
+          </div>
+          <Field id="prize-date" label="Fecha del sorteo" type="date" value={date} onChange={setDate} />
+          <Field id="prize-amount" label="Premio" value={amount} onChange={setAmount} hint="Texto libre, ej.: RD$ 120 millones. Sale junto al resultado de ese día; si aún no hay números, se publica cuando lleguen." />
+          <div className="flex gap-2">
+            <Button type="button" className="flex-1" disabled={!drawId || !date || !amount.trim() || save.isPending} onClick={() => save.mutate(amount.trim())}>Guardar</Button>
+            <Button type="button" variant="outline" disabled={!drawId || !date || save.isPending} onClick={() => { setAmount(""); save.mutate(""); }}>Borrar</Button>
+          </div>
         </Box>
       </aside>
     </div>

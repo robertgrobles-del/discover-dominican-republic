@@ -125,7 +125,7 @@ export async function syncResults(db: Db, parsed: ScrapedDrawResult[], date: str
         sql: `INSERT INTO lottery_results (id, draw_id, draw_date, winning_numbers, bonus_number, jackpot_amount, is_active, updated_at)
               VALUES (?, ?, ?, ?, ?, ?, 1, strftime('%Y-%m-%dT%H:%M:%fZ','now'))
               ON CONFLICT (draw_id, draw_date) DO UPDATE SET winning_numbers = excluded.winning_numbers,
-                bonus_number = excluded.bonus_number, jackpot_amount = COALESCE(excluded.jackpot_amount, lottery_results.jackpot_amount),
+                bonus_number = excluded.bonus_number, is_active = 1, jackpot_amount = COALESCE(excluded.jackpot_amount, lottery_results.jackpot_amount),
                 updated_at = excluded.updated_at`,
         args: [`res-${draw.id}-${date}`, draw.id, date, JSON.stringify(nums), res.bonusNumber ?? null, res.jackpotAmount ?? null],
       });
@@ -205,7 +205,7 @@ export async function dueDraws(db: Db, now = new Date(), retries = RETRY_MINUTES
   const day = ["domingo", "lunes", "martes", "miercoles", "jueves", "viernes", "sabado"][new Date(`${date}T12:00:00Z`).getUTCDay()];
   const r = await db.execute({
     sql: `SELECT d.id, d.draw_time, d.draw_days FROM lottery_draws d
-          WHERE d.is_active = 1 AND NOT EXISTS (SELECT 1 FROM lottery_results r WHERE r.draw_id = d.id AND r.draw_date = ?)`,
+          WHERE d.is_active = 1 AND NOT EXISTS (SELECT 1 FROM lottery_results r WHERE r.draw_id = d.id AND r.draw_date = ? AND r.is_active = 1)`,
     args: [date],
   });
   return rowsOf(r).filter((x) => {
