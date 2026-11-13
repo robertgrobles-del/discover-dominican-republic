@@ -37,7 +37,7 @@ export function LotteryHero({
             </Badge>
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-3xs font-semibold bg-white/10 backdrop-blur-md border border-white/15 text-white/90">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span>Resultados Oficiales en Tiempo Real</span>
+              <span>Resultados del día, actualizados tras cada sorteo</span>
             </div>
             {onSync && (
               <button
@@ -70,8 +70,8 @@ export function LotteryHero({
               <div className="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
                 <ShieldCheck className="h-4 w-4" />
               </div>
-              <span className="font-bold text-xs text-white block">100% Oficial</span>
-              <span className="text-3xs text-slate-400 block leading-tight">Extractos certificados</span>
+              <span className="font-bold text-xs text-white block">Validados</span>
+              <span className="text-3xs text-slate-400 block leading-tight">Fecha, cantidad y rango comprobados</span>
             </div>
 
             <div className="p-3 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm space-y-1">
@@ -79,7 +79,7 @@ export function LotteryHero({
                 <Zap className="h-4 w-4" />
               </div>
               <span className="font-bold text-xs text-white block">Al Instante</span>
-              <span className="text-3xs text-slate-400 block leading-tight">12:00 PM a 9:00 PM</span>
+              <span className="text-3xs text-slate-400 block leading-tight">Minutos después del sorteo</span>
             </div>
 
             <div className="p-3 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm space-y-1">
@@ -138,55 +138,18 @@ export function LotteryHero({
                 <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
                 <span className="text-xs font-mono font-bold tracking-wider text-white">LOTERÍAS RD EN VIVO</span>
               </div>
-              <Badge className="bg-amber-400 text-slate-950 font-black text-3xs px-2.5 py-0.5 shadow-sm">
-                JACKPOT
-              </Badge>
             </div>
 
-            {/* Simulated Live Balls Sphere Showcase (inspired by the reference image) */}
-            <div className="space-y-3 relative z-10">
-              <div className="text-center">
-                <span className="text-3xs uppercase tracking-widest text-slate-300 font-bold block">
-                  Bote Acumulado Millonario
-                </span>
-                <span className="font-display text-3xl font-black text-amber-300 drop-shadow-md block">
-                  RD$ 40,000,000+
-                </span>
-              </div>
-
-              {/* Physical 3D Numbered Balls Array */}
-              <div className="flex items-center justify-center gap-2.5 py-2">
-                {/* Ball 07 - Royal Blue (like reference image) */}
-                <div className="relative w-12 h-12 rounded-full bg-gradient-to-br from-blue-400 via-blue-600 to-blue-800 text-white flex items-center justify-center font-mono font-black text-lg shadow-xl shadow-blue-500/30 border border-blue-200/80 ring-2 ring-blue-400/25">
-                  <span className="absolute top-1.5 left-2.5 w-2.5 h-1 bg-white/50 rounded-full blur-[0.4px] pointer-events-none" />
-                  <span>07</span>
-                </div>
-
-                {/* Ball 03 - Golden Amber (like reference image) */}
-                <div className="relative w-12 h-12 rounded-full bg-gradient-to-br from-amber-300 via-amber-500 to-amber-700 text-slate-950 flex items-center justify-center font-mono font-black text-lg shadow-xl shadow-amber-500/35 border border-amber-200/80 ring-2 ring-amber-400/30">
-                  <span className="absolute top-1.5 left-2.5 w-2.5 h-1 bg-white/50 rounded-full blur-[0.4px] pointer-events-none" />
-                  <span>03</span>
-                </div>
-
-                {/* Ball 09 - Deep Purple (like reference image) */}
-                <div className="relative w-12 h-12 rounded-full bg-gradient-to-br from-purple-400 via-purple-600 to-purple-800 text-white flex items-center justify-center font-mono font-black text-lg shadow-xl shadow-purple-500/30 border border-purple-200/70 ring-2 ring-purple-400/25">
-                  <span className="absolute top-1.5 left-2.5 w-2.5 h-1 bg-white/50 rounded-full blur-[0.4px] pointer-events-none" />
-                  <span>09</span>
-                </div>
-
-                {/* Ball 23 - Emerald Green */}
-                <div className="relative w-12 h-12 rounded-full bg-gradient-to-br from-emerald-400 via-emerald-600 to-emerald-800 text-white flex items-center justify-center font-mono font-black text-lg shadow-xl shadow-emerald-500/30 border border-emerald-200/70 ring-2 ring-emerald-400/25">
-                  <span className="absolute top-1.5 left-2.5 w-2.5 h-1 bg-white/50 rounded-full blur-[0.4px] pointer-events-none" />
-                  <span>23</span>
-                </div>
-              </div>
+            <div className="space-y-2 relative z-10 text-center">
+              <p className="text-sm text-slate-200">Los números de cada sorteo aparecen aquí unos minutos después de celebrarse.</p>
+              <Link to="/loterias/juego-responsable" className="text-xs font-semibold text-amber-300 hover:underline">Juega con responsabilidad</Link>
             </div>
 
             {/* Bottom Verification Footer */}
             <div className="pt-3 border-t border-white/15 flex items-center justify-between text-2xs text-slate-300 relative z-10">
               <span className="flex items-center gap-1 font-medium">
                 <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
-                Auditado por Lotería Nacional
+                No vendemos boletos ni recibimos apuestas
               </span>
               <Link to="/loterias/como-se-gana" className="text-primary hover:underline font-bold flex items-center gap-0.5">
                 Reglas <ChevronRight className="h-3 w-3" />

@@ -396,13 +396,6 @@ export default function LoteriaDetalle() {
                     </div>
                   )}
                 </div>
-                  ))}
-                  {filteredDraws.length === 0 && (
-                    <div className="col-span-2 text-center py-12 bg-card border border-dashed rounded-2xl">
-                      <p className="text-muted-foreground text-sm">No se encontraron sorteos para los filtros seleccionados.</p>
-                    </div>
-                  )}
-                </div>
               </div>
 
               {/* Right Column: Checker & Info (4 cols) */}
