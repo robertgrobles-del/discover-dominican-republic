@@ -1,4 +1,4 @@
-import { useState, useEffect, useTransition, useMemo } from "react";
+import { useState, useEffect, useTransition, useMemo, type CSSProperties } from "react";
 import { Link } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -172,6 +172,18 @@ export default function Loterias() {
     return groups;
   }, [filteredResults]);
 
+  // Móvil: si falta algún resultado del día, lista única con los que ya salieron primero y luego los pendientes,
+  // cada bloque por hora de sorteo. Si todos salieron, grupos por lotería en orden alfabético.
+  const mobileFlat = useMemo(() => {
+    const done = (r: LotteryResult) => r.date === selectedDate;
+    if (filteredResults.every(done)) return null;
+    return [...filteredResults].sort((a, b) => Number(done(b)) - Number(done(a)) || a.drawTime.localeCompare(b.drawTime));
+  }, [filteredResults, selectedDate]);
+  const alphaOrder = useMemo(() => {
+    const names = [...groupedResults].map((g) => g.companyName).sort((a, b) => a.localeCompare(b, "es"));
+    return new Map(names.map((n, i) => [n, i]));
+  }, [groupedResults]);
+
   const jsonLd = useMemo(() => ({
     "@context": "https://schema.org",
     "@graph": [
@@ -284,10 +296,17 @@ export default function Loterias() {
                   )}
                 </div>
 
-                {/* LOTTERY RESULTS GROUPED BY COMPANY */}
-                <div className="space-y-10">
+                {mobileFlat ? (
+                  <div className="grid gap-4 sm:hidden">
+                    {mobileFlat.map((result) => <LotteryCard key={result.id} result={result} selectedDate={selectedDate} />)}
+                  </div>
+                ) : null}
+
+                {/* LOTTERY RESULTS GROUPED BY COMPANY (en móvil, por orden alfabético) */}
+                <div className={`${mobileFlat ? "hidden sm:flex" : "flex"} flex-col gap-10`}>
                   {groupedResults.map((group) => (
-                    <section key={group.companyId} className="space-y-4">
+                    <section key={group.companyId} style={{ "--o": alphaOrder.get(group.companyName) ?? 0 } as CSSProperties}
+                      className="order-[var(--o)] space-y-4 sm:order-none">
                       {/* Company Header */}
                       <div className="flex items-center justify-between pb-2.5 border-b border-border/60">
                         <div className="flex items-center gap-3">
