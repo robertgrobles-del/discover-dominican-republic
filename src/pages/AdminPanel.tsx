@@ -13,7 +13,7 @@ import { usePanelAdoption } from "@/lib/adoption";
 import { IS_MOCK_DATA } from "@/lib/dataSource";
 import { HAS_BACKEND_SESSION } from "@/lib/authSource";
 import { MockDataNotice } from "@/components/MockDataNotice";
-import { Navigate, Link, useSearchParams } from "react-router-dom";
+import { Navigate, Link, useSearchParams, useNavigate, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { adminDashboardApi } from "@/lib/adminDashboardApi";
 import { StagingEventsManager, StagingVenuesManager, StagingPlacesManager, StagingNewsCategoriesManager, StagingNewsManager, StagingProvincesManager, StagingBeachesManager } from "@/components/admin/staging/StagingCrudManager";
@@ -116,7 +116,7 @@ function useAdminTheme() {
 
 export default function AdminPanel() {
   const { user, loading: authLoading, signOut } = useAuth();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const { can, loading: accessLoading, context, demo } = useAccessContext();
   usePanelAdoption("admin");
   const theme = useAdminTheme();
@@ -177,8 +177,18 @@ export default function AdminPanel() {
     });
   }, [can, isDemoMode, user?.app_metadata?.roles]);
 
-  const activeTabValue = searchParams.get("seccion") ?? visibleTabs[0]?.value ?? "dashboard";
-  const setActiveTabValue = useCallback((value: string) => setSearchParams({ seccion: value }, { replace: false }), [setSearchParams]);
+  // Cada sección tiene su URL: /admin/<seccion>. El antiguo ?seccion= redirige a ella.
+  const { seccion } = useParams();
+  const navigate = useNavigate();
+  const legacy = searchParams.get("seccion");
+  const activeTabValue = seccion ?? legacy ?? visibleTabs[0]?.value ?? "dashboard";
+  const setActiveTabValue = useCallback((value: string) => navigate(`/admin/${value}`), [navigate]);
+  useEffect(() => {
+    if (!legacy) return;
+    const rest = new URLSearchParams(searchParams); rest.delete("seccion");
+    const q = rest.toString();
+    navigate(`/admin/${legacy}${q ? `?${q}` : ""}`, { replace: true });
+  }, [legacy, searchParams, navigate]);
 
   // Pendientes que atender, para señalarlos en el menú. Comparte caché con el dashboard.
   const { data: dashboard } = useQuery({

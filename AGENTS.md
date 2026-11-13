@@ -23,6 +23,7 @@ Estas reglas valen desde ahora para todo el trabajo. Cada regla nueva que pida e
 - **Página de provincia:** sus componentes se editan en el panel (Provincias). Los catálogos (monumentos, parques, hoteles, restaurantes, bares) no se cargan a mano: salen solos por provincia.
 
 ## Panel de administración
+- En el panel se navega por URL, no con `?seccion=`: `/admin/<seccion>`, y dentro `/admin/<seccion>/<pestaña>/<id|nuevo>` (p. ej. `/admin/loterias/sorteos/draw-lei-quiniela`). El antiguo `?seccion=` redirige solo.
 - Todo contenido nuevo del panel usa el diseño tipo WordPress, como Noticias: una lista (Todos | Publicados | Borradores, búsqueda, acciones al pasar el ratón) y un editor de dos columnas. Plantillas: `ProvinceList`/`ProvinceEditor`, `EventList`/`EventEditor`, pasadas a `StagingCrudManager` con `renderList` y `renderEditor`.
 - **Todo lo que se crea, cambia o borra desde el panel tiene las mismas opciones que el editor de Noticias:** idiomas (traducciones en `content_translations`), SEO con palabra clave y análisis (`SeoAnalysisBox`), vista previa, programar publicación, borrador con guardado automático, imagen destacada y edición en lote. Las traducciones con IA se guardan como borrador para revisar; nada se publica traducido sin revisión.
 - Eventos y Recintos (los lugares de los eventos) van en el grupo **Editorial** del panel, junto a Noticias. Programar la publicación solo aplica a Editorial; el contenido de «Guía y lugares» (provincias, municipios, destinos, playas) no la lleva.
@@ -30,6 +31,8 @@ Estas reglas valen desde ahora para todo el trabajo. Cada regla nueva que pida e
 - Todo formulario público lleva el campo trampa `<Honeypot />` y pasa por `formGuard()` en la API.
 
 ## Rutas y contenido
+- Los usuarios normales (rol «user», no del equipo) entran por `/app`. En loterías solo ven datos de loterías.
+- Las horas de los sorteos se guardan y se muestran en hora de República Dominicana, aunque la lotería sea de otro país.
 - Todo cambio de URL lleva redirección de la ruta vieja a la nueva (`<Navigate replace>` en `src/App.tsx` o un redirect en `vercel.json`). Nunca borrar una ruta publicada sin redirigirla.
 - Al fusionar páginas, el contenido de la página eliminada (textos, datos, secciones) se pasa completo a la página destino.
 - Las páginas en preparación se envuelven en `<StaffPreview>` (`src/App.tsx`): solo las ven admin y editor con sesión, y el público recibe una 404. Hoy: `/estado-playas`, hasta tener datos reales del mar.

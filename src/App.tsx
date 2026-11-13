@@ -213,6 +213,9 @@ function AnimatedRoutes() {
             <Route path="/noticias/:slug" element={<NoticiaDetalle />} />
             <Route path="/login" element={<Login />} />
             <Route path="/admin" element={<AdminPanel />} />
+            <Route path="/admin/:seccion" element={<AdminPanel />} />
+            <Route path="/admin/:seccion/:sub" element={<AdminPanel />} />
+            <Route path="/admin/:seccion/:sub/:id" element={<AdminPanel />} />
             <Route path="/404" element={<NotFound />} />
 
             {/* Página 404 personalizada para URLs no encontradas */}

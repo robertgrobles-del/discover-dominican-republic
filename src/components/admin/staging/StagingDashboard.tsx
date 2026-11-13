@@ -163,13 +163,13 @@ export function StagingDashboard({ sections }: { sections: SectionRef[] }) {
   }, [newsPub]);
 
   const catalogRows = [
-    has("provincias") && { label: "Provincias", icon: MapPin, pub: provPub.length, total: provinces.length, to: "/admin?seccion=provincias" },
-    has("municipios") && { label: "Municipios", icon: MapPin, pub: muniPub.length, total: municipalities.length, to: "/admin?seccion=municipios" },
-    has("destinos") && { label: "Destinos", icon: Landmark, pub: destPub.length, total: destinations.length, to: "/admin?seccion=destinos" },
-    has("playas") && { label: "Playas", icon: Waves, pub: beachesPub.length, total: beaches.length, to: "/admin?seccion=playas" },
-    has("recintos") && { label: "Recintos", icon: Landmark, pub: venuesPub.length, total: venues.length, to: "/admin?seccion=recintos" },
-    has("eventos") && { label: "Eventos", icon: CalendarDays, pub: eventsPub.length, total: events.length, to: "/admin?seccion=eventos" },
-    has("noticias") && { label: "Noticias", icon: Newspaper, pub: newsPub.length, total: news.length, to: "/admin?seccion=noticias", note: seoHealth.total > 0 ? `${seoHealth.good}/${seoHealth.total} SEO óptimo` : undefined },
+    has("provincias") && { label: "Provincias", icon: MapPin, pub: provPub.length, total: provinces.length, to: "/admin/provincias" },
+    has("municipios") && { label: "Municipios", icon: MapPin, pub: muniPub.length, total: municipalities.length, to: "/admin/municipios" },
+    has("destinos") && { label: "Destinos", icon: Landmark, pub: destPub.length, total: destinations.length, to: "/admin/destinos" },
+    has("playas") && { label: "Playas", icon: Waves, pub: beachesPub.length, total: beaches.length, to: "/admin/playas" },
+    has("recintos") && { label: "Recintos", icon: Landmark, pub: venuesPub.length, total: venues.length, to: "/admin/recintos" },
+    has("eventos") && { label: "Eventos", icon: CalendarDays, pub: eventsPub.length, total: events.length, to: "/admin/eventos" },
+    has("noticias") && { label: "Noticias", icon: Newspaper, pub: newsPub.length, total: news.length, to: "/admin/noticias", note: seoHealth.total > 0 ? `${seoHealth.good}/${seoHealth.total} SEO óptimo` : undefined },
   ].filter(Boolean) as { label: string; icon: LucideIcon; pub: number; total: number; to: string; note?: string }[];
 
   const totalCatalog = catalogRows.reduce((acc, r) => acc + r.total, 0);
@@ -204,26 +204,26 @@ export function StagingDashboard({ sections }: { sections: SectionRef[] }) {
   }, [news, beaches, events, venues, provinces, municipalities, destinations]);
 
   const todo = [
-    reqPending.length > 0 && { label: "Solicitudes de negocios pendientes", count: reqPending.length, to: "/admin?seccion=solicitudes-negocios", icon: Building2, tone: "text-amber-600 dark:text-amber-400" },
-    eventsFromPublic.length > 0 && { label: "Eventos enviados por la comunidad", count: eventsFromPublic.length, to: "/admin?seccion=eventos", icon: CalendarDays, tone: "text-amber-600 dark:text-amber-400" },
-    msgs.length > 0 && { label: "Mensajes de contacto recibidos", count: msgs.length, to: "/admin?seccion=mensajes", icon: Mail, tone: "text-primary" },
-    newsDrafts.length > 0 && { label: "Noticias en borrador", count: newsDrafts.length, to: "/admin?seccion=noticias", icon: FileEdit, tone: "text-muted-foreground" },
-    (beaches.length - beachesPub.length) > 0 && { label: "Playas en borrador", count: beaches.length - beachesPub.length, to: "/admin?seccion=playas", icon: Waves, tone: "text-muted-foreground" },
-    seoHealth.needs > 0 && { label: "Noticias publicadas con SEO mejorable", count: seoHealth.needs, to: "/admin?seccion=noticias", icon: SearchCheck, tone: "text-muted-foreground" },
+    reqPending.length > 0 && { label: "Solicitudes de negocios pendientes", count: reqPending.length, to: "/admin/solicitudes-negocios", icon: Building2, tone: "text-amber-600 dark:text-amber-400" },
+    eventsFromPublic.length > 0 && { label: "Eventos enviados por la comunidad", count: eventsFromPublic.length, to: "/admin/eventos", icon: CalendarDays, tone: "text-amber-600 dark:text-amber-400" },
+    msgs.length > 0 && { label: "Mensajes de contacto recibidos", count: msgs.length, to: "/admin/mensajes", icon: Mail, tone: "text-primary" },
+    newsDrafts.length > 0 && { label: "Noticias en borrador", count: newsDrafts.length, to: "/admin/noticias", icon: FileEdit, tone: "text-muted-foreground" },
+    (beaches.length - beachesPub.length) > 0 && { label: "Playas en borrador", count: beaches.length - beachesPub.length, to: "/admin/playas", icon: Waves, tone: "text-muted-foreground" },
+    seoHealth.needs > 0 && { label: "Noticias publicadas con SEO mejorable", count: seoHealth.needs, to: "/admin/noticias", icon: SearchCheck, tone: "text-muted-foreground" },
   ].filter(Boolean) as { label: string; count: number; to: string; icon: LucideIcon; tone: string }[];
 
   const quickActions = [
-    has("noticias") && { label: "Escribir noticia", desc: "Artículo editorial o guía", to: "/admin?seccion=noticias&nuevo=1", icon: Newspaper },
-    has("playas") && { label: "Añadir playa", desc: "Ficha completa con mapa", to: "/admin?seccion=playas&nuevo=1", icon: Waves },
-    has("eventos") && { label: "Publicar evento", desc: "Feria, concierto o actividad", to: "/admin?seccion=eventos&nuevo=1", icon: CalendarDays },
-    has("medios") && { label: "Subir imágenes", desc: "Biblioteca compartida", to: "/admin?seccion=medios", icon: ImageIcon },
+    has("noticias") && { label: "Escribir noticia", desc: "Artículo editorial o guía", to: "/admin/noticias?nuevo=1", icon: Newspaper },
+    has("playas") && { label: "Añadir playa", desc: "Ficha completa con mapa", to: "/admin/playas?nuevo=1", icon: Waves },
+    has("eventos") && { label: "Publicar evento", desc: "Feria, concierto o actividad", to: "/admin/eventos?nuevo=1", icon: CalendarDays },
+    has("medios") && { label: "Subir imágenes", desc: "Biblioteca compartida", to: "/admin/medios", icon: ImageIcon },
   ].filter(Boolean) as { label: string; desc: string; to: string; icon: LucideIcon }[];
 
   return (
     <div className="space-y-6">
       {/* Cinta unificada de métricas principales */}
       <section aria-label="Indicadores generales" className="grid divide-y divide-border overflow-hidden rounded-lg border border-border bg-card shadow-xs sm:grid-cols-2 sm:divide-x sm:divide-y-0 lg:grid-cols-4">
-        <Link to="/admin?seccion=noticias" className="group block p-4 transition-colors hover:bg-muted/30 sm:p-5">
+        <Link to="/admin/noticias" className="group block p-4 transition-colors hover:bg-muted/30 sm:p-5">
           <div className="flex items-center justify-between text-xs font-medium text-muted-foreground">
             <span>Publicaciones activas</span>
             <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
@@ -234,7 +234,7 @@ export function StagingDashboard({ sections }: { sections: SectionRef[] }) {
           </p>
         </Link>
 
-        <Link to="/admin?seccion=noticias" className="group block p-4 transition-colors hover:bg-muted/30 sm:p-5">
+        <Link to="/admin/noticias" className="group block p-4 transition-colors hover:bg-muted/30 sm:p-5">
           <div className="flex items-center justify-between text-xs font-medium text-muted-foreground">
             <span>Borradores abiertos</span>
             <FileEdit className="h-4 w-4 text-primary" />
@@ -248,7 +248,7 @@ export function StagingDashboard({ sections }: { sections: SectionRef[] }) {
         </Link>
 
         <Link
-          to={reqPending.length > 0 ? "/admin?seccion=solicitudes-negocios" : msgs.length > 0 ? "/admin?seccion=mensajes" : "/admin?seccion=eventos"}
+          to={reqPending.length > 0 ? "/admin/solicitudes-negocios" : msgs.length > 0 ? "/admin/mensajes" : "/admin/eventos"}
           className="group block p-4 transition-colors hover:bg-muted/30 sm:p-5"
         >
           <div className="flex items-center justify-between text-xs font-medium text-muted-foreground">
@@ -261,7 +261,7 @@ export function StagingDashboard({ sections }: { sections: SectionRef[] }) {
           </p>
         </Link>
 
-        <Link to={has("medios") ? "/admin?seccion=medios" : "/admin?seccion=provincias"} className="group block p-4 transition-colors hover:bg-muted/30 sm:p-5">
+        <Link to={has("medios") ? "/admin/medios" : "/admin/provincias"} className="group block p-4 transition-colors hover:bg-muted/30 sm:p-5">
           <div className="flex items-center justify-between text-xs font-medium text-muted-foreground">
             <span>Recursos y comunidad</span>
             <ImageIcon className="h-4 w-4 text-muted-foreground" />
@@ -285,7 +285,7 @@ export function StagingDashboard({ sections }: { sections: SectionRef[] }) {
             {localDrafts.map((d) => {
               const tab = RESOURCE_TO_TAB[d.resource];
               const label = RESOURCE_LABELS[d.resource] ?? d.resource;
-              const editUrl = tab ? `/admin?seccion=${tab}&editar=${encodeURIComponent(d.itemId)}` : "/admin";
+              const editUrl = tab ? `/admin/${tab}?editar=${encodeURIComponent(d.itemId)}` : "/admin";
               return (
                 <li key={`${d.resource}:${d.itemId}`} className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-5">
                   <div className="min-w-0 flex-1">
@@ -332,7 +332,7 @@ export function StagingDashboard({ sections }: { sections: SectionRef[] }) {
             icon={Clock}
             noPadding
             right={has("noticias") && (
-              <Link to="/admin?seccion=noticias" className="text-xs font-medium text-primary hover:underline">
+              <Link to="/admin/noticias" className="text-xs font-medium text-primary hover:underline">
                 Ver todo
               </Link>
             )}
@@ -357,7 +357,7 @@ export function StagingDashboard({ sections }: { sections: SectionRef[] }) {
                         <tr key={`${item.tab}:${item.id}`} className="transition-colors hover:bg-muted/20">
                           <td className="max-w-[260px] px-4 py-2.5 sm:px-5">
                             <Link
-                              to={`/admin?seccion=${item.tab}&editar=${encodeURIComponent(item.id)}`}
+                              to={`/admin/${item.tab}?editar=${encodeURIComponent(item.id)}`}
                               className="block truncate font-medium text-foreground hover:text-primary hover:underline"
                             >
                               {item.title}
@@ -379,7 +379,7 @@ export function StagingDashboard({ sections }: { sections: SectionRef[] }) {
                             <span className="inline-flex items-center gap-2">
                               <span>{ago(item.updatedAt)}</span>
                               <Link
-                                to={`/admin?seccion=${item.tab}&editar=${encodeURIComponent(item.id)}`}
+                                to={`/admin/${item.tab}?editar=${encodeURIComponent(item.id)}`}
                                 className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
                                 title="Abrir en el editor"
                                 aria-label={`Editar ${item.title}`}

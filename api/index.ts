@@ -2187,7 +2187,7 @@ async function lotteryAdmin(db: Client, kind: "lotteries" | "lottery_draws" | "l
       ? "SELECT s.*, d.name AS draw_name FROM lottery_hero_slides s LEFT JOIN lottery_draws d ON d.id = s.draw_id ORDER BY s.sort_order, s.created_at"
       : kind === "lotteries"
       ? "SELECT l.*, (SELECT COUNT(*) FROM lottery_draws d WHERE d.lottery_id = l.id) AS draws_count FROM lotteries l ORDER BY l.name COLLATE NOCASE"
-      : "SELECT d.*, l.name AS lottery_name, (SELECT MAX(draw_date) FROM lottery_results r WHERE r.draw_id = d.id AND r.is_active = 1) AS last_result FROM lottery_draws d JOIN lotteries l ON l.id = d.lottery_id ORDER BY l.name COLLATE NOCASE, d.draw_time";
+      : "SELECT d.*, l.name AS lottery_name, l.logo_url AS lottery_logo_url, (SELECT MAX(draw_date) FROM lottery_results r WHERE r.draw_id = d.id AND r.is_active = 1) AS last_result FROM lottery_draws d JOIN lotteries l ON l.id = d.lottery_id ORDER BY l.name COLLATE NOCASE, d.draw_time";
     return { status: 200, body: { data: (await db.execute(sql)).rows } };
   }
   if (method === "DELETE" && id) {

@@ -4,6 +4,7 @@ import { useMemo, useState, type ReactNode } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ArrowLeft, Loader2, RefreshCw } from "lucide-react";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { fetchApi } from "@/lib/fastifyClient";
 import { HttpError } from "@/lib/httpClient";
 import { Button } from "@/components/ui/button";
@@ -24,30 +25,71 @@ function useRows(kind: Kind) {
   return useQuery({ queryKey: ["staging", kind], queryFn: async () => (await fetchApi<{ data: Row[] }>(`/admin/${kind}`)).data });
 }
 
+// Cada pestaña y cada ficha tienen su URL: /admin/loterias/<pestaña>[/<id>|/nuevo].
+const TABS = [["sorteos", "Sorteos", "lottery-draws"], ["loterias", "Loterías", "lotteries"], ["carrusel", "Carrusel del hero", "lottery-hero"],
+  ["resultados", "Resultados y premios", null], ["sincronizar", "Sincronizar", null]] as const;
+type TabSlug = (typeof TABS)[number][0];
+
 export function StagingLotteriesManager() {
-  const [tab, setTab] = useState<"draws" | "lotteries" | "hero" | "prizes" | "sync">("draws");
-  const [editing, setEditing] = useState<{ kind: Kind; row: Row | "new" } | null>(null);
-  const listKind: Kind = tab === "draws" ? "lottery-draws" : tab === "hero" ? "lottery-hero" : "lotteries";
-  if (editing) {
-    const close = () => setEditing(null);
-    return editing.kind === "lotteries" ? <LotteryEditor row={editing.row} onClose={close} />
-      : editing.kind === "lottery-hero" ? <HeroEditor row={editing.row} onClose={close} />
-      : <DrawEditor row={editing.row} onClose={close} />;
+  const { sub, id } = useParams();
+  const navigate = useNavigate();
+  const tab = (TABS.find(([v]) => v === sub) ?? TABS[0])[0] as TabSlug;
+  const listKind = TABS.find(([v]) => v === tab)?.[2] ?? null;
+  const base = `/admin/loterias/${tab}`;
+  const { data: rows = [], isLoading } = useRows(listKind ?? "lottery-draws");
+  if (listKind && id) {
+    const close = () => navigate(base);
+    const row = id === "nuevo" ? "new" as const : rows.find((r) => r.id === id);
+    if (!row) return isLoading ? <p className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" />Cargando…</p>
+      : <p className="text-sm text-muted-foreground">No existe ese registro. <Link to={base} className="text-primary underline">Volver a la lista</Link></p>;
+    return listKind === "lotteries" ? <LotteryEditor key={id} row={row} onClose={close} />
+      : listKind === "lottery-hero" ? <HeroEditor key={id} row={row} onClose={close} />
+      : <DrawEditor key={id} row={row} onClose={close} />;
   }
   return (
-    <section className="space-y-4">
-      <div className="flex flex-wrap items-center gap-3">
-        <h2 className="text-2xl font-normal">Loterías</h2>
-        <nav aria-label="Secciones de loterías" className="flex gap-1 rounded-md border border-border p-1 text-sm">
-          {([["draws", "Sorteos"], ["lotteries", "Loterías"], ["hero", "Carrusel del hero"], ["prizes", "Resultados y premios"], ["sync", "Sincronizar resultados"]] as const).map(([v, l]) => (
-            <button key={v} type="button" aria-current={tab === v ? "page" : undefined} onClick={() => setTab(v)}
-              className={`rounded px-3 py-1.5 ${tab === v ? "bg-primary text-primary-foreground" : "hover:bg-muted"}`}>{l}</button>
-          ))}
-        </nav>
-      </div>
-      {tab === "sync" ? <SyncPanel /> : tab === "prizes" ? <PrizePanel />
-        : <ListView key={listKind} kind={listKind} onEdit={(row) => setEditing({ kind: listKind, row })} />}
+    <section className="space-y-5">
+      <header className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h2 className="text-2xl font-semibold tracking-tight">Loterías</h2>
+          <p className="text-sm text-muted-foreground">Todas las horas son de República Dominicana, también las de loterías de otros países.</p>
+        </div>
+      </header>
+      <Summary />
+      <nav aria-label="Secciones de loterías" className="-mx-1 flex gap-1 overflow-x-auto border-b border-border px-1 text-sm">
+        {TABS.map(([v, l]) => (
+          <Link key={v} to={`/admin/loterias/${v}`} aria-current={tab === v ? "page" : undefined}
+            className={`-mb-px whitespace-nowrap border-b-2 px-3 py-2 transition-colors ${tab === v ? "border-primary font-semibold text-foreground" : "border-transparent text-muted-foreground hover:text-foreground"}`}>{l}</Link>
+        ))}
+      </nav>
+      {tab === "sincronizar" ? <SyncPanel /> : tab === "resultados" ? <PrizePanel />
+        : listKind ? <ListView key={listKind} kind={listKind} onEdit={(row) => navigate(`${base}/${row === "new" ? "nuevo" : encodeURIComponent(row.id)}`)} /> : null}
     </section>
+  );
+}
+
+/** Resumen de un vistazo: qué hay activo, qué se carga a mano y qué sorteos ya tienen el resultado de hoy. */
+function Summary() {
+  const { data: draws = [] } = useRows("lottery-draws");
+  const { data: lotteries = [] } = useRows("lotteries");
+  const today = rdToday();
+  const active = draws.filter((d) => Number(d.is_active) === 1);
+  const manual = active.filter((d) => !d.source_name && !d.source_path).length;
+  const withToday = active.filter((d) => s(d.last_result).startsWith(today)).length;
+  const items = [
+    ["Loterías activas", lotteries.filter((l) => Number(l.is_active) === 1).length, `${lotteries.length} en total`],
+    ["Sorteos activos", active.length, `${manual} se cargan a mano`],
+    ["Con resultado de hoy", withToday, `de ${active.length} sorteos`],
+  ] as const;
+  return (
+    <dl className="grid gap-3 sm:grid-cols-3">
+      {items.map(([label, n, sub]) => (
+        <div key={label} className="rounded-lg border border-border bg-card p-4">
+          <dt className="text-xs font-medium text-muted-foreground">{label}</dt>
+          <dd className="mt-1 text-2xl font-semibold tabular-nums">{n}</dd>
+          <dd className="text-xs text-muted-foreground">{sub}</dd>
+        </div>
+      ))}
+    </dl>
   );
 }
 
@@ -56,10 +98,12 @@ function ListView({ kind, onEdit }: { kind: Kind; onEdit: (row: Row | "new") => 
   const { data: rows = [], isLoading, error } = useRows(kind);
   const [q, setQ] = useState("");
   const [view, setView] = useState<"all" | "on" | "off">("all");
+  const [lot, setLot] = useState("");
   const isDraw = kind === "lottery-draws";
   const isHero = kind === "lottery-hero";
-  const list = useMemo(() => rows.filter((r) => (view === "all" || (view === "on") === (Number(r.is_active) === 1))
-    && `${s(r.name)} ${s(r.title)} ${s(r.lottery_name)} ${s(r.source_name)}`.toLowerCase().includes(q.trim().toLowerCase())), [rows, q, view]);
+  const lotteryNames = useMemo(() => [...new Set(rows.map((r) => s(r.lottery_name)).filter(Boolean))].sort(), [rows]);
+  const list = useMemo(() => rows.filter((r) => (view === "all" || (view === "on") === (Number(r.is_active) === 1)) && (!lot || s(r.lottery_name) === lot)
+    && `${s(r.name)} ${s(r.title)} ${s(r.lottery_name)} ${s(r.source_name)}`.toLowerCase().includes(q.trim().toLowerCase())), [rows, q, view, lot]);
   const n = { all: rows.length, on: rows.filter((r) => Number(r.is_active) === 1).length, off: rows.filter((r) => Number(r.is_active) !== 1).length };
   const del = useMutation({
     mutationFn: (id: string) => fetchApi(`/admin/${kind}/${id}`, { method: "DELETE" }),
@@ -84,7 +128,15 @@ function ListView({ kind, onEdit }: { kind: Kind; onEdit: (row: Row | "new") => 
             ))}
           </nav>
         </div>
-        <Input value={q} onChange={(e) => setQ(e.target.value)} aria-label="Buscar" placeholder="Buscar" className="h-9 w-56" />
+        <div className="flex flex-wrap gap-2">
+          {isDraw ? (
+            <select aria-label="Filtrar por lotería" value={lot} onChange={(e) => setLot(e.target.value)} className="h-9 rounded-md border border-input bg-background px-2 text-sm">
+              <option value="">Todas las loterías</option>
+              {lotteryNames.map((l) => <option key={l} value={l}>{l}</option>)}
+            </select>
+          ) : null}
+          <Input value={q} onChange={(e) => setQ(e.target.value)} aria-label="Buscar" placeholder="Buscar" className="h-9 w-56" />
+        </div>
       </div>
       <div className="overflow-x-auto rounded border border-border bg-card">
         <table className="w-full min-w-[720px] text-sm">
@@ -100,7 +152,10 @@ function ListView({ kind, onEdit }: { kind: Kind; onEdit: (row: Row | "new") => 
             {list.length === 0 ? <tr><td colSpan={6} className="p-6 text-muted-foreground">No hay registros que coincidan.</td></tr> : list.map((r, i) => (
               <tr key={r.id} className={`group align-top ${i % 2 ? "" : "bg-muted/40"}`}>
                 <td className="p-3">
-                  <button type="button" className="font-semibold text-primary hover:underline" onClick={() => onEdit(r)}>{s(r.name) || s(r.title)}</button>
+                  <span className="flex items-center gap-2">
+                    {r.logo_url || r.lottery_logo_url ? <img src={s(r.logo_url) || s(r.lottery_logo_url)} alt="" className="h-7 w-7 shrink-0 rounded object-contain" loading="lazy" /> : null}
+                    <button type="button" className="font-semibold text-primary hover:underline" onClick={() => onEdit(r)}>{s(r.name) || s(r.title)}</button>
+                  </span>
                   <span className="mt-1 flex gap-2 text-xs opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100">
                     <button type="button" className="text-primary hover:underline" onClick={() => onEdit(r)}>Editar</button>
                     <span className="text-muted-foreground">|</span>
@@ -121,7 +176,7 @@ function ListView({ kind, onEdit }: { kind: Kind; onEdit: (row: Row | "new") => 
                   <td className="p-3">{s(r.country)}</td>
                   <td className="p-3 tabular-nums">{s(r.draws_count)}</td>
                 </>}
-                <td className="p-3">{Number(r.is_active) === 1 ? "Activo" : "Inactivo"}</td>
+                <td className="p-3"><span className={`rounded px-2 py-0.5 text-xs font-medium ${Number(r.is_active) === 1 ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-500/15 dark:text-emerald-300" : "bg-muted text-muted-foreground"}`}>{Number(r.is_active) === 1 ? "Activo" : "Inactivo"}</span></td>
               </tr>
             ))}
           </tbody>
@@ -230,6 +285,7 @@ function DrawEditor({ row, onClose }: { row: Row | "new"; onClose: () => void })
           {f.logo_url ? <img src={f.logo_url} alt="" className="h-16 w-16 rounded object-contain" /> : null}
         </Box>
         <Box title="Horario (hora de RD)">
+          <p className="text-xs text-muted-foreground">Escribe siempre la hora a la que sale en República Dominicana, aunque la lotería sea de otro país.</p>
           <Field id="draw-time" label="Hora del sorteo" type="time" value={f.draw_time} onChange={set("draw_time")} required hint="El sincronizador automático lo busca 3, 5 y 10 minutos después de esta hora (cada intento solo si el anterior no lo encontró)." />
           <Field id="draw-sunday" label="Hora del domingo (si cambia)" type="time" value={f.sunday_time} onChange={set("sunday_time")} hint="Déjala vacía si el domingo se sortea a la misma hora." />
           <fieldset><legend className="mb-1 text-sm font-medium">Días</legend>
