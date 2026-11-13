@@ -1728,10 +1728,10 @@ async function handleGetLotteryResults(db: Client, dateParam?: string, companySl
   `;
   const args: InValue[] = [];
   if (dateParam) {
-    // Por sorteo, el resultado de ese día o, si aún no hay, el último de los 7 días anteriores (la web lo pinta en gris).
+    // Por sorteo, el resultado de ese día o, si aún no hay, el último resultado disponible (la web lo pinta en gris con su fecha).
     sql += ` AND r.draw_date = (SELECT MAX(r2.draw_date) FROM lottery_results r2 WHERE r2.draw_id = r.draw_id AND r2.is_active = 1
-              AND r2.draw_date <= ? AND r2.draw_date >= date(?, '-7 days'))`;
-    args.push(dateParam, dateParam);
+              AND r2.draw_date <= ?)`;
+    args.push(dateParam);
   }
   if (companySlug && companySlug !== "all") {
     sql += " AND (l.slug = ? OR l.id = ?)";

@@ -220,46 +220,65 @@ export default function SorteoDetalle() {
                 </div>
 
                 {/* Último Resultado Destacado */}
-                {data?.stats.latest_result && (
-                  <div className="p-6 rounded-3xl bg-white/5 border border-white/15 backdrop-blur-md shadow-xl flex flex-col items-center sm:items-start gap-3 shrink-0 min-w-[280px]">
-                    <div className="flex items-center justify-between w-full">
-                      <span className="text-3xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-                        <Trophy className="h-3.5 w-3.5 text-amber-400" />
-                        Último Sorteo
-                      </span>
-                      <span className="text-xs font-mono font-bold text-white px-2 py-0.5 rounded-md bg-white/10">
-                        {data.stats.latest_result.draw_date}
-                      </span>
-                    </div>
+                {data?.stats.latest_result && (() => {
+                  const todayStr = new Date().toISOString().split("T")[0];
+                  const isToday = data.stats.latest_result.draw_date === todayStr;
+                  return (
+                    <div
+                      className={`p-6 rounded-3xl backdrop-blur-md shadow-xl flex flex-col items-center sm:items-start gap-3 shrink-0 min-w-[280px] border transition-all ${
+                        isToday
+                          ? "bg-white/5 border-white/15"
+                          : "bg-slate-900/60 border-slate-700/60 opacity-90"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between w-full gap-2">
+                        <span className="text-3xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
+                          <Trophy className={`h-3.5 w-3.5 ${isToday ? "text-amber-400" : "text-slate-400"}`} />
+                          {isToday ? "Sorteo de Hoy" : "Último disponible"}
+                        </span>
+                        <span className="text-xs font-mono font-bold text-white px-2 py-0.5 rounded-md bg-white/10">
+                          {data.stats.latest_result.draw_date}
+                        </span>
+                      </div>
 
-                    <div className="flex items-center gap-2.5 py-1">
-                      {data.stats.latest_result.winning_numbers.map((n, idx) => (
-                        <div
-                          key={idx}
-                          className={`relative w-12 h-12 rounded-full flex flex-col items-center justify-center font-mono text-lg font-black shadow-lg select-none ${
-                            idx === 0
-                              ? "bg-gradient-to-br from-amber-300 via-amber-500 to-amber-700 text-slate-950 shadow-amber-500/30 border border-amber-200/80 ring-2 ring-amber-400/30"
-                              : idx === 1
-                              ? "bg-gradient-to-br from-blue-400 via-blue-600 to-blue-800 text-white shadow-blue-500/25 border border-blue-200/70 ring-2 ring-blue-400/20"
-                              : idx === 2
-                              ? "bg-gradient-to-br from-emerald-400 via-emerald-600 to-emerald-800 text-white shadow-emerald-500/25 border border-emerald-200/70 ring-2 ring-emerald-400/20"
-                              : "bg-gradient-to-br from-slate-700 via-slate-800 to-slate-950 text-white border border-slate-600"
-                          }`}
-                        >
-                          <span className="absolute top-1.5 left-2 w-2 h-1 bg-white/50 rounded-full blur-[0.4px] pointer-events-none" />
-                          <span>{String(n).padStart(2, "0")}</span>
+                      {!isToday && (
+                        <div className="w-full text-3xs font-medium text-amber-200/90 bg-amber-500/10 border border-amber-500/20 rounded-lg px-2.5 py-1 flex items-center gap-1.5">
+                          <Clock className="h-3 w-3 shrink-0 text-amber-400" />
+                          <span>Sorteo de hoy aún pendiente</span>
                         </div>
-                      ))}
-                    </div>
+                      )}
 
-                    {data.stats.latest_result.jackpot_amount && (
-                      <span className="text-xs font-bold text-amber-400 flex items-center gap-1">
-                        <Sparkles className="h-3.5 w-3.5" />
-                        {data.stats.latest_result.jackpot_amount}
-                      </span>
-                    )}
-                  </div>
-                )}
+                      <div className={`flex items-center gap-2.5 py-1 ${!isToday ? "grayscale opacity-85 hover:grayscale-0 transition-all" : ""}`}>
+                        {data.stats.latest_result.winning_numbers.map((n, idx) => (
+                          <div
+                            key={idx}
+                            className={`relative w-12 h-12 rounded-full flex flex-col items-center justify-center font-mono text-lg font-black shadow-lg select-none ${
+                              !isToday
+                                ? "bg-gradient-to-br from-slate-200 via-slate-400 to-slate-600 text-slate-950 border border-white/40 ring-2 ring-slate-400/20"
+                                : idx === 0
+                                ? "bg-gradient-to-br from-amber-300 via-amber-500 to-amber-700 text-slate-950 shadow-amber-500/30 border border-amber-200/80 ring-2 ring-amber-400/30"
+                                : idx === 1
+                                ? "bg-gradient-to-br from-blue-400 via-blue-600 to-blue-800 text-white shadow-blue-500/25 border border-blue-200/70 ring-2 ring-blue-400/20"
+                                : idx === 2
+                                ? "bg-gradient-to-br from-emerald-400 via-emerald-600 to-emerald-800 text-white shadow-emerald-500/25 border border-emerald-200/70 ring-2 ring-emerald-400/20"
+                                : "bg-gradient-to-br from-slate-700 via-slate-800 to-slate-950 text-white border border-slate-600"
+                            }`}
+                          >
+                            <span className="absolute top-1.5 left-2 w-2 h-1 bg-white/50 rounded-full blur-[0.4px] pointer-events-none" />
+                            <span>{String(n).padStart(2, "0")}</span>
+                          </div>
+                        ))}
+                      </div>
+
+                      {data.stats.latest_result.jackpot_amount && (
+                        <span className="text-xs font-bold text-amber-400 flex items-center gap-1">
+                          <Sparkles className="h-3.5 w-3.5" />
+                          {data.stats.latest_result.jackpot_amount}
+                        </span>
+                      )}
+                    </div>
+                  );
+                })()}
               </div>
             </div>
 

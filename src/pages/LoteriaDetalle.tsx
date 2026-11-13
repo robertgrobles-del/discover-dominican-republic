@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import { useI18n } from "@/hooks/useI18n";
 import { LotteryResult, resolveDrawSlug } from "@/data/loteriasData";
 import { fetchLotteryResults, fetchLotteryDetail } from "@/services/lotteryService";
+import { LotteryCard } from "@/components/loterias/LotteryCard";
 import { PreFooterPresidenteBanner } from "@/components/promo";
 
 const COMPANY_INFO: Record<string, {
@@ -384,79 +385,17 @@ export default function LoteriaDetalle() {
 
                 <div className="grid sm:grid-cols-2 gap-5">
                   {filteredDraws.map((draw) => (
-                    <Card key={draw.id} className="group rounded-3xl border border-border/70 bg-card/85 backdrop-blur-md hover:border-primary/50 hover:shadow-xl hover:shadow-primary/5 transition-all duration-300 overflow-hidden flex flex-col justify-between">
-                      <CardHeader className="p-5 pb-3 border-b border-border/50 flex flex-row items-center justify-between">
-                        <div>
-                          <h3 className="font-display font-bold text-base text-foreground group-hover:text-primary transition-colors">
-                            {draw.drawName}
-                          </h3>
-                          <span className="text-xs font-mono font-bold text-primary flex items-center gap-1 mt-1 px-2 py-0.5 rounded-full bg-primary/10 border border-primary/20 w-fit">
-                            <Clock className="h-3 w-3" /> {draw.drawTime}
-                          </span>
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-muted-foreground hover:text-foreground rounded-full hover:bg-muted"
-                          onClick={() => handleShare(draw.drawName, draw.winningNumbers)}
-                          title="Compartir resultados"
-                        >
-                          <Share2 className="h-4 w-4" />
-                        </Button>
-                      </CardHeader>
-
-                      <CardContent className="p-5 space-y-4">
-                        {/* Winning Numbers 3D Spheres */}
-                        <div className="flex flex-wrap items-center justify-center gap-2.5 sm:gap-3 py-2">
-                          {draw.winningNumbers.map((num, idx) => {
-                            const isFirst = idx === 0;
-                            const isSecond = idx === 1;
-                            const isThird = idx === 2;
-
-                            return (
-                              <div
-                                key={idx}
-                                className={`relative w-12 h-12 sm:w-13 sm:h-13 rounded-full flex flex-col items-center justify-center font-mono font-black shadow-lg transition-transform hover:scale-110 select-none ${
-                                  isFirst
-                                    ? "bg-gradient-to-br from-amber-300 via-amber-500 to-amber-700 text-slate-950 shadow-amber-500/30 border border-amber-200/80 ring-2 ring-amber-400/30"
-                                    : isSecond
-                                    ? "bg-gradient-to-br from-blue-400 via-blue-600 to-blue-800 text-white shadow-blue-500/25 border border-blue-200/70 ring-2 ring-blue-400/20"
-                                    : isThird
-                                    ? "bg-gradient-to-br from-emerald-400 via-emerald-600 to-emerald-800 text-white shadow-emerald-500/25 border border-emerald-200/70 ring-2 ring-emerald-400/20"
-                                    : "bg-gradient-to-br from-slate-700 via-slate-800 to-slate-950 text-white shadow-black/30 border border-slate-600"
-                                }`}
-                              >
-                                <span className="absolute top-1.5 left-2.5 w-2.5 h-1 bg-white/50 rounded-full blur-[0.4px] pointer-events-none" />
-                                <span className="text-base sm:text-lg leading-none tracking-tight">{num}</span>
-                                {draw.winningNumbers.length <= 3 && (
-                                  <span className={`text-[8px] font-sans font-bold uppercase mt-0.5 leading-none ${isFirst ? "text-slate-950/80" : "text-white/80"}`}>
-                                    {isFirst ? "1ra" : isSecond ? "2da" : "3ra"}
-                                  </span>
-                                )}
-                              </div>
-                            );
-                          })}
-                        </div>
-
-                        {/* Jackpot / Extras */}
-                        {draw.jackpotOrExtra && (
-                          <div className="flex items-center justify-center gap-1.5 p-2.5 rounded-xl bg-primary/10 border border-primary/20 text-primary text-xs font-bold text-center">
-                            <Sparkles className="h-3.5 w-3.5 shrink-0" />
-                            <span>{draw.jackpotOrExtra}</span>
-                          </div>
-                        )}
-
-                        <div className="pt-3 border-t border-border/50 flex items-center justify-between">
-                          <Link
-                            to={`/loteria/${normalizedSlug}/${draw.drawSlug || resolveDrawSlug(normalizedSlug, draw.drawName)}`}
-                            className="text-xs font-bold text-primary hover:underline flex items-center gap-1.5"
-                          >
-                            <History className="h-3.5 w-3.5" />
-                            <span>Ver Histórico del Sorteo &rarr;</span>
-                          </Link>
-                        </div>
-                      </CardContent>
-                    </Card>
+                    <LotteryCard key={draw.id} result={draw} selectedDate={selectedDate} />
+                  ))}
+                  {filteredDraws.length === 0 && (
+                    <div className="col-span-2 text-center py-20 bg-card/60 backdrop-blur-sm border border-dashed border-border/80 rounded-3xl space-y-2">
+                      <p className="font-display font-bold text-lg text-foreground">No hay sorteos disponibles</p>
+                      <p className="text-muted-foreground text-xs sm:text-sm max-w-sm mx-auto">
+                        No se encontraron sorteos para la fecha seleccionada o aún no se han celebrado.
+                      </p>
+                    </div>
+                  )}
+                </div>
                   ))}
                   {filteredDraws.length === 0 && (
                     <div className="col-span-2 text-center py-12 bg-card border border-dashed rounded-2xl">
