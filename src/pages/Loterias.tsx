@@ -207,7 +207,7 @@ export default function Loterias() {
                 {/* LOTTERY RESULTS GRID */}
                 <div className="grid sm:grid-cols-2 gap-4">
                   {filteredResults.map((result) => (
-                    <LotteryCard key={result.id} result={result} />
+                    <LotteryCard key={result.id} result={result} selectedDate={selectedDate} />
                   ))}
                   {filteredResults.length === 0 && (
                     <div className="col-span-2 text-center py-16 bg-card border border-dashed border-border rounded-2xl">

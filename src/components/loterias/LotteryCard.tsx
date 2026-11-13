@@ -5,13 +5,16 @@ import { LotteryResult, resolveDrawSlug } from "@/data/loteriasData";
 
 interface LotteryCardProps {
   result: LotteryResult;
+  /** Fecha consultada: si el resultado es de otro día (el sorteo de hoy aún no salió), la tarjeta va en gris. */
+  selectedDate?: string;
 }
 
-export function LotteryCard({ result }: LotteryCardProps) {
+export function LotteryCard({ result, selectedDate }: LotteryCardProps) {
   const drawSlug = result.drawSlug || resolveDrawSlug(result.company, result.drawName);
+  const previous = Boolean(selectedDate && result.date && result.date !== selectedDate);
 
   return (
-    <Card className="rounded-3xl border border-border/80 bg-card hover:border-primary/40 transition-all shadow-md overflow-hidden flex flex-col justify-between">
+    <Card className={`rounded-3xl border border-border/80 bg-card hover:border-primary/40 transition-all shadow-md overflow-hidden flex flex-col justify-between ${previous ? "opacity-60 grayscale" : ""}`}>
       <CardHeader className="p-5 pb-3 border-b border-border/60 flex flex-row items-center justify-between">
         <div>
           <Link to={`/loteria/${result.company}`} className="flex items-center gap-1.5 group">
@@ -31,7 +34,8 @@ export function LotteryCard({ result }: LotteryCardProps) {
           <span className="text-xs font-mono font-bold text-primary flex items-center gap-1 justify-end">
             <Clock className="h-3 w-3" /> {result.drawTime}
           </span>
-          <span className="text-[10px] text-muted-foreground block">{result.date}</span>
+          <span className="text-[10px] text-muted-foreground block">{previous ? `Último: ${result.date}` : result.date}</span>
+          {previous ? <span className="text-[10px] font-semibold text-muted-foreground block">Aún sin resultado en esta fecha</span> : null}
         </div>
       </CardHeader>
 

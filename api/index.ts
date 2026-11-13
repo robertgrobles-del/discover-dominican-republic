@@ -1724,8 +1724,10 @@ async function handleGetLotteryResults(db: Client, dateParam?: string, companySl
   `;
   const args: InValue[] = [];
   if (dateParam) {
-    sql += " AND r.draw_date = ?";
-    args.push(dateParam);
+    // Por sorteo, el resultado de ese día o, si aún no hay, el último de los 7 días anteriores (la web lo pinta en gris).
+    sql += ` AND r.draw_date = (SELECT MAX(r2.draw_date) FROM lottery_results r2 WHERE r2.draw_id = r.draw_id AND r2.is_active = 1
+              AND r2.draw_date <= ? AND r2.draw_date >= date(?, '-7 days'))`;
+    args.push(dateParam, dateParam);
   }
   if (companySlug && companySlug !== "all") {
     sql += " AND (l.slug = ? OR l.id = ?)";
@@ -1979,7 +1981,7 @@ async function handleSyncLotteries(db: Client, body: Fields): Promise<ApiRespons
   return { status: 200, body: { data: report } };
 }
 
-/** Cron (cada minuto): sólo descarga si algún sorteo se celebró hace 0–5 minutos y aún no tiene resultado. */
+/** Cron (cada minuto): sólo descarga si a algún sorteo le toca intento (3, 5 o 10 min tras su hora) y aún no tiene resultado. */
 async function handleLotteryCron(db: Client): Promise<ApiResponse> {
   const due = await dueDraws(db);
   if (!due.length) return { status: 200, body: { data: { due: 0 } } };
@@ -2009,6 +2011,7 @@ const drawSpec = (b: Fields) => ({
   slug: slugOf(b, 100),
   name: () => str(b, "name", 120, true),
   source_name: () => str(b, "source_name", 120),
+  source_path: () => { const p = str(b, "source_path", 120); return p instanceof Error || p === null || /^[a-z0-9-]+$/.test(p) ? p : new Error("source_path: solo minúsculas, números y guiones (ej.: resultados-loto)"); },
   draw_days: () => {
     const list = parseDays(b.draw_days);
     if (!Array.isArray(list) || !list.length || list.some((d) => !DAYS.includes(String(d)))) return new Error("draw_days: elige al menos un día de la semana");

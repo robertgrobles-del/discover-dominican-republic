@@ -77,12 +77,14 @@ describe("Scraper de Loterías Dominicanas", () => {
     expect(empty).toMatchObject({ success: false, syncedCount: 0 });
   });
 
-  it("el cron sólo busca sorteos celebrados hace 0–5 minutos y sin resultado", async () => {
+  it("el cron busca cada sorteo a los 3, 5 y 10 minutos y solo mientras no tenga resultado", async () => {
     // Jueves 2026-11-12, 21:03 en RD: Nacional Noche (21:00) toca; Real (12:55) ya tiene resultado y no.
     const due = await dueDraws(db, new Date("2026-11-13T01:03:00Z"));
     expect(due).toContain("draw-nac-noche");
     expect(due).not.toContain("draw-rea-quiniela");
-    expect(await dueDraws(db, new Date("2026-11-13T01:10:00Z"))).not.toContain("draw-nac-noche");
+    expect(await dueDraws(db, new Date("2026-11-13T01:04:00Z"))).not.toContain("draw-nac-noche");
+    expect(await dueDraws(db, new Date("2026-11-13T01:10:00Z"))).toContain("draw-nac-noche");
+    expect(await dueDraws(db, new Date("2026-11-13T01:11:00Z"))).not.toContain("draw-nac-noche");
   });
 });
 
@@ -108,6 +110,12 @@ describe("API de Loterías (Endpoints en api/index.ts)", () => {
   it("sin sesión ni CRON_SECRET no se puede sincronizar (escribe resultados)", async () => {
     const r = await handle({ method: "POST", path: "/api/v1/lotteries/sync", headers: {}, body: { htmlContent: "x" } }, db, SECRET, false);
     expect(r.status).toBe(401);
+  });
+
+  it("los resultados de una fecha traen el último anterior de los sorteos que aún no tienen el suyo", async () => {
+    const r = await handle({ method: "GET", path: "/api/v1/lotteries/results", headers: {}, body: {}, query: { date: "2026-11-13" } }, db, SECRET);
+    const rows = (r.body as { data: { draw_id: string; draw_date: string }[] }).data;
+    expect(rows.find((x) => x.draw_id === "draw-rea-quiniela")?.draw_date).toBe("2026-11-12");
   });
 
   it("POST /api/v1/admin/lotteries/sync guarda un día pasado y rechaza fechas futuras", async () => {

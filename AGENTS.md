@@ -13,6 +13,7 @@ Estas reglas valen desde ahora para todo el trabajo. Cada regla nueva que pida e
 - El dominio canónico es `https://descubrerepdom.com`, sin `www`, porque `www` redirige a él.
 
 ## Base de datos
+- **Loterías** viven en su propia base (`TURSO_DB_LOTERY_URL`). `node staging/db.mjs migrate` le aplica solo las migraciones con «indicators» o «lotter» en el nombre. Los resultados solo se guardan si pasan la validación del sincronizador (fecha, sorteo ya celebrado, cantidad y rango de números); nunca se muestran ni se guardan números de ejemplo.
 - Antes de crear una tabla o una migración, leer «Regla para crear una tabla nueva» en `docs/MAPA_DATOS.md`. Decidir su base (1 Contenido, 2 Usuarios, 3 Dinero, 4 Registros) y anotarla allí.
 - El crecimiento de usuarios es la base del proyecto. Una persona tiene una sola cuenta con varios roles, no una tabla por tipo de usuario. Ver «Tipos de usuario» en `docs/MAPA_DATOS.md`.
 - Las tablas de las bases 2, 3 y 4 guardan el `slug` del contenido, no solo el ID. No unir con JOIN tablas de bases distintas.

@@ -189,7 +189,7 @@ function DrawEditor({ row, onClose }: { row: Row | "new"; onClose: () => void })
   const { data: lotteries = [] } = useRows("lotteries");
   const init = (k: string, d = "") => (row === "new" ? d : s(row[k]) || d);
   const [f, setF] = useState({
-    lottery_id: init("lottery_id"), name: init("name"), slug: init("slug"), source_name: init("source_name"), draw_time: init("draw_time", "20:00"),
+    lottery_id: init("lottery_id"), name: init("name"), slug: init("slug"), source_name: init("source_name"), source_path: init("source_path"), draw_time: init("draw_time", "20:00"),
     ball_range_min: init("ball_range_min", "0"), ball_range_max: init("ball_range_max", "99"), number_of_balls: init("number_of_balls", "3"),
     tombolas_count: init("tombolas_count", "1"), bonus_name: init("bonus_name"), description: init("description"), schedule_description: init("schedule_description"),
   });
@@ -209,7 +209,7 @@ function DrawEditor({ row, onClose }: { row: Row | "new"; onClose: () => void })
           </select>
         </Box>
         <Box title="Horario (hora de RD)">
-          <Field id="draw-time" label="Hora del sorteo" type="time" value={f.draw_time} onChange={set("draw_time")} required hint="El sincronizador automático lo busca de 0 a 5 minutos después de esta hora." />
+          <Field id="draw-time" label="Hora del sorteo" type="time" value={f.draw_time} onChange={set("draw_time")} required hint="El sincronizador automático lo busca 3, 5 y 10 minutos después de esta hora (cada intento solo si el anterior no lo encontró)." />
           <fieldset><legend className="mb-1 text-sm font-medium">Días</legend>
             <div className="flex flex-wrap gap-1.5">{DAYS.map(([d, l]) => (
               <label key={d} className={`cursor-pointer rounded border px-2 py-1 text-xs ${days.includes(d) ? "border-primary bg-primary/10" : "border-border"}`}>
@@ -224,6 +224,8 @@ function DrawEditor({ row, onClose }: { row: Row | "new"; onClose: () => void })
         <Field id="draw-slug" label="Slug (URL: /loteria/<lotería>/…)" value={f.slug} onChange={(v) => { setSlugTouched(true); set("slug")(toSlug(v)); }} required />
         <Field id="draw-source" label="Nombre en la fuente (enloteria.com)" value={f.source_name} onChange={set("source_name")}
           hint="Exactamente como aparece en enloteria.com (ej.: «Nacional Noche», «Anguilla 6PM»). Sin él no se sincroniza." />
+        <Field id="draw-path" label="Página propia en enloteria.com (opcional)" value={f.source_path} onChange={(v) => set("source_path")(toSlug(v))}
+          hint="Solo si el sorteo no sale en la página general: la parte final de su dirección, ej.: «resultados-loto»." />
         <div className="space-y-1"><Label htmlFor="draw-desc">Descripción</Label><Textarea id="draw-desc" rows={3} value={f.description} onChange={(e) => set("description")(e.target.value)} /></div>
       </Box>
       <Box title="Bolos">

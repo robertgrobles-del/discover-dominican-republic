@@ -27,10 +27,10 @@ const remote = process.env.TURSO_DATABASE_URL;
 const target = () => createClient(remote ? { url: remote, authToken: process.env.TURSO_AUTH_TOKEN } : { url: `file:${SQLITE}` });
 
 /** Aplica, en orden y cada una en su transacción, las migraciones que aún no constan en schema_migrations. */
-async function migrate(db) {
+async function migrate(db, only = () => true) {
   await db.execute("CREATE TABLE IF NOT EXISTS schema_migrations (name TEXT PRIMARY KEY, applied_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')))");
   const done = new Set((await db.execute("SELECT name FROM schema_migrations")).rows.map((r) => r.name));
-  const files = readdirSync(here("./migrations")).filter((f) => f.endsWith(".sql")).sort();
+  const files = readdirSync(here("./migrations")).filter((f) => f.endsWith(".sql") && only(f)).sort();
   const applied = [];
   for (const file of files.filter((f) => !done.has(f))) {
     const sql = readFileSync(here(`./migrations/${file}`), "utf8").replace(/--.*$/gm, "");
@@ -64,6 +64,14 @@ if (cmd === "build") {
   const applied = await migrate(db);
   db.close();
   console.log(applied.length ? `Aplicadas en ${remote ? "Turso" : SQLITE}: ${applied.join(", ")}` : "La base ya está al día");
+  // Base aparte de loterías (TURSO_DB_LOTERY_URL): recibe solo las migraciones de indicadores y loterías.
+  const lotUrl = process.env.TURSO_DB_LOTERY_URL || process.env.TURSO_INDICATORS_DATABASE_URL;
+  if (lotUrl && !lotUrl.startsWith("file:")) {
+    const lotDb = createClient({ url: lotUrl, authToken: process.env.TURSO_AUTH_LOTERY_TOKEN || process.env.TURSO_INDICATORS_AUTH_TOKEN });
+    const lotApplied = await migrate(lotDb, (f) => /indicators|lotter/.test(f));
+    lotDb.close();
+    console.log(lotApplied.length ? `Aplicadas en la base de loterías: ${lotApplied.join(", ")}` : "La base de loterías ya está al día");
+  }
 } else if (cmd === "admin") {
   const [email, password, role = "admin"] = args;
   if (!email?.includes("@") || !password || password.length < 12 || !["admin", "editor"].includes(role)) {
