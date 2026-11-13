@@ -11,7 +11,7 @@ import type { LotteryCompanyWithDraws } from "@/types/lotteryRelational";
 interface Stat { n: number; count: number; pct: number; last_date: string | null; days_since: number | null }
 interface Stats {
   draw: { id: string; name: string; ball_range_min: number; ball_range_max: number; number_of_balls: number };
-  days: number; total_draws: number; from: string | null; to: string | null; probability: number; numbers: Stat[];
+  days: number | null; range_from: string | null; range_to: string | null; total_draws: number; from: string | null; to: string | null; probability: number; numbers: Stat[];
 }
 
 const pad = (n: number, max: number) => String(n).padStart(max >= 10 ? 2 : 1, "0");
@@ -23,7 +23,17 @@ export default function LoteriasEstadisticas() {
   const [lotteries, setLotteries] = useState<LotteryCompanyWithDraws[]>([]);
   const [lotterySlug, setLotterySlug] = useState("");
   const [drawId, setDrawId] = useState("");
-  const [days, setDays] = useState(90);
+  // Periodo: últimos N días (365 por defecto), año en curso, año pasado o un rango propio.
+  const [period, setPeriod] = useState("365");
+  const [from, setFrom] = useState("");
+  const [to, setTo] = useState("");
+  const year = new Date().getFullYear();
+  const today = new Date(Date.now() - 4 * 3600_000).toISOString().slice(0, 10);
+  const query = period === "year" ? `from=${year}-01-01&to=${today}`
+    : period === "prev" ? `from=${year - 1}-01-01&to=${year - 1}-12-31`
+    : period === "custom" ? (from && to && from <= to ? `from=${from}&to=${to}` : "")
+    : `days=${period}`;
+  const periodLabel = period === "year" ? `en ${year}` : period === "prev" ? `en ${year - 1}` : period === "custom" ? `del ${from} al ${to}` : `en los últimos ${period} días`;
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -38,16 +48,16 @@ export default function LoteriasEstadisticas() {
   }, [params]);
 
   useEffect(() => {
-    if (!drawId) return;
+    if (!drawId || !query) return;
     let live = true;
     setLoading(true);
-    fetch(`/api/v1/lotteries/stats?draw=${encodeURIComponent(drawId)}&days=${days}`)
+    fetch(`/api/v1/lotteries/stats?draw=${encodeURIComponent(drawId)}&${query}`)
       .then((r) => (r.ok ? r.json() : null))
       .then((j) => { if (live) setStats(j?.data ?? null); })
       .catch(() => { if (live) setStats(null); })
       .finally(() => { if (live) setLoading(false); });
     return () => { live = false; };
-  }, [drawId, days]);
+  }, [drawId, query]);
 
   const lottery = lotteries.find((l) => l.slug === lotterySlug);
   const { hot, cold, maxCount } = useMemo(() => {
@@ -91,10 +101,24 @@ export default function LoteriasEstadisticas() {
               </select>
             </label>
             <label className="text-xs font-semibold text-muted-foreground">Periodo
-              <select value={days} onChange={(e) => setDays(Number(e.target.value))} className="mt-1 block h-10 rounded-lg border border-input bg-background px-3 text-sm text-foreground">
-                {[30, 90, 180, 365].map((d) => <option key={d} value={d}>Últimos {d} días</option>)}
+              <select value={period} onChange={(e) => setPeriod(e.target.value)} className="mt-1 block h-10 rounded-lg border border-input bg-background px-3 text-sm text-foreground">
+                <option value="365">Últimos 365 días</option>
+                <option value="year">Año en curso ({year})</option>
+                <option value="prev">Año pasado ({year - 1})</option>
+                <option value="180">Últimos 180 días</option>
+                <option value="90">Últimos 90 días</option>
+                <option value="30">Últimos 30 días</option>
+                <option value="custom">Otras fechas…</option>
               </select>
             </label>
+            {period === "custom" ? <>
+              <label className="text-xs font-semibold text-muted-foreground">Desde
+                <input type="date" value={from} max={to || today} onChange={(e) => setFrom(e.target.value)} className="mt-1 block h-10 rounded-lg border border-input bg-background px-3 text-sm text-foreground" />
+              </label>
+              <label className="text-xs font-semibold text-muted-foreground">Hasta
+                <input type="date" value={to} min={from} max={today} onChange={(e) => setTo(e.target.value)} className="mt-1 block h-10 rounded-lg border border-input bg-background px-3 text-sm text-foreground" />
+              </label>
+            </> : null}
           </form>
 
           {loading && !stats ? <p className="text-muted-foreground">Cargando…</p> : !stats ? (
@@ -113,7 +137,7 @@ export default function LoteriasEstadisticas() {
                 {([["Calientes", "Los que más han salido", hot, Flame, "bg-orange-100 text-orange-800 border-orange-200"], ["Fríos", "Los que menos han salido", cold, Snowflake, "bg-sky-100 text-sky-800 border-sky-200"]] as const).map(([title, sub, list, Icon, tone]) => (
                   <section key={title} className="rounded-2xl border border-border bg-card p-5">
                     <h2 className="flex items-center gap-2 font-display text-lg font-bold"><Icon className="h-5 w-5" />{title}</h2>
-                    <p className="text-xs text-muted-foreground">{sub} en los últimos {stats.days} días</p>
+                    <p className="text-xs text-muted-foreground">{sub} {periodLabel}</p>
                     <ol className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-5">
                       {list.map((x) => (
                         <li key={x.n} className={`rounded-xl border p-2 text-center ${tone}`}>

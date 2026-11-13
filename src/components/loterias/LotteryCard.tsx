@@ -13,16 +13,15 @@ export function LotteryCard({ result, selectedDate }: LotteryCardProps) {
   const drawSlug = result.drawSlug || resolveDrawSlug(result.company, result.drawName);
   const previous = Boolean(selectedDate && result.date && result.date !== selectedDate);
 
+  // Si el sorteo de hoy aún no sale, la tarjeta conserva sus colores y solo los bolos del último resultado van en gris.
   return (
-    <Card className={`group rounded-3xl border transition-all duration-300 overflow-hidden flex flex-col justify-between ${
-      previous
-        ? "border-border/70 bg-muted/20 opacity-75 grayscale hover:grayscale-0 hover:opacity-100 shadow-sm"
-        : "border-border/70 bg-card/85 backdrop-blur-md hover:border-primary/50 hover:shadow-xl hover:shadow-primary/5"
-    }`}>
+    <Card className="group rounded-3xl border border-border/70 bg-card/85 backdrop-blur-md hover:border-primary/50 hover:shadow-xl hover:shadow-primary/5 transition-all duration-300 overflow-hidden flex flex-col justify-between">
       <CardHeader className="p-5 pb-3 border-b border-border/50 flex flex-row items-center justify-between">
         <div>
           <Link to={`/loteria/${result.company}`} className="flex items-center gap-1.5 group/brand">
-            <span className="text-base select-none">{result.logo}</span>
+            {result.logoUrl
+              ? <img src={result.logoUrl} alt="" className="h-6 w-6 rounded object-contain" loading="lazy" />
+              : <span className="text-base select-none">{result.logo}</span>}
             <span className="text-xs font-black text-foreground group-hover/brand:text-primary transition-colors uppercase tracking-wider">
               {result.companyName}
             </span>
@@ -35,11 +34,7 @@ export function LotteryCard({ result, selectedDate }: LotteryCardProps) {
         </div>
 
         <div className="text-right">
-          <span className={`text-xs font-mono font-bold flex items-center gap-1 justify-end px-2.5 py-0.5 rounded-full border ${
-            previous
-              ? "text-muted-foreground bg-muted/70 border-border"
-              : "text-primary bg-primary/10 border-primary/20"
-          }`}>
+          <span className="text-xs font-mono font-bold flex items-center gap-1 justify-end px-2.5 py-0.5 rounded-full border text-primary bg-primary/10 border-primary/20">
             <Clock className="h-3 w-3" /> {result.drawTime}
           </span>
           <span className="text-3xs font-semibold text-muted-foreground block mt-1">

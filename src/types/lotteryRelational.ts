@@ -19,6 +19,7 @@ export interface LotteryResultRelational {
     tombolas_count: number;
     has_bonus: boolean;
     bonus_name?: string | null;
+    logo_url?: string | null;
     is_active: boolean;
     lotteries: {
       id: string;
@@ -62,6 +63,7 @@ export interface LotteryCompanyWithDraws {
     bonus_name?: string | null;
     schedule_description?: string | null;
     how_to_play?: string | null;
+    logo_url?: string | null;
     latest_result?: {
       id: string;
       draw_date: string;

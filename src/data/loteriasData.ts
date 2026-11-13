@@ -11,6 +11,10 @@ export interface LotteryResult {
   jackpotOrExtra?: string;
   colorScheme: string;
   logo: string;
+  /** Logo del sorteo o, si no tiene, el de la lotería. */
+  logoUrl?: string | null;
+  /** Logo de la lotería (encabezados de grupo). */
+  lotteryLogoUrl?: string | null;
 }
 
 export function resolveDrawSlug(company: string, drawName: string, explicitSlug?: string): string {

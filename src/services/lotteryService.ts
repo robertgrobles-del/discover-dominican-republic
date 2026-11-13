@@ -1,4 +1,4 @@
-import { LotteryResult, resolveDrawSlug } from "@/data/loteriasData";
+import { LotteryResult, resolveDrawSlug, COMPANIES_LIST } from "@/data/loteriasData";
 import { LotteryResultRelational, LotteryCompanyWithDraws } from "@/types/lotteryRelational";
 
 export interface DrawDetailResponse {
@@ -164,7 +164,9 @@ export function adaptResultsForView(relational: LotteryResultRelational[], fallb
       bonusNumber: r.bonus_number,
       jackpotOrExtra: r.jackpot_amount || undefined,
       colorScheme: lot?.color_scheme || "from-slate-700 to-slate-900",
-      logo: lot?.logo_url ? "" : "🎰",
+      logo: COMPANIES_LIST.find((c) => c.id === slug)?.logo ?? "🎰",
+      logoUrl: draw?.logo_url || lot?.logo_url || null,
+      lotteryLogoUrl: lot?.logo_url || null,
     };
   });
 }

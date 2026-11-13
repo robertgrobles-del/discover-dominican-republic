@@ -1670,16 +1670,19 @@ async function handleGetLotteryHero(db: Client): Promise<ApiResponse> {
  * Números calientes y fríos de un sorteo: cuántas veces salió cada número en los últimos N días (30 a 365),
  * su porcentaje sobre los sorteos y cuándo salió por última vez. Solo con resultados reales guardados.
  */
-async function handleGetLotteryStats(db: Client, drawId?: string, daysParam?: string): Promise<ApiResponse> {
+async function handleGetLotteryStats(db: Client, drawId?: string, daysParam?: string, fromParam?: string, toParam?: string): Promise<ApiResponse> {
   if (!drawId || !/^[A-Za-z0-9-]{1,64}$/.test(drawId)) return err(422, "Indica el sorteo (draw)");
-  const days = Math.min(365, Math.max(30, Number(daysParam) || 90));
+  const days = Math.min(365, Math.max(7, Number(daysParam) || 365));
   const d = (await db.execute({ sql: "SELECT id, name, ball_range_min, ball_range_max, number_of_balls FROM lottery_draws WHERE id = ? AND is_active = 1", args: [drawId] })).rows[0];
   if (!d) return err(404, "Sorteo no encontrado");
   const today = rdNow().date;
-  const rows = (await db.execute({
-    sql: "SELECT draw_date, winning_numbers FROM lottery_results WHERE draw_id = ? AND is_active = 1 AND draw_date > date(?, ?) AND draw_date <= ? ORDER BY draw_date",
-    args: [drawId, today, `-${days} days`, today],
-  })).rows;
+  // Rango propio (desde/hasta, p. ej. el año en curso) o, si no, los últimos N días (365 por defecto).
+  const custom = isIsoDate(fromParam) && isIsoDate(toParam) && fromParam <= toParam;
+  if ((fromParam || toParam) && !custom) return err(422, "Rango no válido: usa from y to en AAAA-MM-DD, con from antes que to");
+  const rows = (await db.execute(custom
+    ? { sql: "SELECT draw_date, winning_numbers FROM lottery_results WHERE draw_id = ? AND is_active = 1 AND draw_date >= ? AND draw_date <= ? ORDER BY draw_date", args: [drawId, fromParam, toParam] }
+    : { sql: "SELECT draw_date, winning_numbers FROM lottery_results WHERE draw_id = ? AND is_active = 1 AND draw_date > date(?, ?) AND draw_date <= ? ORDER BY draw_date", args: [drawId, today, `-${days} days`, today] },
+  )).rows;
   const min = Number(d.ball_range_min), max = Number(d.ball_range_max);
   const stats = new Map<number, { count: number; last: string | null }>();
   for (let n = min; n <= max; n++) stats.set(n, { count: 0, last: null });
@@ -1698,7 +1701,7 @@ async function handleGetLotteryStats(db: Client, drawId?: string, daysParam?: st
     status: 200,
     body: { data: {
       draw: { id: String(d.id), name: String(d.name), ball_range_min: min, ball_range_max: max, number_of_balls: Number(d.number_of_balls) },
-      days, total_draws: total, from: rows.length ? String(rows[0].draw_date) : null, to: rows.length ? String(rows[rows.length - 1].draw_date) : null,
+      days: custom ? null : days, range_from: custom ? fromParam : null, range_to: custom ? toParam : null, total_draws: total, from: rows.length ? String(rows[0].draw_date) : null, to: rows.length ? String(rows[rows.length - 1].draw_date) : null,
       // Probabilidad de que un número concreto salga en un sorteo (bolos sin reposición): bolos / números posibles.
       probability: Math.min(1, Number(d.number_of_balls) / (max - min + 1)),
       numbers: [...stats].map(([n, s]) => ({ n, count: s.count, pct: total ? s.count / total : 0, last_date: s.last, days_since: daysSince(s.last) })),
@@ -1709,7 +1712,7 @@ async function handleGetLotteryStats(db: Client, drawId?: string, daysParam?: st
 
 async function handleGetLotteries(db: Client, dateParam?: string): Promise<ApiResponse> {
   const lotteriesRes = await db.execute("SELECT id, slug, name, country, logo_url, website_url, description, color_scheme, phone, address, tv_channels, founded, slogan, is_active FROM lotteries WHERE is_active = 1 ORDER BY name COLLATE NOCASE");
-  const drawsRes = await db.execute("SELECT id, lottery_id, slug, name, draw_days, draw_time, ball_range_min, ball_range_max, number_of_balls, tombolas_count, has_bonus, bonus_name, schedule_description, how_to_play, is_active FROM lottery_draws WHERE is_active = 1 ORDER BY draw_time");
+  const drawsRes = await db.execute("SELECT id, lottery_id, slug, name, draw_days, draw_time, ball_range_min, ball_range_max, number_of_balls, tombolas_count, has_bonus, bonus_name, schedule_description, how_to_play, logo_url, is_active FROM lottery_draws WHERE is_active = 1 ORDER BY draw_time");
 
   const resultsRes = dateParam
     ? await db.execute({ sql: "SELECT id, draw_id, draw_date, winning_numbers, bonus_number, jackpot_amount FROM lottery_results WHERE draw_date = ? AND is_active = 1", args: [dateParam] })
@@ -1753,6 +1756,7 @@ async function handleGetLotteries(db: Client, dateParam?: string): Promise<ApiRe
       bonus_name: d.bonus_name ? String(d.bonus_name) : null,
       schedule_description: d.schedule_description ? String(d.schedule_description) : null,
       how_to_play: d.how_to_play ? String(d.how_to_play) : null,
+      logo_url: d.logo_url ? String(d.logo_url) : null,
       latest_result: resultsByDraw.get(String(d.id)) || null,
     });
   }
@@ -1779,7 +1783,7 @@ async function handleGetLotteryResults(db: Client, dateParam?: string, companySl
       r.id, r.draw_id, r.draw_date, r.winning_numbers, r.bonus_number, r.jackpot_amount, r.is_active,
       d.id AS d_id, d.lottery_id AS d_lottery_id, d.name AS d_name, d.slug AS d_slug, d.draw_days AS d_draw_days,
       d.draw_time AS d_draw_time, d.ball_range_min AS d_ball_range_min, d.ball_range_max AS d_ball_range_max,
-      d.number_of_balls AS d_number_of_balls, d.tombolas_count AS d_tombolas_count, d.has_bonus AS d_has_bonus,
+      d.number_of_balls AS d_number_of_balls, d.tombolas_count AS d_tombolas_count, d.has_bonus AS d_has_bonus, d.logo_url AS d_logo_url,
       l.id AS l_id, l.slug AS l_slug, l.name AS l_name, l.country AS l_country, l.logo_url AS l_logo_url
     FROM lottery_results r
     INNER JOIN lottery_draws d ON d.id = r.draw_id
@@ -1820,6 +1824,7 @@ async function handleGetLotteryResults(db: Client, dateParam?: string, companySl
       number_of_balls: Number(row.d_number_of_balls),
       tombolas_count: Number(row.d_tombolas_count),
       has_bonus: Boolean(row.d_has_bonus),
+      logo_url: row.d_logo_url ? String(row.d_logo_url) : null,
       is_active: true,
       lotteries: {
         id: String(row.l_id),
@@ -1844,7 +1849,7 @@ async function handleGetLotteryDetail(db: Client, slug: string): Promise<ApiResp
   const lot = lotRes.rows[0];
 
   const drawsRes = await db.execute({
-    sql: "SELECT id, slug, name, draw_days, draw_time, ball_range_min, ball_range_max, number_of_balls, tombolas_count, has_bonus, bonus_name, description, schedule_description, how_to_play FROM lottery_draws WHERE lottery_id = ? AND is_active = 1 ORDER BY draw_time",
+    sql: "SELECT id, slug, name, draw_days, draw_time, ball_range_min, ball_range_max, number_of_balls, tombolas_count, has_bonus, bonus_name, description, schedule_description, how_to_play, logo_url FROM lottery_draws WHERE lottery_id = ? AND is_active = 1 ORDER BY draw_time",
     args: [lot.id],
   });
 
@@ -1894,6 +1899,7 @@ async function handleGetLotteryDetail(db: Client, slug: string): Promise<ApiResp
           description: d.description ? String(d.description) : null,
           schedule_description: d.schedule_description ? String(d.schedule_description) : null,
           how_to_play: d.how_to_play ? String(d.how_to_play) : null,
+          logo_url: d.logo_url ? String(d.logo_url) : null,
         })),
         recent_results: results,
       },
@@ -2167,6 +2173,7 @@ const drawSpec = (b: Fields) => ({
   description: () => str(b, "description", 1000),
   schedule_description: () => str(b, "schedule_description", 200),
   how_to_play: () => str(b, "how_to_play", 2000),
+  logo_url: () => url(b, "logo_url"),
   is_active: () => bool(b, "is_active"),
 });
 
@@ -2233,7 +2240,7 @@ export async function handle(req: ApiRequest, db: Client, secret: string, secure
     return handleGetLotteryResults(indicatorsDb, req.query?.date, req.query?.company);
   }
   if (m === "GET" && (path === "/lotteries/hero" || path === "/public/lotteries/hero")) return handleGetLotteryHero(indicatorsDb);
-  if (m === "GET" && (path === "/lotteries/stats" || path === "/public/lotteries/stats")) return handleGetLotteryStats(indicatorsDb, req.query?.draw, req.query?.days);
+  if (m === "GET" && (path === "/lotteries/stats" || path === "/public/lotteries/stats")) return handleGetLotteryStats(indicatorsDb, req.query?.draw, req.query?.days, req.query?.from, req.query?.to);
   const drawMatch = m === "GET" && path.match(/^\/(?:public\/)?lotteries\/([a-z0-9-]+)\/(?:draws\/)?([a-z0-9-]+)$/);
   if (drawMatch && drawMatch[1] !== "sync" && drawMatch[1] !== "results") {
     return handleGetDrawDetail(indicatorsDb, drawMatch[1], drawMatch[2], req.query);

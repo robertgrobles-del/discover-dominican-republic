@@ -218,6 +218,7 @@ export default function LoteriaDetalle() {
             jackpotOrExtra: r.jackpot_amount || undefined,
             colorScheme: company.color,
             logo: company.logo,
+            logoUrl: r.lottery_draws?.logo_url || r.lottery_draws?.lotteries?.logo_url || null,
           }));
           setDraws(adapted);
         } else {

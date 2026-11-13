@@ -189,6 +189,10 @@ describe("API de Loterías (Endpoints en api/index.ts)", () => {
     expect(data.numbers.find((x) => x.n === 69)?.count).toBe(1);
     expect(data.numbers.find((x) => x.n === 1)?.count).toBe(0);
     expect(await dueDraws(db)).not.toContain("draw-us-powerball");
+    const range = await handle({ method: "GET", path: "/api/v1/lotteries/stats", headers: {}, body: {}, query: { draw: "draw-us-powerball", from: "2000-01-01", to: "2000-12-31" } }, db, SECRET);
+    expect((range.body as { data: { total_draws: number } }).data.total_draws).toBe(0);
+    const badRange = await handle({ method: "GET", path: "/api/v1/lotteries/stats", headers: {}, body: {}, query: { draw: "draw-us-powerball", from: "2026-12-31", to: "2026-01-01" } }, db, SECRET);
+    expect(badRange.status).toBe(422);
   });
 
   it("el panel crea una lotería y un sorteo con validación", async () => {

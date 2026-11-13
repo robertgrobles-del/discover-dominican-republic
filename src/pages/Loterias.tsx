@@ -130,6 +130,7 @@ export default function Loterias() {
       companyId: string;
       companyName: string;
       logo: string;
+      logoUrl?: string | null;
       draws: LotteryResult[];
     }[] = [];
 
@@ -148,7 +149,8 @@ export default function Loterias() {
         groups.push({
           companyId: c.id,
           companyName: draws[0]?.companyName || c.name,
-          logo: draws[0]?.logo || c.logo,
+          logo: c.logo,
+          logoUrl: draws[0]?.lotteryLogoUrl,
           draws,
         });
         map.delete(c.id);
@@ -161,6 +163,7 @@ export default function Loterias() {
           companyId: compId,
           companyName: draws[0]?.companyName || compId,
           logo: draws[0]?.logo || "🎰",
+          logoUrl: draws[0]?.lotteryLogoUrl,
           draws,
         });
       }
@@ -288,7 +291,9 @@ export default function Loterias() {
                       {/* Company Header */}
                       <div className="flex items-center justify-between pb-2.5 border-b border-border/60">
                         <div className="flex items-center gap-3">
-                          <span className="text-2xl select-none">{group.logo}</span>
+                          {group.logoUrl
+                            ? <img src={group.logoUrl} alt="" className="h-9 w-9 rounded-lg object-contain" loading="lazy" />
+                            : <span className="text-2xl select-none">{group.logo}</span>}
                           <div>
                             <Link
                               to={`/loteria/${group.companyId}`}

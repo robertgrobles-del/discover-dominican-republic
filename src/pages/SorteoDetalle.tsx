@@ -29,13 +29,13 @@ export default function SorteoDetalle() {
 
   const { t, locale } = useI18n();
   const [data, setData] = useState<DrawDetailResponse | null>(null);
-  // Calientes y fríos de los últimos 90 días, con todos los números del rango (también los que no han salido).
+  // Calientes y fríos de los últimos 365 días, con todos los números del rango (también los que no han salido).
   const [freq, setFreq] = useState<{ total: number; hot: StatNum[]; cold: StatNum[] } | null>(null);
   const drawId = data?.draw.id;
   useEffect(() => {
     if (!drawId) return;
     let live = true;
-    fetch(`/api/v1/lotteries/stats?draw=${encodeURIComponent(drawId)}&days=90`)
+    fetch(`/api/v1/lotteries/stats?draw=${encodeURIComponent(drawId)}&days=365`)
       .then((r) => (r.ok ? r.json() : null))
       .then((j) => {
         if (!live || !j?.data) return;
@@ -328,7 +328,7 @@ export default function SorteoDetalle() {
                   <span className="text-xs font-semibold text-amber-500 flex items-center gap-1">
                     <Flame className="h-3.5 w-3.5" /> Números Calientes
                   </span>
-                  <Badge variant="outline" className="text-[10px] text-amber-500 border-amber-500/30">Últimos 90 días</Badge>
+                  <Badge variant="outline" className="text-[10px] text-amber-500 border-amber-500/30">Últimos 365 días</Badge>
                 </div>
                 <div className="flex items-center gap-2 mt-3 flex-wrap">
                   {freq && freq.total > 0 ? (
@@ -341,7 +341,7 @@ export default function SorteoDetalle() {
                       </div>
                     ))
                   ) : (
-                    <span className="text-xs text-muted-foreground">{freq ? "Sin resultados en los últimos 90 días" : "Calculando estadísticas..."}</span>
+                    <span className="text-xs text-muted-foreground">{freq ? "Sin resultados en los últimos 365 días" : "Calculando estadísticas..."}</span>
                   )}
                 </div>
               </Card>
@@ -352,7 +352,7 @@ export default function SorteoDetalle() {
                   <span className="text-xs font-semibold text-sky-400 flex items-center gap-1">
                     <Snowflake className="h-3.5 w-3.5" /> Números Fríos
                   </span>
-                  <Badge variant="outline" className="text-[10px] text-sky-400 border-sky-400/30">Últimos 90 días</Badge>
+                  <Badge variant="outline" className="text-[10px] text-sky-400 border-sky-400/30">Últimos 365 días</Badge>
                 </div>
                 <div className="flex items-center gap-2 mt-3 flex-wrap">
                   {freq && freq.total > 0 ? (
@@ -365,10 +365,10 @@ export default function SorteoDetalle() {
                       </div>
                     ))
                   ) : (
-                    <span className="text-xs text-muted-foreground">{freq ? "Sin resultados en los últimos 90 días" : "Calculando estadísticas..."}</span>
+                    <span className="text-xs text-muted-foreground">{freq ? "Sin resultados en los últimos 365 días" : "Calculando estadísticas..."}</span>
                   )}
                 </div>
-                {drawId ? <Link to={`/loterias/estadisticas?draw=${encodeURIComponent(drawId)}`} className="mt-3 block text-xs font-semibold text-primary hover:underline">Ver todas las estadísticas (últimos 90 días)</Link> : null}
+                {drawId ? <Link to={`/loterias/estadisticas?draw=${encodeURIComponent(drawId)}`} className="mt-3 block text-xs font-semibold text-primary hover:underline">Ver todas las estadísticas y otras fechas</Link> : null}
               </Card>
             </div>
 
