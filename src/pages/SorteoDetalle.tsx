@@ -243,7 +243,7 @@ export default function SorteoDetalle() {
 
                 {/* Último Resultado Destacado */}
                 {data?.stats.latest_result && (() => {
-                  const todayStr = new Date().toISOString().split("T")[0];
+                  const todayStr = new Date(Date.now() - 4 * 3600_000).toISOString().slice(0, 10); // hoy en RD (UTC-4, sin horario de verano)
                   const isToday = data.stats.latest_result.draw_date === todayStr;
                   return (
                     <div
