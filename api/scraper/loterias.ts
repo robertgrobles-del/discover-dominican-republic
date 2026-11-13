@@ -153,6 +153,7 @@ export async function scrapeAndSyncLotteries(db: Db, options: { htmlContent?: st
   const now = options.now ?? new Date();
   const date = options.date ?? rdNow(now).date;
   const errors: string[] = [];
+  const missing: string[] = [];
   const pages: string[] = [];
   let source: LotterySyncReport["source"] = "none";
   if (options.htmlContent) {
@@ -168,7 +169,9 @@ export async function scrapeAndSyncLotteries(db: Db, options: { htmlContent?: st
       try {
         const r = await fetch(url, { headers: { "User-Agent": "DescubreRD-Loterias/1.0", Accept: "text/html" } });
         if (r.ok) return await r.text();
-        errors.push(`${url} respondió ${r.status}`);
+        // 404: la fuente no tiene ese sorteo ese día (aún no existía o no se celebró); no es un fallo.
+        if (r.status === 404) missing.push(url.replace("https://enloteria.com/", ""));
+        else errors.push(`${url} respondió ${r.status}`);
       } catch (e) {
         errors.push(`No se pudo conectar con ${url}: ${e instanceof Error ? e.message : String(e)}`);
       }
@@ -186,6 +189,7 @@ export async function scrapeAndSyncLotteries(db: Db, options: { htmlContent?: st
     return true;
   });
   const { synced, skipped, errors: dbErrors } = await syncResults(db, parsed, date, now);
+  if (missing.length) skipped.push({ title: "Sin datos en la fuente para esta fecha", reason: missing.join(", ") });
   return { success: synced > 0, date, source, syncedCount: synced, skipped, errors: [...errors, ...dbErrors] };
 }
 
