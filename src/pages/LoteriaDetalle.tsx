@@ -303,58 +303,59 @@ export default function LoteriaDetalle() {
                 </Button>
               </Link>
 
-              <Badge variant="outline" className="text-xs bg-muted/40 py-1 px-3 border-border">
+              <Badge variant="outline" className="text-xs bg-muted/40 py-1 px-3 border-border rounded-full font-mono">
                 {company.schedule}
               </Badge>
             </div>
 
             {/* COMPANY HERO */}
-            <div className={`relative rounded-3xl overflow-hidden bg-gradient-to-br ${company.heroGradient} border border-border p-6 sm:p-10 shadow-xl`}>
+            <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 border border-white/10 text-white p-6 sm:p-10 shadow-2xl">
+              <div className="absolute -top-24 -right-24 w-80 h-80 rounded-full bg-primary/20 blur-3xl pointer-events-none" />
               <div className="relative z-10 max-w-3xl space-y-4">
-                <div className="flex items-center gap-3">
-                  <span className="text-4xl sm:text-5xl">{company.logo}</span>
+                <div className="flex items-center gap-4">
+                  <span className="text-5xl sm:text-6xl select-none">{company.logo}</span>
                   <div>
-                    <Badge className="bg-primary text-primary-foreground font-black uppercase text-[10px] tracking-wider mb-1">
+                    <Badge className="bg-primary text-primary-foreground font-black uppercase text-3xs tracking-wider mb-1.5 shadow-sm">
                       {company.badge}
                     </Badge>
-                    <h1 className="font-display text-3xl sm:text-5xl font-black text-foreground tracking-tight">
+                    <h1 className="font-display text-3xl sm:text-5xl font-black text-white tracking-tight">
                       {company.name}
                     </h1>
-                    <p className="text-xs sm:text-sm font-semibold text-muted-foreground mt-0.5">
+                    <p className="text-xs sm:text-sm font-semibold text-slate-300 mt-0.5">
                       {company.fullName}
                     </p>
                   </div>
                 </div>
 
-                <p className="text-sm text-muted-foreground leading-relaxed pt-2">
+                <p className="text-sm sm:text-base text-slate-300 leading-relaxed pt-2">
                   {company.description}
                 </p>
 
                 {/* Popular Draws Pills */}
                 <div className="flex flex-wrap gap-2 pt-2">
                   {company.popularDraws.map((dName, i) => (
-                    <Badge key={i} variant="secondary" className="text-xs font-semibold px-3 py-1">
+                    <span key={i} className="text-xs font-semibold px-3 py-1 rounded-full bg-white/10 text-white border border-white/10 backdrop-blur-sm">
                       {dName}
-                    </Badge>
+                    </span>
                   ))}
                 </div>
               </div>
             </div>
 
             {/* SEARCH & CONTROLS */}
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-card p-4 rounded-2xl border border-border">
-              <div className="relative w-full sm:w-72">
-                <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-card/80 backdrop-blur-xl p-3.5 rounded-2xl border border-border/80 shadow-sm">
+              <div className="relative w-full sm:w-80">
+                <Search className="absolute left-3.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Buscar en sorteos de esta lotería..."
                   value={searchFilter}
                   onChange={(e) => setSearchFilter(e.target.value)}
-                  className="pl-9 rounded-xl text-xs h-9 bg-background"
+                  className="pl-9.5 rounded-xl text-xs h-10 bg-background/80 border-border/80"
                 />
               </div>
 
-              <div className="flex items-center gap-2 w-full sm:w-auto">
-                <div className="flex items-center gap-1.5 bg-background border border-border rounded-xl px-3 py-1 text-xs">
+              <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+                <div className="flex items-center gap-1.5 bg-background/80 border border-border/80 rounded-xl px-3 py-1 text-xs">
                   <Calendar className="h-3.5 w-3.5 text-primary" />
                   <input
                     type="date"
@@ -368,10 +369,10 @@ export default function LoteriaDetalle() {
             </div>
 
             {/* DRAWS GRID & CHECKER */}
-            <div className="grid lg:grid-cols-12 gap-6 items-start">
+            <div className="grid lg:grid-cols-12 gap-8 items-start">
               {/* Draws List (8 cols) */}
-              <div className="lg:col-span-8 space-y-4">
-                <div className="flex items-center justify-between">
+              <div className="lg:col-span-8 space-y-5">
+                <div className="flex items-center justify-between px-1">
                   <h2 className="font-display font-bold text-lg text-foreground flex items-center gap-2">
                     <Trophy className="h-5 w-5 text-amber-500" />
                     <span>Sorteos Oficiales de {company.name}</span>
@@ -381,22 +382,22 @@ export default function LoteriaDetalle() {
                   </span>
                 </div>
 
-                <div className="grid sm:grid-cols-2 gap-4">
+                <div className="grid sm:grid-cols-2 gap-5">
                   {filteredDraws.map((draw) => (
-                    <Card key={draw.id} className="rounded-3xl border border-border/80 bg-card hover:border-primary/40 transition-all shadow-md overflow-hidden flex flex-col justify-between">
-                      <CardHeader className="p-5 pb-3 border-b border-border/60 flex flex-row items-center justify-between">
+                    <Card key={draw.id} className="group rounded-3xl border border-border/70 bg-card/85 backdrop-blur-md hover:border-primary/50 hover:shadow-xl hover:shadow-primary/5 transition-all duration-300 overflow-hidden flex flex-col justify-between">
+                      <CardHeader className="p-5 pb-3 border-b border-border/50 flex flex-row items-center justify-between">
                         <div>
-                          <h3 className="font-display font-bold text-base text-foreground">
+                          <h3 className="font-display font-bold text-base text-foreground group-hover:text-primary transition-colors">
                             {draw.drawName}
                           </h3>
-                          <span className="text-xs font-mono font-bold text-primary flex items-center gap-1 mt-0.5">
+                          <span className="text-xs font-mono font-bold text-primary flex items-center gap-1 mt-1 px-2 py-0.5 rounded-full bg-primary/10 border border-primary/20 w-fit">
                             <Clock className="h-3 w-3" /> {draw.drawTime}
                           </span>
                         </div>
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                          className="h-8 w-8 text-muted-foreground hover:text-foreground rounded-full hover:bg-muted"
                           onClick={() => handleShare(draw.drawName, draw.winningNumbers)}
                           title="Compartir resultados"
                         >
@@ -405,27 +406,33 @@ export default function LoteriaDetalle() {
                       </CardHeader>
 
                       <CardContent className="p-5 space-y-4">
-                        {/* Winning Numbers Balls */}
+                        {/* Winning Numbers 3D Spheres */}
                         <div className="flex flex-wrap items-center justify-center gap-2.5 sm:gap-3 py-2">
                           {draw.winningNumbers.map((num, idx) => {
-                            const isGold = idx === 0;
-                            const isSilver = idx === 1;
-                            const isBronze = idx === 2;
-
-                            let ballBg = "bg-primary text-primary-foreground";
-                            if (isGold) ballBg = "bg-gradient-to-b from-amber-300 to-amber-500 text-slate-950 font-black shadow-amber-500/30";
-                            else if (isSilver) ballBg = "bg-gradient-to-b from-slate-200 to-slate-400 text-slate-950 font-bold shadow-slate-400/30";
-                            else if (isBronze) ballBg = "bg-gradient-to-b from-amber-600 to-amber-800 text-white font-bold shadow-amber-800/30";
-                            else ballBg = "bg-secondary text-secondary-foreground font-bold";
+                            const isFirst = idx === 0;
+                            const isSecond = idx === 1;
+                            const isThird = idx === 2;
 
                             return (
-                              <div key={idx} className="flex flex-col items-center gap-1">
-                                <div className={`w-11 h-11 sm:w-12 sm:h-12 rounded-full flex items-center justify-center text-lg sm:text-xl font-mono shadow-md transform hover:scale-105 transition-transform ${ballBg}`}>
-                                  {num}
-                                </div>
-                                <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">
-                                  {idx === 0 ? "1er" : idx === 1 ? "2do" : idx === 2 ? "3er" : `${idx + 1}º`}
-                                </span>
+                              <div
+                                key={idx}
+                                className={`relative w-12 h-12 sm:w-13 sm:h-13 rounded-full flex flex-col items-center justify-center font-mono font-black shadow-lg transition-transform hover:scale-110 select-none ${
+                                  isFirst
+                                    ? "bg-gradient-to-br from-amber-300 via-amber-500 to-amber-700 text-slate-950 shadow-amber-500/30 border border-amber-200/80 ring-2 ring-amber-400/30"
+                                    : isSecond
+                                    ? "bg-gradient-to-br from-blue-400 via-blue-600 to-blue-800 text-white shadow-blue-500/25 border border-blue-200/70 ring-2 ring-blue-400/20"
+                                    : isThird
+                                    ? "bg-gradient-to-br from-emerald-400 via-emerald-600 to-emerald-800 text-white shadow-emerald-500/25 border border-emerald-200/70 ring-2 ring-emerald-400/20"
+                                    : "bg-gradient-to-br from-slate-700 via-slate-800 to-slate-950 text-white shadow-black/30 border border-slate-600"
+                                }`}
+                              >
+                                <span className="absolute top-1.5 left-2.5 w-2.5 h-1 bg-white/50 rounded-full blur-[0.4px] pointer-events-none" />
+                                <span className="text-base sm:text-lg leading-none tracking-tight">{num}</span>
+                                {draw.winningNumbers.length <= 3 && (
+                                  <span className={`text-[8px] font-sans font-bold uppercase mt-0.5 leading-none ${isFirst ? "text-slate-950/80" : "text-white/80"}`}>
+                                    {isFirst ? "1ra" : isSecond ? "2da" : "3ra"}
+                                  </span>
+                                )}
                               </div>
                             );
                           })}
@@ -433,13 +440,13 @@ export default function LoteriaDetalle() {
 
                         {/* Jackpot / Extras */}
                         {draw.jackpotOrExtra && (
-                          <div className="flex items-center justify-center gap-1.5 p-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-500 text-xs font-bold text-center">
+                          <div className="flex items-center justify-center gap-1.5 p-2.5 rounded-xl bg-primary/10 border border-primary/20 text-primary text-xs font-bold text-center">
                             <Sparkles className="h-3.5 w-3.5 shrink-0" />
                             <span>{draw.jackpotOrExtra}</span>
                           </div>
                         )}
 
-                        <div className="pt-2 border-t border-border/40 flex items-center justify-between">
+                        <div className="pt-3 border-t border-border/50 flex items-center justify-between">
                           <Link
                             to={`/loteria/${normalizedSlug}/${draw.drawSlug || resolveDrawSlug(normalizedSlug, draw.drawName)}`}
                             className="text-xs font-bold text-primary hover:underline flex items-center gap-1.5"

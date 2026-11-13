@@ -11,12 +11,23 @@ const tools = [
   { 
     icon: Sparkles, 
     labelKey: "tools.tripPlanner", 
-    desc: "Crea tu ruta personalizada en segundos con Inteligencia Artificial", 
+    desc: "Crea tu ruta personalizada en segundos con Inteligencia Artificial según tus gustos, presupuesto y días de estancia.", 
     href: "/itinerario-ia",
-    badge: "IA",
-    accent: "from-amber-500/20 via-orange-500/10 to-transparent",
-    border: "border-amber-500/30",
-    iconColor: "text-amber-500",
+    badge: "IA Generativa",
+    accent: "from-primary/15 via-amber-500/10 to-transparent",
+    border: "border-primary/30 hover:border-primary/60",
+    cta: "Generar mi itinerario",
+    featured: true
+  },
+  { 
+    icon: Plane, 
+    labelKey: "travelerTools.requirements", 
+    desc: "Formulario oficial de entrada y salida (E-Ticket), visados por nacionalidad, aduanas y vacunas para entrar al país.", 
+    href: "/requisitos-viaje",
+    badge: "Requisito Oficial",
+    accent: "from-emerald-500/15 via-teal-500/10 to-transparent",
+    border: "border-emerald-500/30 hover:border-emerald-500/60",
+    cta: "Ver requisitos de entrada",
     featured: true
   },
   { 
@@ -24,81 +35,48 @@ const tools = [
     labelKey: "tools.currencyConverter", 
     desc: "Tasas DOP, USD, EUR en tiempo real", 
     href: "/conversor-moneda",
-    accent: "from-emerald-500/20 to-transparent",
-    border: "border-emerald-500/20",
-    iconColor: "text-emerald-500"
   },
   { 
     icon: Cloud, 
     labelKey: "tools.weatherChecker", 
     desc: "Pronóstico del tiempo y temporadas", 
     href: "/clima",
-    accent: "from-sky-500/20 to-transparent",
-    border: "border-sky-500/20",
-    iconColor: "text-sky-500"
   },
   { 
     icon: Umbrella, 
     labelKey: "tools.beachStatus", 
     desc: "Oleaje, viento y sargazo", 
     href: "/estado-playas",
-    accent: "from-cyan-500/20 to-transparent",
-    border: "border-cyan-500/20",
-    iconColor: "text-cyan-500"
   },
   { 
     icon: Calculator, 
     labelKey: "tools.budgetCalc", 
     desc: "Estima tus gastos por destino", 
     href: "/costos-viaje#calculadora",
-    accent: "from-indigo-500/20 to-transparent",
-    border: "border-indigo-500/20",
-    iconColor: "text-indigo-500"
   },
   { 
     icon: Languages, 
     labelKey: "tools.translator", 
     desc: "Diccionario y frases locales", 
     href: "/espanol-viajero#traductor",
-    accent: "from-purple-500/20 to-transparent",
-    border: "border-purple-500/20",
-    iconColor: "text-purple-500"
   },
   { 
     icon: Backpack, 
     labelKey: "tools.packingList", 
     desc: "Checklist inteligente de viaje", 
     href: "/lista-empaque",
-    accent: "from-rose-500/20 to-transparent",
-    border: "border-rose-500/20",
-    iconColor: "text-rose-500"
   },
   { 
     icon: Hotel, 
     labelKey: "tools.hotelComparer", 
     desc: "Compara tarifas y amenidades", 
     href: "/comparador-hoteles",
-    accent: "from-blue-500/20 to-transparent",
-    border: "border-blue-500/20",
-    iconColor: "text-blue-500"
   },
   { 
     icon: MapPinned, 
     labelKey: "tools.destinationComparer", 
     desc: "Enfrenta dos destinos cara a cara", 
     href: "/comparador",
-    accent: "from-teal-500/20 to-transparent",
-    border: "border-teal-500/20",
-    iconColor: "text-teal-500"
-  },
-  { 
-    icon: Plane, 
-    labelKey: "travelerTools.requirements", 
-    desc: "E-Ticket, visados y aduanas", 
-    href: "/requisitos-viaje",
-    accent: "from-amber-600/20 to-transparent",
-    border: "border-amber-600/20",
-    iconColor: "text-amber-600"
   },
 ];
 
@@ -106,7 +84,7 @@ export function TravelerToolsStrip() {
   const { t } = useTranslation();
 
   return (
-    <section className="py-20 relative overflow-hidden bg-background">
+    <section className="py-20 lg:py-24 relative overflow-hidden bg-background">
       {/* Background ambient lighting */}
       <div className="absolute top-10 right-10 w-96 h-96 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-10 left-10 w-96 h-96 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
@@ -118,14 +96,14 @@ export function TravelerToolsStrip() {
           viewport={{ once: true }}
           className="text-center max-w-2xl mx-auto mb-14"
         >
-          <Badge className="mb-3 bg-primary/10 text-primary border-primary/20 gap-1.5 px-3 py-1">
+          <Badge className="mb-3 bg-primary/10 text-primary border-primary/20 gap-1.5 px-3 py-1 text-xs">
             <Compass className="h-3.5 w-3.5" />
             {t("travelerTools.badge")}
           </Badge>
-          <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-3">
+          <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-3 tracking-tight">
             {t("travelerTools.title")}
           </h2>
-          <p className="text-muted-foreground text-sm md:text-base">
+          <p className="text-muted-foreground text-sm md:text-base leading-relaxed">
             {t("travelerTools.subtitle")}
           </p>
         </motion.div>
@@ -138,42 +116,65 @@ export function TravelerToolsStrip() {
               initial={{ opacity: 0, y: 15 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ delay: i * 0.05, duration: 0.4 }}
-              whileHover={{ y: -4, transition: { duration: 0.2 } }}
+              transition={{ delay: i * 0.04, duration: 0.35 }}
+              whileHover={{ y: -3, transition: { duration: 0.18 } }}
               className={tool.featured ? "sm:col-span-2" : "col-span-1"}
             >
-              <Link
-                to={tool.href}
-                className={`flex flex-col justify-between h-full p-6 rounded-2xl bg-gradient-to-br ${tool.accent} bg-card/60 backdrop-blur-md border ${tool.border} hover:shadow-xl hover:shadow-primary/5 transition-all group relative overflow-hidden`}
-              >
-                <div>
-                  <div className="flex items-center justify-between gap-2 mb-4">
-                    <div className="w-12 h-12 rounded-xl bg-background/80 border border-border/60 flex items-center justify-center group-hover:scale-110 transition-transform">
-                      <tool.icon className={`h-6 w-6 ${tool.iconColor}`} />
+              {tool.featured ? (
+                <Link
+                  to={tool.href}
+                  className={`flex flex-col justify-between h-full p-6 sm:p-7 rounded-3xl bg-gradient-to-br ${tool.accent} bg-card/80 backdrop-blur-md border ${tool.border} hover:shadow-xl hover:shadow-primary/10 transition-all group relative overflow-hidden`}
+                >
+                  <div>
+                    <div className="flex items-center justify-between gap-2 mb-4">
+                      <div className="w-12 h-12 rounded-2xl bg-primary/10 border border-primary/25 flex items-center justify-center text-primary group-hover:scale-105 transition-transform">
+                        <tool.icon className="h-6 w-6 text-primary" />
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {tool.badge && (
+                          <span className="px-2.5 py-0.5 text-3xs font-bold uppercase tracking-wider rounded-full bg-primary/15 text-primary border border-primary/30">
+                            {tool.badge}
+                          </span>
+                        )}
+                        <ArrowUpRight className="h-4 w-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      {tool.badge && (
-                        <span className="px-2 py-0.5 text-3xs font-bold uppercase rounded-full bg-amber-500/20 text-amber-500 border border-amber-500/30">
-                          {tool.badge}
-                        </span>
-                      )}
-                      <ArrowUpRight className="h-4 w-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
-                    </div>
+
+                    <h3 className="font-display font-bold text-foreground text-lg sm:text-xl mb-2 group-hover:text-primary transition-colors">
+                      {t(tool.labelKey)}
+                    </h3>
+                    <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed line-clamp-2">
+                      {tool.desc}
+                    </p>
                   </div>
 
-                  <h3 className="font-display font-bold text-foreground text-base mb-1.5 group-hover:text-primary transition-colors">
-                    {t(tool.labelKey)}
-                  </h3>
-                  <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2">
-                    {tool.desc}
-                  </p>
-                </div>
+                  <div className="mt-5 pt-3 border-t border-border/40 flex items-center gap-1.5 text-xs font-semibold text-primary group-hover:gap-2.5 transition-all">
+                    <span>{tool.cta}</span>
+                    <ArrowUpRight className="h-3.5 w-3.5" />
+                  </div>
+                </Link>
+              ) : (
+                <Link
+                  to={tool.href}
+                  className="flex flex-col justify-between h-full p-4 sm:p-5 rounded-2xl bg-card/60 backdrop-blur-sm border border-border/60 hover:border-primary/40 hover:bg-card/90 hover:shadow-md transition-all group"
+                >
+                  <div className="flex items-start justify-between gap-2 mb-3">
+                    <div className="w-9 h-9 rounded-xl bg-muted/70 border border-border/50 flex items-center justify-center text-muted-foreground group-hover:bg-primary group-hover:text-primary-foreground group-hover:border-primary transition-all">
+                      <tool.icon className="h-4 w-4" />
+                    </div>
+                    <ArrowUpRight className="h-3.5 w-3.5 text-muted-foreground/60 group-hover:text-primary group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
+                  </div>
 
-                <div className="mt-4 pt-3 border-t border-border/40 flex items-center justify-between text-2xs font-medium text-primary opacity-0 group-hover:opacity-100 transition-opacity">
-                  <span>Abrir herramienta</span>
-                  <span>→</span>
-                </div>
-              </Link>
+                  <div>
+                    <h3 className="font-display font-semibold text-foreground text-sm mb-1 group-hover:text-primary transition-colors">
+                      {t(tool.labelKey)}
+                    </h3>
+                    <p className="text-2xs text-muted-foreground line-clamp-1 leading-snug">
+                      {tool.desc}
+                    </p>
+                  </div>
+                </Link>
+              )}
             </motion.div>
           ))}
         </div>

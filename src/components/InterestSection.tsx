@@ -61,7 +61,7 @@ export function InterestSection() {
   };
 
   return (
-    <section className="relative flex flex-col bg-background overflow-hidden py-16">
+    <section className="relative flex flex-col bg-muted/20 dark:bg-card/20 overflow-hidden py-20 lg:py-24">
       {/* Background ambient light */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-primary/5 rounded-full blur-3xl pointer-events-none" />
 
@@ -167,34 +167,37 @@ export function InterestSection() {
 
               <div
                 key={`${interest.title}-${index}`}
-                className="flex-shrink-0 w-[220px] sm:w-[270px] md:w-[300px] h-[380px] snap-start"
+                className="flex-shrink-0 w-[240px] sm:w-[280px] md:w-[320px] h-[400px] snap-start"
               >
                 <Link to={interest.link} className="block h-full group">
-                  <div className="relative h-full rounded-3xl overflow-hidden border border-border/50 bg-card/50 shadow-lg group-hover:scale-[1.02] transition-transform duration-300 will-change-transform">
+                  <div className="relative h-full rounded-3xl overflow-hidden border border-border/50 bg-card/50 shadow-xl group-hover:scale-[1.02] transition-transform duration-300 will-change-transform">
                     <LazyImage
                       src={interest.image}
                       alt={interest.title}
-                      className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-110 will-change-transform"
+                      className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105 will-change-transform"
                       containerClassName="absolute inset-0"
                     />
-                    {/* Multi-layer gradient with GPU-friendly opacity transition */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent" />
+                    {/* Multi-layer gradient for high-contrast legible editorial text */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent" />
                     <div className="absolute inset-0 bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
                     {/* Top Tag Badge */}
                     <div className="absolute top-4 left-4 z-10">
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-background/80 backdrop-blur-md text-foreground border border-border/50 shadow-sm">
-                        <Compass className="h-3 w-3 text-amber-400" aria-hidden="true" />
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-black/50 backdrop-blur-md text-white border border-white/15 shadow-sm">
+                        <span className="w-1.5 h-1.5 rounded-full bg-primary" />
                         {interest.tag}
                       </span>
                     </div>
 
                     {/* Bottom Content Area */}
-                    <div className="absolute inset-x-0 bottom-0 p-5 z-10">
-                      <h3 className="font-display text-xl font-bold text-white mb-2 drop-shadow-md">
+                    <div className="absolute inset-x-0 bottom-0 p-6 z-10">
+                      <span className="text-3xs uppercase tracking-widest font-bold text-primary/95 mb-1.5 block">
+                        Experiencia
+                      </span>
+                      <h3 className="font-display text-xl sm:text-2xl font-bold text-white mb-2 leading-tight group-hover:text-primary transition-colors">
                         {interest.title}
                       </h3>
-                      <div className="flex items-center gap-1.5 text-xs font-semibold text-primary">
+                      <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-white/90 group-hover:text-primary transition-colors">
                         <span>{t("common.viewMore")}</span>
                         <ChevronRight className="h-3.5 w-3.5 group-hover:translate-x-1 transition-transform duration-200" aria-hidden="true" />
                       </div>

@@ -210,10 +210,8 @@ export function Header({ hasHero, variant, className, onOpenSearch }: HeaderProp
       <div 
         className={
           pageHasHero
-            ? `fixed top-0 left-0 right-0 w-full z-50 transition-all duration-300 ease-in-out transform ${
-                isScrolled && !isMenuOpen && !activeMegaMenu
-                  ? "-translate-y-full opacity-0 pointer-events-none" 
-                  : "translate-y-0 opacity-100 pointer-events-auto"
+            ? `fixed top-0 left-0 right-0 w-full z-50 transition-all duration-300 ease-in-out ${
+                isScrolled ? "pt-2 px-3 sm:px-6" : "pt-0 px-0"
               } ${className || ""}`
             : `sticky top-0 left-0 right-0 w-full z-50 shadow-md ${className || ""}`
         }
@@ -221,7 +219,9 @@ export function Header({ hasHero, variant, className, onOpenSearch }: HeaderProp
         <header 
           className={
             pageHasHero
-              ? "w-full bg-gradient-to-b from-black/80 via-black/40 to-transparent border-none shadow-none text-white transition-colors duration-300"
+              ? isScrolled
+                ? "max-w-6xl mx-auto rounded-2xl bg-slate-950/85 dark:bg-card/90 backdrop-blur-xl border border-white/10 dark:border-border/60 shadow-xl shadow-black/20 text-white transition-all duration-300"
+                : "w-full bg-gradient-to-b from-black/85 via-black/40 to-transparent border-none shadow-none text-white transition-all duration-300"
               : isWhiteVariant
               ? "w-full bg-white/95 dark:bg-card/95 backdrop-blur-md border-b border-border/80 text-foreground shadow-xs transition-colors duration-300"
               : "w-full bg-slate-950/95 backdrop-blur-md border-b border-border/80 text-white shadow-md transition-colors duration-300"
@@ -377,7 +377,11 @@ export function Header({ hasHero, variant, className, onOpenSearch }: HeaderProp
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -8, scale: 0.99 }}
                 transition={{ duration: 0.18, ease: "easeOut" }}
-                className="absolute left-0 right-0 top-full bg-background/95 dark:bg-slate-950/95 backdrop-blur-2xl border-b border-border/80 shadow-2xl max-h-[85vh] overflow-y-auto z-50 transition-colors"
+                className={
+                  pageHasHero && isScrolled
+                    ? "absolute left-2 right-2 sm:left-4 sm:right-4 top-full mt-2 max-w-6xl mx-auto rounded-2xl bg-background/95 dark:bg-slate-950/95 backdrop-blur-2xl border border-border/80 shadow-2xl max-h-[85vh] overflow-y-auto z-50 transition-colors"
+                    : "absolute left-0 right-0 top-full bg-background/95 dark:bg-slate-950/95 backdrop-blur-2xl border-b border-border/80 shadow-2xl max-h-[85vh] overflow-y-auto z-50 transition-colors"
+                }
                 onMouseEnter={handleMegaMenuEnter}
                 onMouseLeave={handleMouseLeave}
               >

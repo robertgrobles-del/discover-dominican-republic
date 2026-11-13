@@ -174,86 +174,87 @@ export default function SorteoDetalle() {
             </div>
 
             {/* Hero Card del Sorteo */}
-            <div className="relative rounded-3xl overflow-hidden border border-border/80 bg-card p-6 sm:p-8 shadow-xl">
-              <div className="absolute -top-24 -right-24 w-72 h-72 rounded-full bg-primary/10 blur-3xl pointer-events-none" />
+            <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 border border-white/10 text-white p-6 sm:p-10 shadow-2xl">
+              <div className="absolute -top-24 -right-24 w-80 h-80 rounded-full bg-primary/20 blur-3xl pointer-events-none" />
 
               <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-                <div className="space-y-3">
+                <div className="space-y-3.5">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <Badge variant="outline" className="border-primary/40 text-primary font-bold px-3 py-1 text-xs">
+                    <Badge className="bg-primary text-primary-foreground font-black uppercase text-3xs tracking-wider px-3 py-1 shadow-sm">
                       {lotteryTitle}
                     </Badge>
                     {data?.draw.draw_time && (
-                      <Badge variant="secondary" className="gap-1.5 px-3 py-1 text-xs font-mono">
+                      <Badge variant="outline" className="gap-1.5 px-3 py-1 text-xs font-mono text-white/90 border-white/20 backdrop-blur-sm">
                         <Clock className="h-3 w-3 text-primary" />
                         <span>Hora oficial: {data.draw.draw_time}</span>
                       </Badge>
                     )}
-                    <Badge variant="outline" className="border-border text-muted-foreground text-xs">
+                    <span className="text-3xs text-slate-300 px-3 py-1 rounded-full bg-white/10 border border-white/10 backdrop-blur-sm">
                       {data?.draw.number_of_balls || 3} Bolos (00 al 99)
-                    </Badge>
+                    </span>
                   </div>
 
-                  <h1 className="text-3xl sm:text-4xl font-display font-extrabold text-foreground tracking-tight">
+                  <h1 className="text-3xl sm:text-5xl font-display font-black text-white tracking-tight leading-tight">
                     {drawTitle}
                   </h1>
 
-                  <p className="text-sm sm:text-base text-muted-foreground max-w-2xl leading-relaxed">
+                  <p className="text-sm sm:text-base text-slate-300 max-w-2xl leading-relaxed font-normal">
                     {data?.draw.description ||
                       `Historial oficial y estadísticas completas de los números premiados en ${drawTitle}. Consulta fechas, premios y frecuencia de salida.`}
                   </p>
 
                   {data?.draw.schedule_description && (
-                    <div className="flex items-center gap-2 text-xs text-amber-500 font-medium">
+                    <div className="flex items-center gap-2 text-xs text-amber-400 font-semibold">
                       <Calendar className="h-3.5 w-3.5" />
                       <span>{data.draw.schedule_description}</span>
                     </div>
                   )}
 
                   {data?.draw.how_to_play && (
-                    <section aria-labelledby="como-se-gana" className="max-w-2xl rounded-2xl border border-border/80 bg-muted/30 p-4">
-                      <h2 id="como-se-gana" className="text-sm font-bold text-foreground">Cómo se gana</h2>
-                      <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{data.draw.how_to_play}</p>
-                      <Link to="/loterias/como-se-gana" className="mt-2 inline-block text-xs font-semibold text-primary hover:underline">Reglas de todas las loterías</Link>
+                    <section aria-labelledby="como-se-gana" className="max-w-2xl rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm p-4">
+                      <h2 id="como-se-gana" className="text-xs font-bold uppercase tracking-wider text-primary">Cómo se gana</h2>
+                      <p className="mt-1 text-xs sm:text-sm leading-relaxed text-slate-200">{data.draw.how_to_play}</p>
+                      <Link to="/loterias/como-se-gana" className="mt-2 inline-block text-xs font-semibold text-primary hover:underline">Reglas de todas las loterías &rarr;</Link>
                     </section>
                   )}
                 </div>
 
                 {/* Último Resultado Destacado */}
                 {data?.stats.latest_result && (
-                  <div className="p-5 rounded-2xl bg-muted/40 border border-border/80 shadow-inner flex flex-col items-center sm:items-start gap-2.5 shrink-0 min-w-[260px]">
+                  <div className="p-6 rounded-3xl bg-white/5 border border-white/15 backdrop-blur-md shadow-xl flex flex-col items-center sm:items-start gap-3 shrink-0 min-w-[280px]">
                     <div className="flex items-center justify-between w-full">
-                      <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                        <Trophy className="h-3.5 w-3.5 text-amber-500" />
+                      <span className="text-3xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                        <Trophy className="h-3.5 w-3.5 text-amber-400" />
                         Último Sorteo
                       </span>
-                      <span className="text-xs font-mono font-bold text-foreground">
+                      <span className="text-xs font-mono font-bold text-white px-2 py-0.5 rounded-md bg-white/10">
                         {data.stats.latest_result.draw_date}
                       </span>
                     </div>
 
-                    <div className="flex items-center gap-2 py-1">
+                    <div className="flex items-center gap-2.5 py-1">
                       {data.stats.latest_result.winning_numbers.map((n, idx) => (
                         <div
                           key={idx}
-                          className={`w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center font-mono text-base font-bold shadow-md ${
+                          className={`relative w-12 h-12 rounded-full flex flex-col items-center justify-center font-mono text-lg font-black shadow-lg select-none ${
                             idx === 0
-                              ? "bg-gradient-to-b from-amber-300 to-amber-500 text-slate-950 font-black"
+                              ? "bg-gradient-to-br from-amber-300 via-amber-500 to-amber-700 text-slate-950 shadow-amber-500/30 border border-amber-200/80 ring-2 ring-amber-400/30"
                               : idx === 1
-                              ? "bg-gradient-to-b from-slate-200 to-slate-400 text-slate-950"
+                              ? "bg-gradient-to-br from-blue-400 via-blue-600 to-blue-800 text-white shadow-blue-500/25 border border-blue-200/70 ring-2 ring-blue-400/20"
                               : idx === 2
-                              ? "bg-gradient-to-b from-amber-600 to-amber-800 text-white"
-                              : "bg-secondary text-secondary-foreground"
+                              ? "bg-gradient-to-br from-emerald-400 via-emerald-600 to-emerald-800 text-white shadow-emerald-500/25 border border-emerald-200/70 ring-2 ring-emerald-400/20"
+                              : "bg-gradient-to-br from-slate-700 via-slate-800 to-slate-950 text-white border border-slate-600"
                           }`}
                         >
-                          {String(n).padStart(2, "0")}
+                          <span className="absolute top-1.5 left-2 w-2 h-1 bg-white/50 rounded-full blur-[0.4px] pointer-events-none" />
+                          <span>{String(n).padStart(2, "0")}</span>
                         </div>
                       ))}
                     </div>
 
                     {data.stats.latest_result.jackpot_amount && (
-                      <span className="text-[11px] font-bold text-amber-500 flex items-center gap-1">
-                        <Sparkles className="h-3 w-3" />
+                      <span className="text-xs font-bold text-amber-400 flex items-center gap-1">
+                        <Sparkles className="h-3.5 w-3.5" />
                         {data.stats.latest_result.jackpot_amount}
                       </span>
                     )}
@@ -420,41 +421,47 @@ export default function SorteoDetalle() {
               </div>
             ) : filteredResults.length > 0 ? (
               viewMode === "cards" ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                   {filteredResults.map((result) => (
                     <Card
                       key={result.id}
-                      className="rounded-2xl border border-border/80 bg-card hover:border-primary/40 transition-all p-5 shadow-sm space-y-4"
+                      className="group rounded-3xl border border-border/70 bg-card/85 backdrop-blur-md hover:border-primary/50 hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-0.5 transition-all duration-300 p-5 space-y-4"
                     >
-                      <div className="flex items-center justify-between pb-2 border-b border-border/60">
+                      <div className="flex items-center justify-between pb-2.5 border-b border-border/50">
                         <span className="text-xs font-mono font-bold text-foreground flex items-center gap-1.5">
                           <Calendar className="h-3.5 w-3.5 text-primary" />
                           {result.draw_date}
                         </span>
                         {result.jackpot_amount && (
-                          <span className="text-[10px] font-bold text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded-full">
+                          <span className="text-3xs font-bold text-primary bg-primary/10 border border-primary/20 px-2.5 py-0.5 rounded-full">
                             {result.jackpot_amount}
                           </span>
                         )}
                       </div>
 
-                      {/* Bolos */}
-                      <div className="flex items-center justify-center gap-2.5 py-1">
+                      {/* Bolos 3D Spheres */}
+                      <div className="flex items-center justify-center gap-2.5 sm:gap-3 py-1">
                         {result.winning_numbers.map((num, idx) => {
                           const isMatch = searchNumber && String(num).padStart(2, "0") === searchNumber.padStart(2, "0");
-                          let ballStyle = "bg-secondary text-secondary-foreground";
-                          if (idx === 0) ballStyle = "bg-gradient-to-b from-amber-300 to-amber-500 text-slate-950 font-black shadow-amber-500/20";
-                          else if (idx === 1) ballStyle = "bg-gradient-to-b from-slate-200 to-slate-400 text-slate-950 font-bold shadow-slate-400/20";
-                          else if (idx === 2) ballStyle = "bg-gradient-to-b from-amber-600 to-amber-800 text-white font-bold shadow-amber-800/20";
+                          const isFirst = idx === 0;
+                          const isSecond = idx === 1;
+                          const isThird = idx === 2;
 
                           return (
                             <div key={idx} className="flex flex-col items-center gap-1">
                               <div
-                                className={`w-11 h-11 rounded-full flex items-center justify-center font-mono text-lg shadow-md transition-transform ${ballStyle} ${
-                                  isMatch ? "ring-4 ring-primary scale-110" : ""
-                                }`}
+                                className={`relative w-12 h-12 rounded-full flex flex-col items-center justify-center font-mono font-black shadow-lg transition-transform hover:scale-110 select-none ${
+                                  isFirst
+                                    ? "bg-gradient-to-br from-amber-300 via-amber-500 to-amber-700 text-slate-950 shadow-amber-500/30 border border-amber-200/80 ring-2 ring-amber-400/30"
+                                    : isSecond
+                                    ? "bg-gradient-to-br from-blue-400 via-blue-600 to-blue-800 text-white shadow-blue-500/25 border border-blue-200/70 ring-2 ring-blue-400/20"
+                                    : isThird
+                                    ? "bg-gradient-to-br from-emerald-400 via-emerald-600 to-emerald-800 text-white shadow-emerald-500/25 border border-emerald-200/70 ring-2 ring-emerald-400/20"
+                                    : "bg-gradient-to-br from-slate-700 via-slate-800 to-slate-950 text-white border border-slate-600"
+                                } ${isMatch ? "ring-4 ring-primary scale-110" : ""}`}
                               >
-                                {String(num).padStart(2, "0")}
+                                <span className="absolute top-1.5 left-2 w-2 h-1 bg-white/50 rounded-full blur-[0.4px] pointer-events-none" />
+                                <span className="text-base sm:text-lg leading-none tracking-tight">{String(num).padStart(2, "0")}</span>
                               </div>
                               <span className="text-[9px] uppercase font-bold text-muted-foreground">
                                 {idx === 0 ? "1er" : idx === 1 ? "2do" : idx === 2 ? "3er" : `${idx + 1}º`}
@@ -465,8 +472,9 @@ export default function SorteoDetalle() {
 
                         {result.bonus_number !== null && result.bonus_number !== undefined && (
                           <div className="flex flex-col items-center gap-1">
-                            <div className="w-11 h-11 rounded-full bg-gradient-to-b from-rose-500 to-rose-700 text-white flex items-center justify-center font-mono text-lg font-black shadow-md">
-                              {String(result.bonus_number).padStart(2, "0")}
+                            <div className="relative w-12 h-12 rounded-full bg-gradient-to-br from-rose-400 via-red-600 to-red-800 text-white flex items-center justify-center font-mono text-base font-black shadow-lg shadow-red-500/30 ring-2 ring-rose-400/30 border border-rose-300">
+                              <span className="absolute top-1.5 left-2 w-2 h-1 bg-white/50 rounded-full blur-[0.4px] pointer-events-none" />
+                              <span>{String(result.bonus_number).padStart(2, "0")}</span>
                             </div>
                             <span className="text-[9px] uppercase font-bold text-rose-500">Bolo +</span>
                           </div>

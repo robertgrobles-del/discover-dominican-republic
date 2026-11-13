@@ -1,10 +1,11 @@
-import { Link } from "react-router-dom";
 import { useState, useEffect, useTransition, useMemo } from "react";
+import { Link } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
 import { SEOHead } from "@/components/SEOHead";
 import { toast } from "sonner";
+import { ChevronRight } from "lucide-react";
 import { useI18n } from "@/hooks/useI18n";
 import {
   LotteryResult,
@@ -115,6 +116,50 @@ export default function Loterias() {
     return matchCompany && matchSearch;
   });
 
+  const groupedResults = useMemo(() => {
+    const groups: {
+      companyId: string;
+      companyName: string;
+      logo: string;
+      draws: LotteryResult[];
+    }[] = [];
+
+    const orderedCompanies = COMPANIES_LIST.filter((c) => c.id !== "all");
+    const map = new Map<string, LotteryResult[]>();
+
+    for (const r of filteredResults) {
+      const list = map.get(r.company) || [];
+      list.push(r);
+      map.set(r.company, list);
+    }
+
+    for (const c of orderedCompanies) {
+      const draws = map.get(c.id);
+      if (draws && draws.length > 0) {
+        groups.push({
+          companyId: c.id,
+          companyName: draws[0]?.companyName || c.name,
+          logo: draws[0]?.logo || c.logo,
+          draws,
+        });
+        map.delete(c.id);
+      }
+    }
+
+    for (const [compId, draws] of map.entries()) {
+      if (draws.length > 0) {
+        groups.push({
+          companyId: compId,
+          companyName: draws[0]?.companyName || compId,
+          logo: draws[0]?.logo || "🎰",
+          draws,
+        });
+      }
+    }
+
+    return groups;
+  }, [filteredResults]);
+
   const jsonLd = useMemo(() => ({
     "@context": "https://schema.org",
     "@graph": [
@@ -184,8 +229,15 @@ export default function Loterias() {
       <div className="min-h-screen bg-background flex flex-col justify-between">
         <Header />
 
-        <main className="flex-grow pt-24 pb-16">
-          <div className="container mx-auto px-4 lg:px-8 space-y-10">
+        <main className="flex-grow pt-28 pb-20">
+          <div className="container mx-auto px-4 lg:px-8 space-y-8">
+            {/* BREADCRUMB */}
+            <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs text-muted-foreground">
+              <Link to="/" className="hover:text-primary transition-colors">Inicio</Link>
+              <span>/</span>
+              <span className="text-foreground font-semibold">Loterías Dominicanas</span>
+            </nav>
+
             {/* HERO SECTION */}
             <LotteryHero
               companies={COMPANIES_LIST}
@@ -194,7 +246,7 @@ export default function Loterias() {
             />
 
             {/* TOOLBAR: DATE FILTER & CHECKER */}
-            <div className="grid lg:grid-cols-12 gap-6 items-start">
+            <div className="grid lg:grid-cols-12 gap-8 items-start">
               {/* Left Column: Date & Search Toolbar + Results (8 cols) */}
               <div className="lg:col-span-8 space-y-6">
                 <LotteryToolbar
@@ -205,16 +257,67 @@ export default function Loterias() {
                   onShare={handleShare}
                 />
 
-                {/* LOTTERY RESULTS GRID */}
-                <div className="grid sm:grid-cols-2 gap-4">
-                  {filteredResults.map((result) => (
-                    <LotteryCard key={result.id} result={result} selectedDate={selectedDate} />
+                <div className="flex items-center justify-between px-1">
+                  <span className="text-xs font-semibold text-muted-foreground">
+                    Mostrando <strong className="text-foreground">{filteredResults.length}</strong> sorteos oficiales
+                  </span>
+                  {selectedCompany !== "all" && (
+                    <button
+                      onClick={() => setSelectedCompany("all")}
+                      className="text-xs font-semibold text-primary hover:underline cursor-pointer"
+                    >
+                      Ver todas las loterías
+                    </button>
+                  )}
+                </div>
+
+                {/* LOTTERY RESULTS GROUPED BY COMPANY */}
+                <div className="space-y-10">
+                  {groupedResults.map((group) => (
+                    <section key={group.companyId} className="space-y-4">
+                      {/* Company Header */}
+                      <div className="flex items-center justify-between pb-2.5 border-b border-border/60">
+                        <div className="flex items-center gap-3">
+                          <span className="text-2xl select-none">{group.logo}</span>
+                          <div>
+                            <Link
+                              to={`/loteria/${group.companyId}`}
+                              className="group/company flex items-center gap-1.5"
+                            >
+                              <h2 className="font-display font-black text-lg sm:text-xl text-foreground group-hover/company:text-primary transition-colors">
+                                {group.companyName}
+                              </h2>
+                              <ChevronRight className="h-4 w-4 text-muted-foreground group-hover/company:text-primary group-hover/company:translate-x-0.5 transition-all" />
+                            </Link>
+                            <span className="text-2xs text-muted-foreground font-medium">
+                              {group.draws.length} sorteo{group.draws.length > 1 ? "s" : ""} registrado{group.draws.length > 1 ? "s" : ""}
+                            </span>
+                          </div>
+                        </div>
+
+                        <Link
+                          to={`/loteria/${group.companyId}`}
+                          className="text-xs font-semibold text-primary hover:underline hidden sm:inline-flex items-center gap-1"
+                        >
+                          <span>Ver empresa</span>
+                          <ChevronRight className="h-3.5 w-3.5" />
+                        </Link>
+                      </div>
+
+                      {/* Draws grid for this company */}
+                      <div className="grid sm:grid-cols-2 gap-5">
+                        {group.draws.map((result) => (
+                          <LotteryCard key={result.id} result={result} selectedDate={selectedDate} />
+                        ))}
+                      </div>
+                    </section>
                   ))}
+
                   {filteredResults.length === 0 && (
-                    <div className="col-span-2 text-center py-16 bg-card border border-dashed border-border rounded-2xl">
-                      <p className="font-bold text-foreground">No hay sorteos disponibles</p>
-                      <p className="text-muted-foreground text-sm mt-1">
-                        No se encontraron sorteos para los filtros seleccionados.
+                    <div className="text-center py-20 bg-card/60 backdrop-blur-sm border border-dashed border-border/80 rounded-3xl space-y-2">
+                      <p className="font-display font-bold text-lg text-foreground">No hay sorteos disponibles</p>
+                      <p className="text-muted-foreground text-xs sm:text-sm max-w-sm mx-auto">
+                        No se encontraron sorteos para los filtros seleccionados o la fecha aún no tiene resultados cargados.
                       </p>
                     </div>
                   )}
@@ -222,7 +325,7 @@ export default function Loterias() {
               </div>
 
               {/* Right Column: Lucky Number Checker & Hot/Cold Stats (4 cols) */}
-              <div className="lg:col-span-4 space-y-6">
+              <div className="lg:col-span-4 space-y-6 lg:sticky lg:top-24">
                 <LotteryChecker
                   checkNumber={checkNumber}
                   onCheckNumberChange={setCheckNumber}
@@ -231,9 +334,10 @@ export default function Loterias() {
                 />
 
                 <LotteryStatsSidebar />
-                <nav aria-label="Más sobre loterías" className="rounded-2xl border border-border bg-card p-4 text-sm">
+                <nav aria-label="Más sobre loterías" className="rounded-2xl border border-border/70 bg-card/80 backdrop-blur-sm p-4 text-xs space-y-2 shadow-2xs">
+                  <span className="font-bold text-foreground block text-2xs uppercase tracking-wider text-muted-foreground">Guías y Normativas</span>
                   <Link to="/loterias/como-se-gana" className="block font-semibold text-primary hover:underline">Cómo se gana en cada lotería</Link>
-                  <Link to="/loterias/juego-responsable" className="mt-2 block font-semibold text-primary hover:underline">Juego responsable</Link>
+                  <Link to="/loterias/juego-responsable" className="block font-semibold text-muted-foreground hover:text-foreground">Juego responsable</Link>
                 </nav>
               </div>
             </div>

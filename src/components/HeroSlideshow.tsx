@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
-  ChevronRight, Search, Sun, Ruler, Landmark, Users, ChevronLeft, MapPin, Star, Calendar,
+  ChevronRight, Sun, Ruler, Landmark, Users, ChevronLeft, MapPin, Star, Calendar,
   Hotel, UtensilsCrossed, Waves, Award, Building2, Utensils, Mountain, Compass, Crown
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -325,22 +325,6 @@ export function HeroSlideshow({ onOpenSearch }: { onOpenSearch?: () => void }) {
       <div className="relative z-10 flex-1 flex flex-col justify-center container mx-auto px-4 lg:px-8 pt-8 lg:pt-12 pb-8">
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 items-center">
           <div className="lg:col-span-3 max-w-2xl min-w-0">
-
-            {onOpenSearch && (
-              <Button
-                type="button"
-                variant="outline"
-                onClick={onOpenSearch}
-                className="mb-6 h-12 w-full max-w-xl justify-between rounded-xl border-border/80 bg-background/85 px-4 text-left text-muted-foreground shadow-lg backdrop-blur-md hover:border-primary/50 hover:bg-background"
-              >
-                <span className="flex min-w-0 items-center gap-3">
-                  <Search className="h-5 w-5 text-primary" aria-hidden="true" />
-                  <span className="truncate">{pc.tx("span.1", "¿Qué quieres descubrir en República Dominicana?")}</span>
-                </span>
-                <span className="hidden rounded-md border border-border bg-muted px-2 py-1 text-3xs font-medium text-muted-foreground sm:inline-flex">{pc.tx("span.2", "Buscar")}</span>
-              </Button>
-            )}
-            
             {/* Tag / Sponsor Badge & Red Dimensions Indicator */}
             <AnimatePresence mode="wait">
               <motion.div
@@ -452,20 +436,40 @@ export function HeroSlideshow({ onOpenSearch }: { onOpenSearch?: () => void }) {
                 <ChevronLeft className="h-5 w-5" aria-hidden="true" />
               </Button>
               
-              <div className="flex gap-2" role="tablist" aria-label={pc.t("div.aria-label.3", "Paginación de slides")}>
-                {slidesData.map((s, index) => (
-                  <button
-                    key={index}
-                    role="tab"
-                    aria-label={`Slide ${index + 1}: ${s.card.title}`}
-                    aria-current={index === currentSlide ? "true" : undefined}
-                    tabIndex={index === currentSlide ? 0 : -1}
-                    onClick={() => { setIsAutoPlaying(false); goToSlide(index); }}
-                    className={`h-2 rounded-full transition-all duration-500 ease-out ${
-                      index === currentSlide ? "w-8 bg-primary shadow-xs shadow-primary/50" : "w-2 bg-muted-foreground/40 hover:bg-muted-foreground"
-                    }`}
-                  />
-                ))}
+              <div className="flex items-center gap-2.5" role="tablist" aria-label={pc.t("div.aria-label.3", "Paginación de slides")}>
+                {slidesData.map((s, index) => {
+                  const isActive = index === currentSlide;
+                  return (
+                    <button
+                      key={index}
+                      role="tab"
+                      aria-label={`Slide ${index + 1}: ${s.card.title}`}
+                      aria-current={isActive ? "true" : undefined}
+                      tabIndex={isActive ? 0 : -1}
+                      onClick={() => { setIsAutoPlaying(false); goToSlide(index); }}
+                      className="group relative flex flex-col justify-center py-2 cursor-pointer transition-all focus:outline-hidden"
+                    >
+                      <span className="sr-only">{s.card.title}</span>
+                      <div
+                        className={`h-1.5 rounded-full transition-all duration-500 ease-out overflow-hidden ${
+                          isActive
+                            ? "w-12 bg-primary/25 ring-1 ring-primary/40 shadow-xs shadow-primary/30"
+                            : "w-4 bg-foreground/25 hover:bg-foreground/50 hover:w-6"
+                        }`}
+                      >
+                        {isActive && (
+                          <motion.div
+                            className="h-full bg-primary rounded-full origin-left"
+                            initial={{ width: "0%" }}
+                            animate={{ width: "100%" }}
+                            transition={{ duration: 6.5, ease: "linear" }}
+                            key={currentSlide}
+                          />
+                        )}
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
 
               <Button
