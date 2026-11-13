@@ -26,7 +26,7 @@ beforeAll(async () => {
   for (const f of readdirSync(migrations).sort()) await db.executeMultiple(readFileSync(join(migrations, f), "utf8"));
   await db.execute({ sql: "INSERT INTO users (id, email, password_hash, roles) VALUES ('u1', 'admin@x.do', ?, '[\"admin\"]')", args: [hashPassword("clave-segura-123")] });
   await db.execute({ sql: "INSERT INTO users (id, email, password_hash, roles) VALUES ('u2', 'turista@x.do', ?, '[]')", args: [hashPassword("clave-segura-123")] });
-});
+}, 60000);
 // En Windows el archivo puede seguir bloqueado tras cerrar: la carpeta temporal se deja si no se puede borrar.
 afterAll(() => { db.close(); try { rmSync(dir, { recursive: true, force: true }); } catch { /* EBUSY */ } });
 

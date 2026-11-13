@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Sparkles, CheckCircle2 } from "lucide-react";
+import { useI18n } from "@/hooks/useI18n";
 
 interface LotteryCheckerProps {
   checkNumber: string;
@@ -21,15 +22,17 @@ export function LotteryChecker({
   onSubmit,
   checkResult,
 }: LotteryCheckerProps) {
+  const { t } = useI18n();
+
   return (
     <Card className="rounded-3xl border-2 border-amber-500/30 bg-card shadow-xl overflow-hidden">
       <CardHeader className="p-5 pb-3">
         <CardTitle className="text-lg font-bold flex items-center gap-2">
           <Sparkles className="h-5 w-5 text-amber-500" />
-          Comprobar Mi Jugada / Número
+          {t("lottery.checker.title")}
         </CardTitle>
         <CardDescription className="text-xs">
-          Verifica si tu número o palé salió premiado en cualquiera de las loterías hoy.
+          {t("lottery.checker.subtitle")}
         </CardDescription>
       </CardHeader>
 
@@ -37,7 +40,7 @@ export function LotteryChecker({
         <form onSubmit={onSubmit} className="space-y-3">
           <div>
             <Label className="text-xs font-semibold text-foreground mb-1 block">
-              Número a Consultar (00 al 99)
+              {t("lottery.checker.inputLabel")}
             </Label>
             <Input
               type="text"
@@ -54,7 +57,7 @@ export function LotteryChecker({
             type="submit"
             className="w-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-xl text-xs h-10 shadow-md shadow-amber-500/20"
           >
-            Comprobar Número en Sorteos
+            {t("lottery.checker.button")}
           </Button>
         </form>
 
@@ -70,7 +73,7 @@ export function LotteryChecker({
             {checkResult.matches.length > 0 ? (
               <>
                 <div className="font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5 text-sm">
-                  <CheckCircle2 className="h-4 w-4" /> ¡Felicidades! Salió premiado:
+                  <CheckCircle2 className="h-4 w-4" /> {t("lottery.checker.congrats")}:
                 </div>
                 <div className="space-y-1 pt-1">
                   {checkResult.matches.map((m, idx) => (
@@ -86,7 +89,7 @@ export function LotteryChecker({
             ) : (
               <div className="text-center space-y-1">
                 <p className="font-bold text-foreground">El número {checkNumber} no ha salido hoy</p>
-                <p className="text-2xs text-muted-foreground">¡Sigue probando tu suerte en los próximos sorteos!</p>
+                <p className="text-2xs text-muted-foreground">{t("lottery.checker.noMatch")}</p>
               </div>
             )}
           </div>

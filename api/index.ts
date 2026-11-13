@@ -4,11 +4,12 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 // Cliente web: habla con Turso por HTTP, sin el módulo nativo de SQLite que no hace falta en Vercel.
 import { createClient, type Client, type InValue } from "@libsql/client/web";
 import { createHmac, randomBytes, randomUUID, scryptSync, timingSafeEqual } from "node:crypto";
+import { scrapeAndSyncLotteries } from "./scraper/loterias.js";
 
 // Mini backend de staging (Turso/SQLite): acceso al panel, provincias y noticias.
 // Responde con el mismo contrato que el backend completo para /auth/*, así el frontend no cambia.
 
-export interface ApiRequest { method: string; path: string; headers: Record<string, string | undefined>; body: unknown; ip?: string; lang?: string }
+export interface ApiRequest { method: string; path: string; headers: Record<string, string | undefined>; body: unknown; ip?: string; lang?: string; query?: Record<string, string> }
 /** body se envía como JSON; raw, tal cual (imágenes). */
 export interface ApiResponse { status: number; body?: unknown; raw?: Uint8Array; headers?: Record<string, string> }
 
@@ -994,25 +995,38 @@ const AIRPORTS = ["aeropuerto-internacional-de-punta-cana", "aeropuerto-internac
 const PORTS = ["sans-souci", "amber-cove", "taino-bay", "cabo-rojo", "la-romana", "puerto-caucedo", "puerto-haina", "manzanillo"];
 const MARINAS = ["casa-de-campo", "cap-cana", "ocean-world", "marina-zar-par", "puerto-bahia", "luperon"];
 export const STATIC_PAGES = [
-  "/eventos", "/playas", "/requisitos-viaje", "/e-ticket", "/aeropuerto", ...AIRPORTS.map((x) => `/aeropuerto/${x}`),
+  "/eventos", "/playas", "/loterias", "/requisitos-viaje", "/e-ticket", "/aeropuerto", ...AIRPORTS.map((x) => `/aeropuerto/${x}`),
   "/puertos-marinas", ...PORTS.map((x) => `/puerto/${x}`), ...MARINAS.map((x) => `/marina/${x}`),
   "/provincias", "/negocios", "/anunciate", "/registra-tu-negocio", "/contacto", "/privacidad", "/terminos",
 ];
 
-/** Fichas públicas que salen de Turso además de las noticias: eventos vigentes, playas, provincias y negocios aprobados. */
-interface PublicExtras { events: { slug: string; name: string; short_description: string | null; start_date: string | null; province: string | null; image_url: string | null; updated_at: string | null }[];
+/** Fichas públicas que salen de Turso además de las noticias: eventos vigentes, playas, provincias, negocios y loterías. */
+interface PublicExtras {
+  events: { slug: string; name: string; short_description: string | null; start_date: string | null; province: string | null; image_url: string | null; updated_at: string | null }[];
   businesses: { id: string; name: string; province: string | null; description: string | null; created_at: string | null }[];
   provinces: { slug: string; name: string; short_description: string | null; tagline: string | null; image_url: string | null; updated_at: string | null }[];
-  beaches: { slug: string; name: string; short_description: string | null; province: string | null; image_url: string | null; updated_at: string | null }[] }
+  beaches: { slug: string; name: string; short_description: string | null; province: string | null; image_url: string | null; updated_at: string | null }[];
+  lotteries?: { slug: string; name: string; description: string | null; updated_at: string | null }[];
+  draws?: { lottery_slug: string; slug: string; name: string; description: string | null; updated_at: string | null }[];
+}
 async function publicExtras(db: Client): Promise<PublicExtras> {
-  const [ev, biz, prov, bch] = await Promise.all([
+  const indicatorsDb = getIndicatorsDb(db);
+  const [ev, biz, prov, bch, lots, drws] = await Promise.all([
     db.execute(`SELECT slug, name, short_description, start_date, province, image_url, updated_at FROM events WHERE status = 'published' AND ${EVENT_LIVE} ORDER BY start_date`),
     db.execute("SELECT id, name, province, description, created_at FROM establishment_requests WHERE status = 'approved' ORDER BY name COLLATE NOCASE"),
     db.execute("SELECT slug, name, short_description, tagline, image_url, updated_at FROM provinces WHERE status = 'published' ORDER BY name COLLATE NOCASE"),
     db.execute("SELECT b.slug, b.name, b.short_description, p.name AS province, b.image_url, b.updated_at FROM beaches b LEFT JOIN provinces p ON p.id = b.province_id WHERE b.status = 'published' ORDER BY b.name COLLATE NOCASE"),
+    indicatorsDb.execute("SELECT slug, name, description, updated_at FROM lotteries WHERE is_active = 1 ORDER BY name COLLATE NOCASE").catch(() => ({ rows: [] })),
+    indicatorsDb.execute("SELECT d.slug, d.name, d.description, d.updated_at, l.slug AS lottery_slug FROM lottery_draws d INNER JOIN lotteries l ON l.id = d.lottery_id WHERE d.is_active = 1 ORDER BY d.draw_time").catch(() => ({ rows: [] })),
   ]);
-  return { events: ev.rows as unknown as PublicExtras["events"], businesses: biz.rows as unknown as PublicExtras["businesses"],
-    provinces: prov.rows as unknown as PublicExtras["provinces"], beaches: bch.rows as unknown as PublicExtras["beaches"] };
+  return {
+    events: ev.rows as unknown as PublicExtras["events"],
+    businesses: biz.rows as unknown as PublicExtras["businesses"],
+    provinces: prov.rows as unknown as PublicExtras["provinces"],
+    beaches: bch.rows as unknown as PublicExtras["beaches"],
+    lotteries: lots.rows as unknown as PublicExtras["lotteries"],
+    draws: drws.rows as unknown as PublicExtras["draws"],
+  };
 }
 
 /**
@@ -1041,6 +1055,8 @@ function sitemap(rows: NewsRow[], extras: PublicExtras = { events: [], businesse
       p.image_url ? `<image:image><image:loc>${xmlEsc(absolute(p.image_url))}</image:loc></image:image>` : "")).join("")
     + extras.beaches.map((b) => url(`/playa/${b.slug}`, b.updated_at,
       b.image_url ? `<image:image><image:loc>${xmlEsc(absolute(b.image_url))}</image:loc></image:image>` : "")).join("")
+    + (extras.lotteries || []).map((l) => url(`/loteria/${l.slug}`, l.updated_at)).join("")
+    + (extras.draws || []).map((d) => url(`/loteria/${d.lottery_slug}/${d.slug}`, d.updated_at)).join("")
     + "</urlset>";
 }
 
@@ -1160,10 +1176,15 @@ function llmsTxt(rows: NewsRow[], extras: PublicExtras = { events: [], businesse
     + (extras.beaches.length ? `## Playas\n\n${extras.beaches.map((b) => `- [${b.name}](${siteUrl()}/playa/${b.slug}): ${[b.province, b.short_description].filter(Boolean).join(". ")}`).join("\n")}\n\n` : "")
     + (extras.events.length ? `## Próximos eventos\n\n${extras.events.map((e) => `- [${e.name}](${siteUrl()}/evento/${e.slug}): ${[e.start_date, e.province, e.short_description].filter(Boolean).join(". ")}`).join("\n")}\n\n` : "")
     + (extras.businesses.length ? `## Negocios del directorio\n\n${extras.businesses.map((b) => `- [${b.name}](${siteUrl()}/negocios/${b.id})${b.province ? `: ${b.province}` : ""}`).join("\n")}\n\n` : "")
+    + ((extras.lotteries && extras.lotteries.length) ? `## Loterías Dominicanas\n\n- [Loterías Dominicanas: Resultados en Vivo y Comprobador](${siteUrl()}/loterias): números ganadores de hoy, horarios y estadísticas.\n`
+      + extras.lotteries.map((l) => `- [${l.name}](${siteUrl()}/loteria/${l.slug}): ${l.description || "Resultados oficiales, horarios y sorteos."}`).join("\n") + "\n\n" : "")
+    + ((extras.draws && extras.draws.length) ? `### Históricos de Sorteos\n\n`
+      + extras.draws.map((d) => `- [${d.name}](${siteUrl()}/loteria/${d.lottery_slug}/${d.slug}): ${d.description || "Histórico de resultados, números calientes y fríos."}`).join("\n") + "\n\n" : "")
     + `## Guías\n\n- [E-Ticket de República Dominicana: guía del nuevo portal](${siteUrl()}/e-ticket.md): cómo hacer gratis el formulario de entrada y salida en eticket.gob.do.\n`
     + `- [Aeropuertos internacionales de República Dominicana](${siteUrl()}/aeropuerto): terminales, aerolíneas, transporte y destinos cercanos de los ${AIRPORTS.length} aeropuertos.\n`
     + `- [Puertos de cruceros y marinas](${siteUrl()}/puertos-marinas): ${PORTS.length} puertos (Amber Cove, Taíno Bay, Sans Souci, Cabo Rojo…) y ${MARINAS.length} marinas (Cap Cana, Casa de Campo, Ocean World…).\n`
     + `- [Playas de República Dominicana](${siteUrl()}/playas): directorio de playas por provincia, tipo de arena, oleaje, actividades y servicios.\n`
+    + `- [Loterías Dominicanas](${siteUrl()}/loterias): resultados oficiales en vivo de LEIDSA, Lotería Nacional, LOTEKA, Real, La Primera, New York y Florida.\n`
     + `- [Eventos en República Dominicana](${siteUrl()}/eventos): conciertos, festivales y deportes con fecha, lugar y provincia.\n`
     + `- [Directorio de negocios turísticos](${siteUrl()}/negocios): negocios y servicios turísticos por provincia.\n\n`
     + `## Opcional\n\n- [Todas las noticias en un solo archivo](${siteUrl()}/llms-full.txt)\n`
@@ -1177,7 +1198,14 @@ async function llmRoute(db: Client, path: string): Promise<ApiResponse | null> {
   if (path === "/llms.txt") return { status: 200, raw: enc(llmsTxt(await listNews(db), await publicExtras(db))), headers: TEXT_HEADERS("text/plain") };
   if (path === "/llms-full.txt") {
     const rows = (await listNews(db)).slice(0, 100);
-    const text = `# ${SITE_NAME}: noticias completas\n\n> ${SITE_SUMMARY}\n\n${rows.map(newsMarkdown).join("\n---\n\n")}`;
+    const extras = await publicExtras(db);
+    const lotterySection = extras.draws && extras.draws.length > 0
+      ? `\n\n## Loterías Dominicanas e Históricos Oficiales\n\n`
+        + (extras.lotteries || []).map((l) => `### ${l.name}\n- URL: ${siteUrl()}/loteria/${l.slug}\n- Descripción: ${l.description || "Lotería oficial en República Dominicana"}\n`).join("\n")
+        + `\n### Sorteos Activos:\n`
+        + (extras.draws || []).map((d) => `- **${d.name}** (${d.lottery_slug}): ${siteUrl()}/loteria/${d.lottery_slug}/${d.slug}\n  ${d.description || "Histórico de bolos premiados y estadísticas."}`).join("\n")
+      : "";
+    const text = `# ${SITE_NAME}: índice completo para agentes de IA\n\n> ${SITE_SUMMARY}\n\n${rows.map(newsMarkdown).join("\n---\n\n")}${lotterySection}`;
     return { status: 200, raw: enc(text), headers: TEXT_HEADERS("text/plain") };
   }
   const md = path.match(/^\/md\/noticias\/([^/]+)$/);
@@ -1603,6 +1631,351 @@ async function translateRoute(body: Fields, translate: Translator): Promise<ApiR
   }
 }
 
+// ---------- Loterías e Indicadores (Turso) ----------
+let indicatorsDbClient: Client | null = null;
+function getIndicatorsDb(mainDb: Client): Client {
+  const url = process.env.TURSO_DB_LOTERY_URL || process.env.TURSO_INDICATORS_DATABASE_URL;
+  const token = process.env.TURSO_AUTH_LOTERY_TOKEN || process.env.TURSO_INDICATORS_AUTH_TOKEN;
+  if (url && !url.startsWith("file:")) {
+    indicatorsDbClient ??= createClient({
+      url,
+      authToken: token,
+    });
+    return indicatorsDbClient;
+  }
+  return mainDb;
+}
+
+async function handleGetLotteries(db: Client, dateParam?: string): Promise<ApiResponse> {
+  const lotteriesRes = await db.execute("SELECT id, slug, name, country, logo_url, website_url, description, color_scheme, is_active FROM lotteries WHERE is_active = 1 ORDER BY name COLLATE NOCASE");
+  const drawsRes = await db.execute("SELECT id, lottery_id, slug, name, draw_days, draw_time, ball_range_min, ball_range_max, number_of_balls, tombolas_count, has_bonus, bonus_name, is_active FROM lottery_draws WHERE is_active = 1 ORDER BY draw_time");
+
+  const resultsRes = dateParam
+    ? await db.execute({ sql: "SELECT id, draw_id, draw_date, winning_numbers, bonus_number, jackpot_amount FROM lottery_results WHERE draw_date = ? AND is_active = 1", args: [dateParam] })
+    : await db.execute(`
+        SELECT r.id, r.draw_id, r.draw_date, r.winning_numbers, r.bonus_number, r.jackpot_amount
+        FROM lottery_results r
+        INNER JOIN (
+          SELECT draw_id, MAX(draw_date) as max_date
+          FROM lottery_results
+          WHERE is_active = 1
+          GROUP BY draw_id
+        ) latest ON r.draw_id = latest.draw_id AND r.draw_date = latest.max_date
+      `);
+
+  const resultsByDraw = new Map<string, { id: string; draw_date: string; winning_numbers: number[]; bonus_number: number | null; jackpot_amount: string | null }>();
+  for (const r of resultsRes.rows) {
+    resultsByDraw.set(String(r.draw_id), {
+      id: String(r.id),
+      draw_date: String(r.draw_date),
+      winning_numbers: typeof r.winning_numbers === "string" ? (JSON.parse(r.winning_numbers) as number[]) : [],
+      bonus_number: r.bonus_number !== null ? Number(r.bonus_number) : null,
+      jackpot_amount: r.jackpot_amount ? String(r.jackpot_amount) : null,
+    });
+  }
+
+  const drawsByLottery = new Map<string, unknown[]>();
+  for (const d of drawsRes.rows) {
+    const lId = String(d.lottery_id);
+    if (!drawsByLottery.has(lId)) drawsByLottery.set(lId, []);
+    drawsByLottery.get(lId)!.push({
+      id: String(d.id),
+      slug: String(d.slug),
+      name: String(d.name),
+      draw_days: typeof d.draw_days === "string" ? JSON.parse(d.draw_days) : d.draw_days,
+      draw_time: String(d.draw_time),
+      ball_range_min: Number(d.ball_range_min),
+      ball_range_max: Number(d.ball_range_max),
+      number_of_balls: Number(d.number_of_balls),
+      tombolas_count: Number(d.tombolas_count),
+      has_bonus: Boolean(d.has_bonus),
+      bonus_name: d.bonus_name ? String(d.bonus_name) : null,
+      latest_result: resultsByDraw.get(String(d.id)) || null,
+    });
+  }
+
+  const lotteries = lotteriesRes.rows.map((l) => ({
+    id: String(l.id),
+    slug: String(l.slug),
+    name: String(l.name),
+    country: String(l.country),
+    logo_url: l.logo_url ? String(l.logo_url) : null,
+    website_url: l.website_url ? String(l.website_url) : null,
+    description: l.description ? String(l.description) : null,
+    color_scheme: l.color_scheme ? String(l.color_scheme) : null,
+    draws: drawsByLottery.get(String(l.id)) || [],
+  }));
+
+  return { status: 200, body: { data: lotteries }, headers: PUBLIC_CACHE };
+}
+
+async function handleGetLotteryResults(db: Client, dateParam?: string, companySlug?: string): Promise<ApiResponse> {
+  let sql = `
+    SELECT
+      r.id, r.draw_id, r.draw_date, r.winning_numbers, r.bonus_number, r.jackpot_amount, r.is_active,
+      d.id AS d_id, d.lottery_id AS d_lottery_id, d.name AS d_name, d.slug AS d_slug, d.draw_days AS d_draw_days,
+      d.draw_time AS d_draw_time, d.ball_range_min AS d_ball_range_min, d.ball_range_max AS d_ball_range_max,
+      d.number_of_balls AS d_number_of_balls, d.tombolas_count AS d_tombolas_count, d.has_bonus AS d_has_bonus,
+      l.id AS l_id, l.slug AS l_slug, l.name AS l_name, l.country AS l_country, l.logo_url AS l_logo_url
+    FROM lottery_results r
+    INNER JOIN lottery_draws d ON d.id = r.draw_id
+    INNER JOIN lotteries l ON l.id = d.lottery_id
+    WHERE r.is_active = 1
+  `;
+  const args: InValue[] = [];
+  if (dateParam) {
+    sql += " AND r.draw_date = ?";
+    args.push(dateParam);
+  }
+  if (companySlug && companySlug !== "all") {
+    sql += " AND (l.slug = ? OR l.id = ?)";
+    args.push(companySlug, companySlug);
+  }
+  sql += " ORDER BY r.draw_date DESC, d.draw_time ASC LIMIT 150";
+
+  const res = await db.execute({ sql, args });
+  const data = res.rows.map((row) => ({
+    id: String(row.id),
+    draw_id: String(row.draw_id),
+    draw_date: String(row.draw_date),
+    winning_numbers: typeof row.winning_numbers === "string" ? (JSON.parse(row.winning_numbers) as number[]) : [],
+    bonus_number: row.bonus_number !== null ? Number(row.bonus_number) : null,
+    jackpot_amount: row.jackpot_amount ? String(row.jackpot_amount) : null,
+    is_active: Boolean(row.is_active),
+    lottery_draws: {
+      id: String(row.d_id),
+      lottery_id: String(row.d_lottery_id),
+      slug: String(row.d_slug),
+      name: String(row.d_name),
+      draw_days: typeof row.d_draw_days === "string" ? JSON.parse(row.d_draw_days) : row.d_draw_days,
+      draw_time: String(row.d_draw_time),
+      ball_range_min: Number(row.d_ball_range_min),
+      ball_range_max: Number(row.d_ball_range_max),
+      number_of_balls: Number(row.d_number_of_balls),
+      tombolas_count: Number(row.d_tombolas_count),
+      has_bonus: Boolean(row.d_has_bonus),
+      is_active: true,
+      lotteries: {
+        id: String(row.l_id),
+        slug: String(row.l_slug),
+        name: String(row.l_name),
+        country: String(row.l_country),
+        logo_url: row.l_logo_url ? String(row.l_logo_url) : null,
+        is_active: true,
+      },
+    },
+  }));
+
+  return { status: 200, body: { data }, headers: PUBLIC_CACHE };
+}
+
+async function handleGetLotteryDetail(db: Client, slug: string): Promise<ApiResponse> {
+  const lotRes = await db.execute({
+    sql: "SELECT id, slug, name, country, logo_url, website_url, description, color_scheme FROM lotteries WHERE slug = ? OR id = ?",
+    args: [slug, slug],
+  });
+  if (!lotRes.rows.length) return err(404, "Lotería no encontrada");
+  const lot = lotRes.rows[0];
+
+  const drawsRes = await db.execute({
+    sql: "SELECT id, slug, name, draw_days, draw_time, ball_range_min, ball_range_max, number_of_balls, tombolas_count, has_bonus, bonus_name, description, schedule_description FROM lottery_draws WHERE lottery_id = ? AND is_active = 1 ORDER BY draw_time",
+    args: [lot.id],
+  });
+
+  const resultsRes = await db.execute({
+    sql: `SELECT r.id, r.draw_id, r.draw_date, r.winning_numbers, r.bonus_number, r.jackpot_amount
+          FROM lottery_results r
+          INNER JOIN lottery_draws d ON d.id = r.draw_id
+          WHERE d.lottery_id = ? AND r.is_active = 1
+          ORDER BY r.draw_date DESC, d.draw_time ASC LIMIT 60`,
+    args: [lot.id],
+  });
+
+  const results = resultsRes.rows.map((r) => ({
+    id: String(r.id),
+    draw_id: String(r.draw_id),
+    draw_date: String(r.draw_date),
+    winning_numbers: typeof r.winning_numbers === "string" ? (JSON.parse(r.winning_numbers) as number[]) : [],
+    bonus_number: r.bonus_number !== null ? Number(r.bonus_number) : null,
+    jackpot_amount: r.jackpot_amount ? String(r.jackpot_amount) : null,
+  }));
+
+  return {
+    status: 200,
+    body: {
+      data: {
+        id: String(lot.id),
+        slug: String(lot.slug),
+        name: String(lot.name),
+        country: String(lot.country),
+        logo_url: lot.logo_url ? String(lot.logo_url) : null,
+        website_url: lot.website_url ? String(lot.website_url) : null,
+        description: lot.description ? String(lot.description) : null,
+        color_scheme: lot.color_scheme ? String(lot.color_scheme) : null,
+        draws: drawsRes.rows.map((d) => ({
+          id: String(d.id),
+          slug: String(d.slug),
+          name: String(d.name),
+          draw_days: typeof d.draw_days === "string" ? JSON.parse(d.draw_days) : d.draw_days,
+          draw_time: String(d.draw_time),
+          ball_range_min: Number(d.ball_range_min),
+          ball_range_max: Number(d.ball_range_max),
+          number_of_balls: Number(d.number_of_balls),
+          tombolas_count: Number(d.tombolas_count),
+          has_bonus: Boolean(d.has_bonus),
+          bonus_name: d.bonus_name ? String(d.bonus_name) : null,
+          description: d.description ? String(d.description) : null,
+          schedule_description: d.schedule_description ? String(d.schedule_description) : null,
+        })),
+        recent_results: results,
+      },
+    },
+    headers: PUBLIC_CACHE,
+  };
+}
+
+async function handleGetDrawDetail(
+  db: Client,
+  companySlug: string,
+  drawSlug: string,
+  query?: Record<string, string>
+): Promise<ApiResponse> {
+  const lotRes = await db.execute({
+    sql: "SELECT id, slug, name, country, logo_url, website_url, description, color_scheme FROM lotteries WHERE slug = ? OR id = ?",
+    args: [companySlug, companySlug],
+  });
+  if (!lotRes.rows.length) return err(404, "Lotería no encontrada");
+  const lot = lotRes.rows[0];
+
+  const drawRes = await db.execute({
+    sql: `SELECT id, lottery_id, slug, name, draw_days, draw_time, ball_range_min, ball_range_max,
+                 number_of_balls, tombolas_count, has_bonus, bonus_name, description, schedule_description
+          FROM lottery_draws
+          WHERE (slug = ? OR id = ?) AND (lottery_id = ? OR lottery_id = ?)`,
+    args: [drawSlug, drawSlug, String(lot.id), `lot-${companySlug}`],
+  });
+  if (!drawRes.rows.length) return err(404, "Sorteo no encontrado");
+  const draw = drawRes.rows[0];
+
+  const relatedRes = await db.execute({
+    sql: "SELECT id, slug, name, draw_time FROM lottery_draws WHERE lottery_id = ? AND id != ? AND is_active = 1 ORDER BY draw_time",
+    args: [String(lot.id), String(draw.id)],
+  });
+
+  const limit = Math.min(Math.max(Number(query?.limit) || 90, 1), 365);
+  const year = query?.year;
+  const month = query?.month;
+  const targetNumber = query?.number;
+
+  let sql = "SELECT id, draw_id, draw_date, winning_numbers, bonus_number, jackpot_amount FROM lottery_results WHERE draw_id = ? AND is_active = 1";
+  const args: InValue[] = [String(draw.id)];
+
+  if (year && /^\d{4}$/.test(year)) {
+    if (month && /^\d{1,2}$/.test(month)) {
+      sql += " AND draw_date LIKE ?";
+      args.push(`${year}-${month.padStart(2, "0")}-%`);
+    } else {
+      sql += " AND draw_date LIKE ?";
+      args.push(`${year}-%`);
+    }
+  } else if (month && /^\d{1,2}$/.test(month)) {
+    sql += " AND substr(draw_date, 6, 2) = ?";
+    args.push(month.padStart(2, "0"));
+  }
+
+  sql += " ORDER BY draw_date DESC LIMIT ?";
+  args.push(limit);
+
+  const resultsRes = await db.execute({ sql, args });
+
+  let results = resultsRes.rows.map((r) => ({
+    id: String(r.id),
+    draw_id: String(r.draw_id),
+    draw_date: String(r.draw_date),
+    winning_numbers: typeof r.winning_numbers === "string" ? (JSON.parse(r.winning_numbers) as number[]) : [],
+    bonus_number: r.bonus_number !== null ? Number(r.bonus_number) : null,
+    jackpot_amount: r.jackpot_amount ? String(r.jackpot_amount) : null,
+  }));
+
+  if (targetNumber && /^\d{1,2}$/.test(targetNumber)) {
+    const numToFind = Number(targetNumber);
+    results = results.filter((r) => r.winning_numbers.includes(numToFind));
+  }
+
+  const freqMap = new Map<number, number>();
+  for (const r of results) {
+    for (const num of r.winning_numbers) {
+      freqMap.set(num, (freqMap.get(num) || 0) + 1);
+    }
+  }
+
+  const sortedFreq = Array.from(freqMap.entries())
+    .map(([num, count]) => ({
+      number: String(num).padStart(2, "0"),
+      count,
+      percentage: results.length > 0 ? Math.round((count / results.length) * 100) : 0,
+    }))
+    .sort((a, b) => b.count - a.count);
+
+  const hotNumbers = sortedFreq.slice(0, 5);
+  const coldNumbers = sortedFreq.slice(-5).reverse();
+
+  return {
+    status: 200,
+    body: {
+      data: {
+        lottery: {
+          id: String(lot.id),
+          slug: String(lot.slug),
+          name: String(lot.name),
+          country: String(lot.country),
+          logo_url: lot.logo_url ? String(lot.logo_url) : null,
+          website_url: lot.website_url ? String(lot.website_url) : null,
+          description: lot.description ? String(lot.description) : null,
+          color_scheme: lot.color_scheme ? String(lot.color_scheme) : null,
+        },
+        draw: {
+          id: String(draw.id),
+          lottery_id: String(draw.lottery_id),
+          slug: String(draw.slug),
+          name: String(draw.name),
+          draw_days: typeof draw.draw_days === "string" ? JSON.parse(draw.draw_days) : draw.draw_days,
+          draw_time: String(draw.draw_time),
+          ball_range_min: Number(draw.ball_range_min),
+          ball_range_max: Number(draw.ball_range_max),
+          number_of_balls: Number(draw.number_of_balls),
+          tombolas_count: Number(draw.tombolas_count),
+          has_bonus: Boolean(draw.has_bonus),
+          bonus_name: draw.bonus_name ? String(draw.bonus_name) : null,
+          description: draw.description ? String(draw.description) : null,
+          schedule_description: draw.schedule_description ? String(draw.schedule_description) : null,
+        },
+        results,
+        stats: {
+          total_draws: results.length,
+          hot_numbers: hotNumbers,
+          cold_numbers: coldNumbers,
+          latest_result: results[0] || null,
+        },
+        related_draws: relatedRes.rows.map((rd) => ({
+          id: String(rd.id),
+          slug: String(rd.slug),
+          name: String(rd.name),
+          draw_time: String(rd.draw_time),
+        })),
+      },
+    },
+    headers: PUBLIC_CACHE,
+  };
+}
+
+async function handleSyncLotteries(db: Client, body: Fields): Promise<ApiResponse> {
+  const htmlContent = typeof body.htmlContent === "string" ? body.htmlContent : undefined;
+  const date = typeof body.date === "string" ? body.date : undefined;
+  const report = await scrapeAndSyncLotteries(db, { htmlContent, date });
+  return { status: report.success ? 200 : 502, body: { data: report } };
+}
+
 // ---------- router ----------
 export async function handle(req: ApiRequest, db: Client, secret: string, secureCookies = true, loadShell: ShellLoader = fetchShell, translate: Translator = defaultTranslator): Promise<ApiResponse> {
   const lang = isLang(req.lang) ? req.lang : undefined;
@@ -1611,6 +1984,30 @@ export async function handle(req: ApiRequest, db: Client, secret: string, secure
   const m = req.method.toUpperCase();
 
   if (path === "/health") return { status: 200, body: { data: { ok: true } } };
+
+  // Loterías e Indicadores (Turso)
+  const indicatorsDb = getIndicatorsDb(db);
+  if (m === "GET" && (path === "/lotteries" || path === "/public/lotteries")) {
+    return handleGetLotteries(indicatorsDb, req.query?.date);
+  }
+  if (m === "GET" && (path === "/lotteries/results" || path === "/public/lotteries/results")) {
+    return handleGetLotteryResults(indicatorsDb, req.query?.date, req.query?.company);
+  }
+  const drawMatch = m === "GET" && path.match(/^\/(?:public\/)?lotteries\/([a-z0-9-]+)\/(?:draws\/)?([a-z0-9-]+)$/);
+  if (drawMatch && drawMatch[1] !== "sync" && drawMatch[1] !== "results") {
+    return handleGetDrawDetail(indicatorsDb, drawMatch[1], drawMatch[2], req.query);
+  }
+  const lotMatch = m === "GET" && path.match(/^\/(?:public\/)?lotteries\/([a-z0-9-]+)$/);
+  if (lotMatch && lotMatch[1] !== "sync" && lotMatch[1] !== "results") {
+    return handleGetLotteryDetail(indicatorsDb, lotMatch[1]);
+  }
+  // Sincronizar escribe resultados: sólo el cron de Vercel (CRON_SECRET) aquí; el equipo, más abajo y con sesión.
+  if (m === "POST" && path === "/lotteries/sync") {
+    const cron = process.env.CRON_SECRET;
+    if (!cron || req.headers.authorization !== `Bearer ${cron}`) return err(401, "No autenticado");
+    return handleSyncLotteries(indicatorsDb, {});
+  }
+
   if (m === "GET" && path.startsWith("/public/")) return (await publicApi(db, path, lang)) ?? err(404, "Ruta no encontrada");
   const media = m === "GET" && path.match(/^\/media\/([^/]+)\.webp$/); // el id se valida en serveMedia
   if (media) return serveMedia(db, media[1]);
@@ -1674,6 +2071,9 @@ export async function handle(req: ApiRequest, db: Client, secret: string, secure
   if (users) return roles.includes("admin") ? usersApi(db, m, users[1], body, user) : err(403, "Solo un administrador gestiona usuarios");
 
   const manager = roles.includes("admin") || roles.includes("editor"); // gestiona todo el contenido
+  if (path === "/admin/lotteries/sync" && m === "POST") {
+    return manager ? handleSyncLotteries(getIndicatorsDb(db), body) : err(403, "Solo un editor o administrador sincroniza loterías");
+  }
   if (path === "/admin/media" && m === "POST") {
     return roles.includes("colaborador") && !manager && !roles.includes("autor") ? err(403, "Un colaborador no puede subir imágenes") : uploadMedia(db, body, user.id);
   }
@@ -1753,6 +2153,7 @@ export default async function handler(req: IncomingMessage & { body?: unknown },
         body: await readBody(req),
         ip: (req.headers["x-forwarded-for"] as string | undefined)?.split(",")[0]?.trim(),
         lang: new URL(req.url ?? "/", "http://x").searchParams.get("lang") ?? undefined,
+        query: Object.fromEntries(new URL(req.url ?? "/", "http://x").searchParams.entries()),
       },
       db,
       secret,

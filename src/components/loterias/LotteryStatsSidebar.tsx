@@ -1,8 +1,11 @@
 import { Card } from "@/components/ui/card";
 import { Flame, Snowflake, ShieldCheck } from "lucide-react";
 import { HOT_COLD_STATS } from "@/data/loteriasData";
+import { useI18n } from "@/hooks/useI18n";
 
 export function LotteryStatsSidebar() {
+  const { t } = useI18n();
+
   return (
     <div className="space-y-6">
       {/* HOT & COLD NUMBERS STATS */}
@@ -10,9 +13,9 @@ export function LotteryStatsSidebar() {
         <div>
           <h3 className="font-bold text-sm text-foreground flex items-center gap-1.5">
             <Flame className="h-4 w-4 text-orange-500" />
-            Números Más Frecuentes (Calientes)
+            {t("lottery.stats.hot")}
           </h3>
-          <p className="text-2xs text-muted-foreground">Mayor cantidad de salidas este mes:</p>
+          <p className="text-2xs text-muted-foreground">{t("lottery.stats.hotSubtitle")}:</p>
         </div>
 
         <div className="flex flex-wrap gap-2">
@@ -30,9 +33,9 @@ export function LotteryStatsSidebar() {
         <div className="pt-2 border-t border-border">
           <h3 className="font-bold text-sm text-foreground flex items-center gap-1.5">
             <Snowflake className="h-4 w-4 text-cyan-500" />
-            Números Atrasados (Fríos)
+            {t("lottery.stats.cold")}
           </h3>
-          <p className="text-2xs text-muted-foreground">Mayor tiempo sin salir en primera:</p>
+          <p className="text-2xs text-muted-foreground">{t("lottery.stats.coldSubtitle")}:</p>
         </div>
 
         <div className="space-y-1.5 text-xs text-muted-foreground">
@@ -48,7 +51,7 @@ export function LotteryStatsSidebar() {
       {/* Responsible Gaming Notice */}
       <div className="p-4 rounded-2xl bg-muted/40 border border-border/80 text-2xs text-muted-foreground leading-relaxed flex items-start gap-2">
         <ShieldCheck className="h-4 w-4 text-primary shrink-0 mt-0.5" />
-        <span>Juega con responsabilidad. Los sorteos son organizados y regulados por las entidades oficiales de loterías de la República Dominicana.</span>
+        <span>{t("lottery.disclaimer")}</span>
       </div>
     </div>
   );

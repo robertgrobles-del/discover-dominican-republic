@@ -1,15 +1,71 @@
 export interface LotteryResult {
   id: string;
-  company: "leidsa" | "nacional" | "loteka" | "real" | "primera" | "suerte" | "newyork" | "florida" | "king";
+  company: "leidsa" | "nacional" | "loteka" | "real" | "primera" | "suerte" | "newyork" | "florida" | "king" | "anguila";
   companyName: string;
   drawName: string;
+  drawSlug?: string;
   drawTime: string;
   date: string;
   winningNumbers: string[];
+  bonusNumber?: number | null;
   jackpotOrExtra?: string;
   colorScheme: string;
   logo: string;
 }
+
+export function resolveDrawSlug(company: string, drawName: string, explicitSlug?: string): string {
+  if (explicitSlug) return explicitSlug;
+  const map: Record<string, string> = {
+    "quiniela y palé leidsa": "quiniela-pale-leidsa",
+    "loto, loto más & súper loto": "loto-leidsa",
+    "pega 3 más": "pega-3-mas",
+    "súper kino tv": "super-kino-tv",
+    "gana más (mediodía)": "gana-mas",
+    "gana más": "gana-mas",
+    "sorteo nacional noche": "nacional-noche",
+    "juega+ pega+": "juega-pega",
+    "mega chances": "mega-chances",
+    "quiniela loteka": "quiniela-loteka",
+    "quiniela real": "quiniela-real",
+    "loto real": "loto-real",
+    "la primera mediodía": "primera-mediodia",
+    "la primera noche": "primera-noche",
+    "la suerte mediodía": "la-suerte-mediodia",
+    "la suerte tarde": "la-suerte-tarde",
+    "king lottery mediodía": "king-lottery-mediodia",
+    "king lottery noche": "king-lottery-noche",
+    "new york tarde": "new-york-tarde",
+    "new york noche": "new-york-noche",
+    "florida día": "florida-dia",
+    "florida noche": "florida-noche",
+    "anguila mañana (10:00 am)": "anguila-10am",
+    "anguila mediodía (1:00 pm)": "anguila-1pm",
+    "anguila tarde (6:00 pm)": "anguila-6pm",
+    "anguila noche (9:00 pm)": "anguila-9pm",
+  };
+  const key = drawName.toLowerCase().trim();
+  if (map[key]) return map[key];
+  return drawName
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+export const COMPANIES_LIST = [
+  { id: "all", name: "Todas las Loterías", logo: "🇩🇴" },
+  { id: "leidsa", name: "LEIDSA", logo: "🔴" },
+  { id: "nacional", name: "Lotería Nacional", logo: "🏛️" },
+  { id: "loteka", name: "LOTEKA", logo: "🟡" },
+  { id: "real", name: "Lotería Real", logo: "👑" },
+  { id: "primera", name: "La Primera", logo: "🟣" },
+  { id: "suerte", name: "La Suerte", logo: "🍀" },
+  { id: "king", name: "King Lottery", logo: "👑" },
+  { id: "newyork", name: "New York", logo: "🗽" },
+  { id: "florida", name: "Florida", logo: "🌴" },
+  { id: "anguila", name: "Anguila", logo: "🌊" }
+];
 
 export const DEFAULT_LOTTERY_RESULTS: LotteryResult[] = [
   // LEIDSA
@@ -33,6 +89,7 @@ export const DEFAULT_LOTTERY_RESULTS: LotteryResult[] = [
     drawTime: "8:55 PM (Mié/Sáb)",
     date: "Hoy",
     winningNumbers: ["04", "12", "19", "25", "31", "38"],
+    bonusNumber: 7,
     jackpotOrExtra: "Acumulado: RD$ 420 Millones",
     colorScheme: "from-red-700 to-amber-900 border-red-500/30",
     logo: "🎰"
@@ -183,6 +240,41 @@ export const DEFAULT_LOTTERY_RESULTS: LotteryResult[] = [
     colorScheme: "from-cyan-700 to-slate-900 border-cyan-500/30",
     logo: "🍀"
   },
+  {
+    id: "sue-2",
+    company: "suerte",
+    companyName: "La Suerte Dominicana",
+    drawName: "La Suerte Tarde",
+    drawTime: "6:00 PM",
+    date: "Hoy",
+    winningNumbers: ["71", "15", "88"],
+    colorScheme: "from-cyan-800 to-slate-950 border-cyan-500/30",
+    logo: "🍀"
+  },
+
+  // KING LOTTERY
+  {
+    id: "king-1",
+    company: "king",
+    companyName: "King Lottery",
+    drawName: "King Lottery Mediodía",
+    drawTime: "12:30 PM",
+    date: "Hoy",
+    winningNumbers: ["12", "60", "43"],
+    colorScheme: "from-yellow-600 to-amber-950 border-yellow-500/30",
+    logo: "👑"
+  },
+  {
+    id: "king-2",
+    company: "king",
+    companyName: "King Lottery",
+    drawName: "King Lottery Noche",
+    drawTime: "7:30 PM",
+    date: "Hoy",
+    winningNumbers: ["31", "87", "05"],
+    colorScheme: "from-amber-600 to-amber-950 border-amber-500/30",
+    logo: "👑"
+  },
 
   // NEW YORK
   {
@@ -219,6 +311,41 @@ export const DEFAULT_LOTTERY_RESULTS: LotteryResult[] = [
     winningNumbers: ["31", "66", "10"],
     colorScheme: "from-orange-700 to-amber-950 border-orange-500/30",
     logo: "🌴"
+  },
+  {
+    id: "fl-2",
+    company: "florida",
+    companyName: "Florida",
+    drawName: "Florida Noche",
+    drawTime: "10:30 PM",
+    date: "Hoy",
+    winningNumbers: ["48", "12", "93"],
+    colorScheme: "from-orange-800 to-amber-950 border-orange-500/30",
+    logo: "🌴"
+  },
+
+  // ANGUILA
+  {
+    id: "ang-1",
+    company: "anguila",
+    companyName: "Anguila Lottery",
+    drawName: "Anguila Mañana (10:00 AM)",
+    drawTime: "10:00 AM",
+    date: "Hoy",
+    winningNumbers: ["14", "52", "89"],
+    colorScheme: "from-teal-700 to-slate-900 border-teal-500/30",
+    logo: "🌊"
+  },
+  {
+    id: "ang-2",
+    company: "anguila",
+    companyName: "Anguila Lottery",
+    drawName: "Anguila Mediodía (1:00 PM)",
+    drawTime: "1:00 PM",
+    date: "Hoy",
+    winningNumbers: ["63", "21", "07"],
+    colorScheme: "from-teal-800 to-slate-950 border-teal-500/30",
+    logo: "🌊"
   }
 ];
 
@@ -237,15 +364,3 @@ export const HOT_COLD_STATS = {
     { num: "13", daysMissing: 31, note: "31 días sin salir" }
   ]
 };
-
-export const COMPANIES_LIST = [
-  { id: "all", name: "Todas las Loterías", logo: "🇩🇴" },
-  { id: "leidsa", name: "LEIDSA", logo: "🔴" },
-  { id: "nacional", name: "Lotería Nacional", logo: "🏛️" },
-  { id: "loteka", name: "LOTEKA", logo: "🟡" },
-  { id: "real", name: "Lotería Real", logo: "👑" },
-  { id: "primera", name: "La Primera", logo: "🟣" },
-  { id: "suerte", name: "La Suerte", logo: "🍀" },
-  { id: "newyork", name: "New York", logo: "🗽" },
-  { id: "florida", name: "Florida", logo: "🌴" }
-];

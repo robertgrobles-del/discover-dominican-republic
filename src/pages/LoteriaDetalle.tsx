@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -11,13 +11,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { 
   Sparkles, Calendar, Search, RefreshCw, Trophy, 
-  Flame, Snowflake, CheckCircle2, XCircle, Clock, 
-  Share2, ShieldCheck, ArrowLeft, Building2, Bell
+  Flame, Snowflake, CheckCircle2, Clock, 
+  Share2, ShieldCheck, ArrowLeft, Building2, History
 } from "lucide-react";
 import { toast } from "sonner";
-import { DEFAULT_LOTTERY_RESULTS, LotteryResult } from "@/data/loteriasData";
+import { useI18n } from "@/hooks/useI18n";
+import { DEFAULT_LOTTERY_RESULTS, LotteryResult, resolveDrawSlug } from "@/data/loteriasData";
+import { fetchLotteryResults, fetchLotteryDetail } from "@/services/lotteryService";
 import { PreFooterPresidenteBanner } from "@/components/promo";
-import { usePageContent } from "@/lib/pageContent";
 
 const COMPANY_INFO: Record<string, {
   name: string;
@@ -87,347 +88,474 @@ const COMPANY_INFO: Record<string, {
     color: "from-purple-700 to-purple-950",
     heroGradient: "from-purple-600/20 via-background to-background",
     description: "La Primera ofrece dos sorteos diarios (mediodía y noche) con amplia presencia en bancas de lotería de todo el territorio nacional.",
-    schedule: "La Primera Día 12:00 PM / La Primera Noche 8:00 PM",
-    historyText: "La Primera fue creada para brindar una alternativa moderna y confiable para las jugadas de quiniela, palé y tripleta en horarios clave de la jornada.",
-    popularDraws: ["La Primera Mediodía", "La Primera Noche", "Súper Palé de La Primera"]
+    schedule: "La Primera Mediodía 12:00 PM / La Primera Noche 8:00 PM",
+    historyText: "Con una propuesta fresca y dinámica, La Primera ha ganado terreno en el público dominicano por la rapidez de sus resultados.",
+    popularDraws: ["La Primera Mediodía", "La Primera Noche"]
   },
   suerte: {
-    name: "La Suerte Dominicana",
+    name: "La Suerte",
     fullName: "La Suerte Dominicana",
-    badge: "La Suerte en tus Manos",
+    badge: "Sorteos Tradicionales",
     logo: "🍀",
     color: "from-cyan-700 to-slate-900",
     heroGradient: "from-cyan-600/20 via-background to-background",
-    description: "La Suerte Dominicana es un consorcio de sorteos dinámico con sorteos al mediodía y en la tarde.",
-    schedule: "Todos los días a las 12:30 PM y 6:00 PM",
-    historyText: "La Suerte Dominicana ofrece múltiples modalidades de quinielas y combinaciones con transmisión en canales nacionales y plataformas digitales.",
-    popularDraws: ["La Suerte Mediodía", "La Suerte Tarde", "Quiniela La Suerte"]
-  },
-  newyork: {
-    name: "Lotería de New York",
-    fullName: "New York Lottery (Sorteos en RD)",
-    badge: "Sorteos Oficiales de NY",
-    logo: "🗽",
-    color: "from-slate-800 to-slate-950",
-    heroGradient: "from-slate-700/20 via-background to-background",
-    description: "Los resultados de los sorteos diarios de Nueva York retransmitidos y jugados ampliamente en bancas de lotería dominicanas.",
-    schedule: "New York Tarde 3:30 PM / New York Noche 11:30 PM",
-    historyText: "Debido a la inmensa comunidad dominicana en Nueva York, los sorteos de NY son de los más tradicionales y seguidos en toda República Dominicana.",
-    popularDraws: ["New York Midday 3:30 PM", "New York Evening 11:30 PM"]
-  },
-  florida: {
-    name: "Lotería de Florida",
-    fullName: "Florida Lottery (Sorteos en RD)",
-    badge: "Sorteos Oficiales de Florida",
-    logo: "🌴",
-    color: "from-orange-700 to-amber-950",
-    heroGradient: "from-orange-600/20 via-background to-background",
-    description: "Resultados oficiales de los sorteos del estado de Florida muy populares entre las bancas dominicanas.",
-    schedule: "Florida Día 2:30 PM / Florida Noche 10:30 PM",
-    historyText: "Al igual que New York, Florida cuenta con un gran seguimiento en bancas dominicanas por los lazos de la diáspora quisqueyana.",
-    popularDraws: ["Florida Midday (Día)", "Florida Evening (Noche)"]
+    description: "La Suerte Dominicana es una de las marcas de sorteos más populares de la República Dominicana, con sorteos al mediodía y tarde.",
+    schedule: "La Suerte 12:30 PM / La Suerte Tarde 6:00 PM",
+    historyText: "Reconocida por la agilidad en sus quinielas y palés, La Suerte Dominicana es infaltable en el seguimiento diario de sorteos.",
+    popularDraws: ["La Suerte Mediodía", "La Suerte Tarde"]
   },
   king: {
     name: "King Lottery",
-    fullName: "King Lottery San Martín",
-    badge: "Sorteos del Caribe",
+    fullName: "King Lottery Caribe",
+    badge: "El Rey de los Sorteos",
     logo: "👑",
-    color: "from-pink-700 to-purple-950",
-    heroGradient: "from-pink-600/20 via-background to-background",
-    description: "King Lottery ofrece sorteos caribeños reconocidos por su dinamismo y presencia en el mercado de bancas.",
-    schedule: "King Día 12:30 PM / King Noche 7:30 PM",
-    historyText: "Ampliamente jugada en el este y sur de la República Dominicana con excelentes pagos por combinaciones.",
-    popularDraws: ["King Día", "King Noche"]
+    color: "from-amber-600 to-yellow-950",
+    heroGradient: "from-amber-600/20 via-background to-background",
+    description: "King Lottery ofrece sorteos caribeños diarios de alta premiación y transmisión en vivo.",
+    schedule: "King Lottery Mediodía 12:30 PM / King Lottery Noche 7:30 PM",
+    historyText: "Operando en el Caribe y ampliamente jugada en República Dominicana por sus excelentes pagos.",
+    popularDraws: ["King Lottery Mediodía", "King Lottery Noche"]
+  },
+  newyork: {
+    name: "New York",
+    fullName: "Lotería de Nueva York",
+    badge: "Sorteos Internacionales",
+    logo: "🗽",
+    color: "from-slate-800 to-slate-950",
+    heroGradient: "from-slate-700/20 via-background to-background",
+    description: "Resultados oficiales de los sorteos de la Lotería de Nueva York (New York Midday y Evening), ampliamente jugados en bancas dominicanas.",
+    schedule: "New York Tarde 3:30 PM / New York Noche 11:30 PM",
+    historyText: "Debido a la gran diáspora dominicana en EE.UU., los sorteos de Nueva York son de los más seguidos en RD.",
+    popularDraws: ["New York Tarde (Mediodía)", "New York Noche"]
+  },
+  florida: {
+    name: "Florida",
+    fullName: "Lotería de la Florida",
+    badge: "Sorteos Internacionales",
+    logo: "🌴",
+    color: "from-orange-700 to-amber-950",
+    heroGradient: "from-orange-600/20 via-background to-background",
+    description: "Resultados oficiales de los sorteos Pick 3 y Pick 4 de la Lotería de Florida (Día y Noche).",
+    schedule: "Florida Día 2:30 PM / Florida Noche 10:30 PM",
+    historyText: "Seguida masivamente por la comunidad caribeña y jugadores locales en bancas de lotería.",
+    popularDraws: ["Florida Día", "Florida Noche"]
+  },
+  anguila: {
+    name: "Anguila Lottery",
+    fullName: "Anguila Lottery Oficial",
+    badge: "Cuatro Emisiones Diarias",
+    logo: "🌊",
+    color: "from-teal-700 to-slate-950",
+    heroGradient: "from-teal-600/20 via-background to-background",
+    description: "Sorteos de Anguila con emisiones a las 10:00 AM, 1:00 PM, 6:00 PM y 9:00 PM.",
+    schedule: "10:00 AM / 1:00 PM / 6:00 PM / 9:00 PM (Todos los días)",
+    historyText: "Muy popular en el Caribe con múltiples oportunidades diarias para ganar.",
+    popularDraws: ["Anguila 10:00 AM", "Anguila 1:00 PM", "Anguila 6:00 PM", "Anguila 9:00 PM"]
   }
 };
 
 export default function LoteriaDetalle() {
-  const pc = usePageContent("loteria-detalle");
-  const COMPANY_INFO = pc.data("COMPANY_INFO", __pcData.COMPANY_INFO);
   const { slug } = useParams<{ slug: string }>();
-  const normalizedSlug = (slug || "").toLowerCase();
-
-  // Find info
+  const normalizedSlug = (slug || "leidsa").toLowerCase();
   const company = COMPANY_INFO[normalizedSlug] || COMPANY_INFO.leidsa;
-  
-  // State for lottery data
-  const [results, setResults] = useState<LotteryResult[]>([]);
-  const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split("T")[0]);
-  const [checkingNumber, setCheckingNumber] = useState("");
-  const [checkResult, setCheckResult] = useState<{ found: boolean; draws: { drawName: string; position: number }[] } | null>(null);
 
-  // Load results from storage or fallback
+  const [draws, setDraws] = useState<LotteryResult[]>([]);
+  const [selectedDate, setSelectedDate] = useState<string>(() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  });
+  const [searchFilter, setSearchFilter] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Checker
+  const [checkNum, setCheckNum] = useState("");
+  const [checkResult, setCheckResult] = useState<{
+    tested: boolean;
+    matches: { draw: string; pos: number }[];
+  } | null>(null);
+
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem("descubre_rd_lottery_results");
-      const allResults: LotteryResult[] = stored ? JSON.parse(stored) : DEFAULT_LOTTERY_RESULTS;
-      
-      const filtered = allResults.filter(
-        (r) => r.company.toLowerCase() === normalizedSlug || 
-               r.companyName.toLowerCase().includes(normalizedSlug)
-      );
-
-      if (filtered.length > 0) {
-        setResults(filtered);
-      } else {
-        // Fallback to defaults
-        const defaultFiltered = DEFAULT_LOTTERY_RESULTS.filter(
-          (r) => r.company.toLowerCase() === normalizedSlug
+    const loadCompanyDraws = async () => {
+      setIsLoading(true);
+      try {
+        const live = await fetchLotteryResults(selectedDate, normalizedSlug);
+        if (live && live.length > 0) {
+          const adapted: LotteryResult[] = live.map((r) => ({
+            id: r.id,
+            company: normalizedSlug as LotteryResult["company"],
+            companyName: r.lottery_draws?.lotteries?.name || company.name,
+            drawName: r.lottery_draws?.name || "Sorteo",
+            drawTime: r.lottery_draws?.draw_time?.substring(0, 5) || "Hoy",
+            date: r.draw_date || selectedDate,
+            winningNumbers: (r.winning_numbers || []).map((n) => String(n).padStart(2, "0")),
+            bonusNumber: r.bonus_number,
+            jackpotOrExtra: r.jackpot_amount || undefined,
+            colorScheme: company.color,
+            logo: company.logo,
+          }));
+          setDraws(adapted);
+        } else {
+          // Filtrar los sorteos de DEFAULT_LOTTERY_RESULTS que pertenezcan a esta empresa
+          const defaults = DEFAULT_LOTTERY_RESULTS.filter(
+            (r) => r.company === normalizedSlug
+          );
+          setDraws(defaults);
+        }
+      } catch {
+        const defaults = DEFAULT_LOTTERY_RESULTS.filter(
+          (r) => r.company === normalizedSlug
         );
-        setResults(defaultFiltered.length > 0 ? defaultFiltered : DEFAULT_LOTTERY_RESULTS.slice(0, 3));
+        setDraws(defaults);
+      } finally {
+        setIsLoading(false);
       }
-    } catch {
-      setResults(DEFAULT_LOTTERY_RESULTS.filter(r => r.company.toLowerCase() === normalizedSlug));
-    }
-  }, [normalizedSlug]);
+    };
 
-  const handleCheckNumber = (e: React.FormEvent) => {
+    loadCompanyDraws();
+  }, [normalizedSlug, selectedDate, company.color, company.logo, company.name]);
+
+  const handleTestNumber = (e: React.FormEvent) => {
     e.preventDefault();
-    const cleanNum = checkingNumber.trim().padStart(2, "0");
-    if (!cleanNum || cleanNum.length < 2) {
-      toast.error("Por favor ingresa un número de 2 dígitos.");
+    const clean = checkNum.trim().padStart(2, "0");
+    if (!clean || clean.length < 2) {
+      toast.error("Ingresa un número de 2 dígitos (00-99).");
       return;
     }
 
-    const matches: { drawName: string; position: number }[] = [];
-    results.forEach((r) => {
-      r.winningNumbers.forEach((num, idx) => {
-        if (num === cleanNum) {
-          matches.push({ drawName: r.drawName, position: idx + 1 });
-        }
-      });
+    const matches: { draw: string; pos: number }[] = [];
+    draws.forEach((d) => {
+      const idx = d.winningNumbers.indexOf(clean);
+      if (idx !== -1) {
+        matches.push({ draw: d.drawName, pos: idx + 1 });
+      }
     });
 
+    setCheckResult({ tested: true, matches });
+
     if (matches.length > 0) {
-      setCheckResult({ found: true, draws: matches });
-      toast.success(`¡El número ${cleanNum} salió premiado en ${matches.length} sorteo(s)! 🎉`);
+      toast.success(`¡El número ${clean} resultó premiado en ${matches.length} sorteo(s) de ${company.name}! 🎉`);
     } else {
-      setCheckResult({ found: false, draws: [] });
-      toast.info(`El número ${cleanNum} no resultó premiado en los sorteos registrados de hoy.`);
+      toast.info(`El número ${clean} no ha salido premiado en ${company.name} para esta fecha.`);
     }
   };
 
-  const handleShare = (drawName: string, numbers: string[]) => {
-    const text = `Resultados ${company.name} - ${drawName}: ${numbers.join(" - ")} | Vía Descubre RD`;
+  const handleShare = (drawName: string, nums: string[]) => {
+    const text = `Resultados ${company.name} (${drawName}): ${nums.join(" - ")}`;
     if (navigator.share) {
-      navigator.share({ title: `Resultados ${company.name}`, text, url: window.location.href }).catch(() => {});
+      navigator.share({ title: company.fullName, text, url: window.location.href }).catch(() => {});
     } else {
-      navigator.clipboard.writeText(`${text} ${window.location.href}`);
-      toast.success("Resultados copiados al portapapeles.");
+      navigator.clipboard.writeText(`${text} - Vía ${window.location.href}`);
+      toast.success("Resultados copiados al portapapeles 📋");
     }
   };
+
+  const filteredDraws = draws.filter((d) =>
+    d.drawName.toLowerCase().includes(searchFilter.toLowerCase()) ||
+    d.winningNumbers.some((num) => num.includes(searchFilter))
+  );
+
+  const { t, locale } = useI18n();
+
+  const jsonLd = useMemo(() => ({
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "name": company.fullName,
+        "alternateName": company.name,
+        "description": company.description,
+        "url": `https://descubrerepdom.com/loteria/${normalizedSlug}`,
+        "logo": "https://descubrerepdom.com/og-image.jpg"
+      },
+      {
+        "@type": "ItemList",
+        "name": `Sorteos Oficiales de ${company.name}`,
+        "itemListElement": filteredDraws.map((d, i) => ({
+          "@type": "ListItem",
+          "position": i + 1,
+          "name": d.drawName,
+          "description": `Horario: ${d.drawTime}. Números ganadores: ${d.winningNumbers.join(" - ")}.`
+        }))
+      }
+    ]
+  }), [company, filteredDraws, normalizedSlug]);
 
   return (
     <PageTransition>
       <SEOHead
-        title={`Resultados de ${company.name} - Lotería de Hoy República Dominicana`}
-        description={`Consulta los últimos resultados de ${company.fullName}: ${company.popularDraws.join(", ")}. Números ganadores, horarios de sorteos y estadísticas en vivo.`}
+        title={`Resultados de ${company.name} en Vivo - ${company.fullName}`}
+        description={`Consulta los números ganadores de ${company.name}: ${company.popularDraws.join(", ")}. Horarios oficiales: ${company.schedule}.`}
+        keywords={`loteria ${company.name}, resultados ${company.name}, ${company.popularDraws.join(", ")}, numeros ganadores, sorteos rd`}
+        url={`https://descubrerepdom.com/loteria/${normalizedSlug}`}
+        image="https://images.unsplash.com/photo-1518609878373-06d740f60d8b?auto=format&fit=crop&w=1200&q=80"
+        jsonLd={jsonLd}
+        breadcrumbs={[
+          { name: "Inicio", url: "/" },
+          { name: "Loterías", url: "/loterias" },
+          { name: company.name, url: `/loteria/${normalizedSlug}` }
+        ]}
       />
 
       <div className="min-h-screen bg-background flex flex-col justify-between">
         <Header />
 
         <main className="flex-grow pt-24 pb-16">
-          <div className="container mx-auto px-4 lg:px-8 space-y-10">
-            
-            {/* Navigation breadcrumb */}
-            <div className="flex items-center justify-between">
-              <Link
-                to="/loterias"
-                className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                <span>{pc.tx("span.1", "Volver a todas las Loterías")}</span>
+          <div className="container mx-auto px-4 lg:px-8 space-y-8">
+            {/* Breadcrumb & Navigation */}
+            <div className="flex items-center justify-between flex-wrap gap-3">
+              <Link to="/loterias">
+                <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-foreground">
+                  <ArrowLeft className="h-4 w-4" />
+                  <span>Volver a Todas las Loterías</span>
+                </Button>
               </Link>
-              <div className="flex items-center gap-2">
-                <Badge variant="outline" className="gap-1 bg-card/60 backdrop-blur-xs">
-                  <Clock className="h-3.5 w-3.5 text-primary" />
-                  <span>{pc.tx("span.2", "Actualizado en tiempo real")}</span>
-                </Badge>
-              </div>
+
+              <Badge variant="outline" className="text-xs bg-muted/40 py-1 px-3 border-border">
+                {company.schedule}
+              </Badge>
             </div>
 
-            {/* Hero Company Banner */}
-            <div className={`relative overflow-hidden rounded-3xl border border-border p-6 sm:p-10 bg-gradient-to-br ${company.heroGradient}`}>
-              <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative z-10">
-                <div className="space-y-3 max-w-2xl">
-                  <div className="flex items-center gap-3">
-                    <span className="text-4xl">{company.logo}</span>
-                    <div>
-                      <Badge className="bg-primary/20 text-primary hover:bg-primary/30 border-primary/30 text-xs">
-                        {company.badge}
-                      </Badge>
-                      <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl font-extrabold text-foreground mt-1">{pc.tx("h1.1", "Resultados")}{" "}{company.name}
-                      </h1>
-                    </div>
-                  </div>
-                  <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
-                    {company.description}
-                  </p>
-                  <div className="flex flex-wrap items-center gap-4 text-xs sm:text-sm text-foreground/80 pt-2">
-                    <div className="flex items-center gap-1.5 font-medium">
-                      <Clock className="h-4 w-4 text-primary" />
-                      <span>{company.schedule}</span>
-                    </div>
+            {/* COMPANY HERO */}
+            <div className={`relative rounded-3xl overflow-hidden bg-gradient-to-br ${company.heroGradient} border border-border p-6 sm:p-10 shadow-xl`}>
+              <div className="relative z-10 max-w-3xl space-y-4">
+                <div className="flex items-center gap-3">
+                  <span className="text-4xl sm:text-5xl">{company.logo}</span>
+                  <div>
+                    <Badge className="bg-primary text-primary-foreground font-black uppercase text-[10px] tracking-wider mb-1">
+                      {company.badge}
+                    </Badge>
+                    <h1 className="font-display text-3xl sm:text-5xl font-black text-foreground tracking-tight">
+                      {company.name}
+                    </h1>
+                    <p className="text-xs sm:text-sm font-semibold text-muted-foreground mt-0.5">
+                      {company.fullName}
+                    </p>
                   </div>
                 </div>
 
-                {/* Quick Number Checker in Hero */}
-                <Card className="w-full md:w-80 bg-card/90 backdrop-blur-md border-border shrink-0 shadow-lg">
-                  <CardHeader className="p-4 pb-2">
-                    <CardTitle className="text-sm font-bold flex items-center gap-2">
-                      <Search className="h-4 w-4 text-primary" />{pc.tx("CardTitle.1", "Comprobar mi número")}</CardTitle>
-                    <CardDescription className="text-xs">{pc.tx("CardDescription.1", "Verifica si tu bolo salió hoy en")}{" "}{company.name}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="p-4 pt-2">
-                    <form onSubmit={handleCheckNumber} className="space-y-3">
-                      <div className="flex gap-2">
-                        <Input
-                          type="text"
-                          maxLength={2}
-                          placeholder={pc.t("Input.placeholder.1", "Ej: 42")}
-                          value={checkingNumber}
-                          onChange={(e) => setCheckingNumber(e.target.value.replace(/\D/g, ""))}
-                          className="text-center font-mono font-bold text-lg"
-                        />
-                        <Button type="submit" size="sm" className="font-bold px-4">{pc.tx("Button.1", "Verificar")}</Button>
-                      </div>
-                      {checkResult && (
-                        <div className={`p-2.5 rounded-xl text-xs flex items-start gap-2 ${
-                          checkResult.found 
-                            ? "bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-semibold" 
-                            : "bg-muted text-muted-foreground"
-                        }`}>
-                          {checkResult.found ? (
-                            <>
-                              <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-400 mt-0.5" />
-                              <div>
-                                <span>{pc.tx("span.3", "¡Premiado en:")}</span>
-                                {checkResult.draws.map((d, i) => (
-                                  <div key={i} className="text-foreground">
-                                    • {d.drawName} ({d.position}{pc.tx("div.1", "º lugar)")}</div>
-                                ))}
-                              </div>
-                            </>
-                          ) : (
-                            <>
-                              <XCircle className="h-4 w-4 shrink-0 text-muted-foreground mt-0.5" />
-                              <span>{pc.tx("span.4", "No premiado en los sorteos registrados de hoy.")}</span>
-                            </>
-                          )}
-                        </div>
-                      )}
-                    </form>
-                  </CardContent>
-                </Card>
+                <p className="text-sm text-muted-foreground leading-relaxed pt-2">
+                  {company.description}
+                </p>
+
+                {/* Popular Draws Pills */}
+                <div className="flex flex-wrap gap-2 pt-2">
+                  {company.popularDraws.map((dName, i) => (
+                    <Badge key={i} variant="secondary" className="text-xs font-semibold px-3 py-1">
+                      {dName}
+                    </Badge>
+                  ))}
+                </div>
               </div>
             </div>
 
-            {/* Sorteos Cards Grid */}
-            <div className="space-y-6">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <div>
-                  <h2 className="font-display text-2xl font-bold text-foreground flex items-center gap-2">
-                    <Trophy className="h-6 w-6 text-amber-500" />{pc.tx("h2.1", "Sorteos y Números Ganadores de Hoy")}</h2>
-                  <p className="text-xs sm:text-sm text-muted-foreground">{pc.tx("p.1", "Resultados oficiales certificados para")}{" "}{company.name}
-                  </p>
-                </div>
-                
-                {/* Date filter */}
-                <div className="flex items-center gap-2 bg-card border border-border rounded-xl px-3 py-1.5 text-xs">
-                  <Calendar className="h-4 w-4 text-primary" />
-                  <span className="text-muted-foreground">{pc.tx("span.5", "Fecha:")}</span>
+            {/* SEARCH & CONTROLS */}
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-card p-4 rounded-2xl border border-border">
+              <div className="relative w-full sm:w-72">
+                <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Buscar en sorteos de esta lotería..."
+                  value={searchFilter}
+                  onChange={(e) => setSearchFilter(e.target.value)}
+                  className="pl-9 rounded-xl text-xs h-9 bg-background"
+                />
+              </div>
+
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <div className="flex items-center gap-1.5 bg-background border border-border rounded-xl px-3 py-1 text-xs">
+                  <Calendar className="h-3.5 w-3.5 text-primary" />
                   <input
                     type="date"
+                    aria-label="Seleccionar fecha"
                     value={selectedDate}
                     onChange={(e) => setSelectedDate(e.target.value)}
-                    className="bg-transparent border-none text-foreground font-medium text-xs focus:outline-none"
+                    className="bg-transparent text-foreground text-xs focus:outline-hidden font-bold cursor-pointer"
                   />
                 </div>
               </div>
+            </div>
 
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {results.map((draw) => (
-                  <Card 
-                    key={draw.id} 
-                    className={`overflow-hidden border-2 bg-card rounded-3xl shadow-md hover:shadow-xl transition-all duration-300 ${draw.colorScheme}`}
-                  >
-                    <CardHeader className="p-5 pb-3 bg-card/60 backdrop-blur-xs border-b border-border/40">
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="flex items-center gap-2.5">
-                          <div className="w-9 h-9 rounded-xl bg-background/80 flex items-center justify-center text-lg shadow-xs">
-                            {draw.logo || company.logo}
-                          </div>
-                          <div>
-                            <CardTitle className="text-base font-bold font-display text-foreground">
-                              {draw.drawName}
-                            </CardTitle>
-                            <CardDescription className="text-xs flex items-center gap-1.5 mt-0.5 text-muted-foreground font-medium">
-                              <Clock className="h-3 w-3 text-primary" />
-                              <span>{draw.drawTime}</span>
-                              <span>•</span>
-                              <span>{draw.date}</span>
-                            </CardDescription>
-                          </div>
+            {/* DRAWS GRID & CHECKER */}
+            <div className="grid lg:grid-cols-12 gap-6 items-start">
+              {/* Draws List (8 cols) */}
+              <div className="lg:col-span-8 space-y-4">
+                <div className="flex items-center justify-between">
+                  <h2 className="font-display font-bold text-lg text-foreground flex items-center gap-2">
+                    <Trophy className="h-5 w-5 text-amber-500" />
+                    <span>Sorteos Oficiales de {company.name}</span>
+                  </h2>
+                  <span className="text-xs text-muted-foreground font-semibold">
+                    {filteredDraws.length} sorteo(s)
+                  </span>
+                </div>
+
+                <div className="grid sm:grid-cols-2 gap-4">
+                  {filteredDraws.map((draw) => (
+                    <Card key={draw.id} className="rounded-3xl border border-border/80 bg-card hover:border-primary/40 transition-all shadow-md overflow-hidden flex flex-col justify-between">
+                      <CardHeader className="p-5 pb-3 border-b border-border/60 flex flex-row items-center justify-between">
+                        <div>
+                          <h3 className="font-display font-bold text-base text-foreground">
+                            {draw.drawName}
+                          </h3>
+                          <span className="text-xs font-mono font-bold text-primary flex items-center gap-1 mt-0.5">
+                            <Clock className="h-3 w-3" /> {draw.drawTime}
+                          </span>
                         </div>
-
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
+                        <Button
+                          variant="ghost"
+                          size="icon"
                           className="h-8 w-8 text-muted-foreground hover:text-foreground"
                           onClick={() => handleShare(draw.drawName, draw.winningNumbers)}
-                          title={pc.t("Button.title.1", "Compartir resultados")}
+                          title="Compartir resultados"
                         >
                           <Share2 className="h-4 w-4" />
                         </Button>
-                      </div>
-                    </CardHeader>
+                      </CardHeader>
 
-                    <CardContent className="p-6 space-y-4">
-                      {/* Winning Numbers Balls */}
-                      <div className="flex flex-wrap items-center justify-center gap-2.5 sm:gap-3 py-2">
-                        {draw.winningNumbers.map((num, idx) => {
-                          const isGold = idx === 0;
-                          const isSilver = idx === 1;
-                          const isBronze = idx === 2;
+                      <CardContent className="p-5 space-y-4">
+                        {/* Winning Numbers Balls */}
+                        <div className="flex flex-wrap items-center justify-center gap-2.5 sm:gap-3 py-2">
+                          {draw.winningNumbers.map((num, idx) => {
+                            const isGold = idx === 0;
+                            const isSilver = idx === 1;
+                            const isBronze = idx === 2;
 
-                          let ballBg = "bg-primary text-primary-foreground";
-                          if (isGold) ballBg = "bg-gradient-to-b from-amber-300 to-amber-500 text-slate-950 font-black shadow-amber-500/30";
-                          else if (isSilver) ballBg = "bg-gradient-to-b from-slate-200 to-slate-400 text-slate-950 font-bold shadow-slate-400/30";
-                          else if (isBronze) ballBg = "bg-gradient-to-b from-amber-600 to-amber-800 text-white font-bold shadow-amber-800/30";
-                          else ballBg = "bg-secondary text-secondary-foreground font-bold";
+                            let ballBg = "bg-primary text-primary-foreground";
+                            if (isGold) ballBg = "bg-gradient-to-b from-amber-300 to-amber-500 text-slate-950 font-black shadow-amber-500/30";
+                            else if (isSilver) ballBg = "bg-gradient-to-b from-slate-200 to-slate-400 text-slate-950 font-bold shadow-slate-400/30";
+                            else if (isBronze) ballBg = "bg-gradient-to-b from-amber-600 to-amber-800 text-white font-bold shadow-amber-800/30";
+                            else ballBg = "bg-secondary text-secondary-foreground font-bold";
 
-                          return (
-                            <div key={idx} className="flex flex-col items-center gap-1">
-                              <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center text-lg sm:text-xl font-mono shadow-md transform hover:scale-105 transition-transform ${ballBg}`}>
-                                {num}
+                            return (
+                              <div key={idx} className="flex flex-col items-center gap-1">
+                                <div className={`w-11 h-11 sm:w-12 sm:h-12 rounded-full flex items-center justify-center text-lg sm:text-xl font-mono shadow-md transform hover:scale-105 transition-transform ${ballBg}`}>
+                                  {num}
+                                </div>
+                                <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">
+                                  {idx === 0 ? "1er" : idx === 1 ? "2do" : idx === 2 ? "3er" : `${idx + 1}º`}
+                                </span>
                               </div>
-                              <span className="text-3xs uppercase font-bold text-muted-foreground tracking-wider">
-                                {idx === 0 ? "1er" : idx === 1 ? "2do" : idx === 2 ? "3er" : `${idx + 1}º`}
-                              </span>
-                            </div>
-                          );
-                        })}
-                      </div>
-
-                      {/* Jackpot / Extras */}
-                      {draw.jackpotOrExtra && (
-                        <div className="flex items-center justify-center gap-1.5 p-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-500 text-xs font-bold text-center">
-                          <Sparkles className="h-3.5 w-3.5 shrink-0" />
-                          <span>{draw.jackpotOrExtra}</span>
+                            );
+                          })}
                         </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                ))}
+
+                        {/* Jackpot / Extras */}
+                        {draw.jackpotOrExtra && (
+                          <div className="flex items-center justify-center gap-1.5 p-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-500 text-xs font-bold text-center">
+                            <Sparkles className="h-3.5 w-3.5 shrink-0" />
+                            <span>{draw.jackpotOrExtra}</span>
+                          </div>
+                        )}
+
+                        <div className="pt-2 border-t border-border/40 flex items-center justify-between">
+                          <Link
+                            to={`/loteria/${normalizedSlug}/${draw.drawSlug || resolveDrawSlug(normalizedSlug, draw.drawName)}`}
+                            className="text-xs font-bold text-primary hover:underline flex items-center gap-1.5"
+                          >
+                            <History className="h-3.5 w-3.5" />
+                            <span>Ver Histórico del Sorteo &rarr;</span>
+                          </Link>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                  {filteredDraws.length === 0 && (
+                    <div className="col-span-2 text-center py-12 bg-card border border-dashed rounded-2xl">
+                      <p className="text-muted-foreground text-sm">No se encontraron sorteos para los filtros seleccionados.</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Right Column: Checker & Info (4 cols) */}
+              <div className="lg:col-span-4 space-y-6">
+                <Card className="rounded-3xl border-2 border-amber-500/30 bg-card shadow-xl overflow-hidden">
+                  <CardHeader className="p-5 pb-3">
+                    <CardTitle className="text-base font-bold flex items-center gap-2">
+                      <Sparkles className="h-5 w-5 text-amber-500" />
+                      Comprobar Jugada en {company.name}
+                    </CardTitle>
+                    <CardDescription className="text-xs">
+                      Verifica si tu bolo o quiniela salió premiado en {company.name} hoy.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="p-5 pt-0 space-y-4">
+                    <form onSubmit={handleTestNumber} className="space-y-3">
+                      <div>
+                        <Label className="text-xs font-semibold text-foreground mb-1 block">
+                          Número (00 al 99)
+                        </Label>
+                        <Input
+                          type="text"
+                          maxLength={2}
+                          placeholder="Ej. 18"
+                          value={checkNum}
+                          onChange={(e) => setCheckNum(e.target.value.replace(/\D/g, ""))}
+                          className="font-mono text-center text-2xl font-black rounded-xl tracking-widest h-12 bg-background"
+                          required
+                        />
+                      </div>
+                      <Button
+                        type="submit"
+                        className="w-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-xl text-xs h-10 shadow-md shadow-amber-500/20"
+                      >
+                        Comprobar en {company.name}
+                      </Button>
+                    </form>
+
+                    {checkResult && checkResult.tested && (
+                      <div className={`p-4 rounded-2xl border text-xs space-y-2 ${
+                        checkResult.matches.length > 0
+                          ? "bg-emerald-500/10 border-emerald-500/30 text-foreground"
+                          : "bg-muted/80 border-border text-muted-foreground"
+                      }`}>
+                        {checkResult.matches.length > 0 ? (
+                          <>
+                            <div className="font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+                              <CheckCircle2 className="h-4 w-4" /> ¡Premiado en {company.name}!
+                            </div>
+                            <div className="space-y-1 pt-1">
+                              {checkResult.matches.map((m, idx) => (
+                                <div key={idx} className="flex items-center justify-between text-xs">
+                                  <span className="font-semibold text-foreground">{m.draw}</span>
+                                  <Badge className="bg-emerald-500 text-slate-950 text-[10px] font-black">
+                                    {m.pos}ª Posición
+                                  </Badge>
+                                </div>
+                              ))}
+                            </div>
+                          </>
+                        ) : (
+                          <div className="text-center space-y-1">
+                            <p className="font-bold text-foreground">El número {checkNum} no ha salido hoy en {company.name}</p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Company schedule & about card */}
+                <div className="p-6 rounded-3xl bg-card border border-border space-y-3">
+                  <div className="flex items-center gap-2 text-foreground font-bold">
+                    <ShieldCheck className="h-5 w-5 text-emerald-500" />
+                    <span>Sobre {company.fullName}</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    {company.historyText}
+                  </p>
+                  <p className="text-[11px] text-muted-foreground/70 italic pt-2 border-t border-border/50">
+                    Aviso: Los resultados publicados son de carácter meramente informativo y son recolectados de las transmisiones oficiales en vivo. Descubre RD no realiza venta de lotería ni apuestas.
+                  </p>
+                </div>
               </div>
             </div>
 
             {/* Other Lotteries Switcher */}
             <div className="space-y-4 pt-6 border-t border-border">
               <h3 className="font-display text-lg font-bold text-foreground flex items-center gap-2">
-                <Building2 className="h-5 w-5 text-primary" />{pc.tx("h3.1", "Explorar otras loterías dominicanas")}</h3>
+                <Building2 className="h-5 w-5 text-primary" />
+                Explorar otras loterías dominicanas
+              </h3>
               <div className="flex flex-wrap gap-2.5">
                 {Object.entries(COMPANY_INFO).map(([key, info]) => {
                   if (key === normalizedSlug) return null;
@@ -443,21 +571,8 @@ export default function LoteriaDetalle() {
               </div>
             </div>
 
-            {/* Historical info & disclaimer */}
-            <div className="p-6 rounded-3xl bg-card border border-border space-y-3">
-              <div className="flex items-center gap-2 text-foreground font-bold">
-                <ShieldCheck className="h-5 w-5 text-emerald-500" />
-                <span>{pc.tx("span.6", "Sobre")}{" "}{company.fullName}</span>
-              </div>
-              <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-                {company.historyText}
-              </p>
-              <p className="text-2xs text-muted-foreground/70 italic pt-2 border-t border-border/50">{pc.tx("p.2", "Aviso: Los resultados publicados son de carácter meramente informativo y son recolectados de las transmisiones oficiales en vivo. Descubre RD no realiza venta de lotería ni apuestas. En caso de discrepancia, prevalecerán las actas oficiales de los sorteos de la empresa emisora.")}</p>
-            </div>
-
             {/* Prefooter Promo */}
             <PreFooterPresidenteBanner />
-
           </div>
         </main>
 
@@ -466,6 +581,3 @@ export default function LoteriaDetalle() {
     </PageTransition>
   );
 }
-
-// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
-const __pcData = { COMPANY_INFO };

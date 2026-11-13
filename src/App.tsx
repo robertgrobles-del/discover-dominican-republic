@@ -48,11 +48,14 @@ const Anunciate = lazy(() => import("./pages/staging/Anunciate"));
 const RegistroNegocio = lazy(() => import("./pages/staging/RegistroNegocio"));
 const NegociosDirectorio = lazy(() => import("./pages/NegociosDirectorio"));
 const NegocioDetalle = lazy(() => import("./pages/NegocioDetalle"));
+const Loterias = lazy(() => import("./pages/Loterias"));
+const LoteriaDetalle = lazy(() => import("./pages/LoteriaDetalle"));
+const SorteoDetalle = lazy(() => import("./pages/SorteoDetalle"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 /** Páginas públicas que existen en staging: la landing, noticias, eventos, requisitos de viaje, aeropuertos, puertos y marinas, y directorio de negocios. */
 const PUBLISHED = [
-  "/noticias", "/eventos", "/evento", "/playas", "/playa", "/requisitos-viaje", "/e-ticket",
+  "/noticias", "/eventos", "/evento", "/playas", "/playa", "/loterias", "/loteria", "/requisitos-viaje", "/e-ticket",
   "/privacidad", "/terminos", "/contacto", "/anunciate", "/registra-tu-negocio",
   "/aeropuerto", "/aeropuertos", "/puertos-marinas", "/puerto", "/marina", "/provincias", "/provincia", "/negocios", "/negocio", "/empresa", "/empresas", "/404"
 ];
@@ -184,6 +187,10 @@ function AnimatedRoutes() {
             <Route path="/playas" element={<Playas />} />
             <Route path="/playa" element={<Navigate to="/playas" replace />} />
             <Route path="/playa/:slug" element={<PlayaDetalle />} />
+            <Route path="/loterias" element={<Loterias />} />
+            <Route path="/loteria" element={<Navigate to="/loterias" replace />} />
+            <Route path="/loteria/:slug" element={<LoteriaDetalle />} />
+            <Route path="/loteria/:lotterySlug/:drawSlug" element={<SorteoDetalle />} />
             {/* Vista previa hasta tener datos reales del mar (2026-11-11). */}
             <Route path="/estado-playas" element={<StaffPreview><EstadoPlayas /></StaffPreview>} />
             <Route path="/destino/playa-rincon" element={<Navigate to="/playa/playa-rincon" replace />} />
