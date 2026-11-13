@@ -188,7 +188,8 @@ export async function scrapeAndSyncLotteries(db: Db, options: { htmlContent?: st
     seen.add(k);
     return true;
   });
-  const { synced, skipped, errors: dbErrors } = await syncResults(db, parsed, date, now);
+  const { synced: scraped, skipped, errors: dbErrors } = await syncResults(db, parsed, date, now);
+  const synced = scraped + (await deriveSuperPale(db, date));
   if (missing.length) skipped.push({ title: "Sin datos en la fuente para esta fecha", reason: missing.join(", ") });
   return { success: synced > 0, date, source, syncedCount: synced, skipped, errors: [...errors, ...dbErrors] };
 }
@@ -215,4 +216,27 @@ export async function dueDraws(db: Db, now = new Date(), retries = RETRY_MINUTES
     const since = minutes - (h * 60 + m);
     return days.includes(day) && retries.includes(since);
   }).map((x) => String(x.id));
+}
+
+/** Super Palé: primer premio de Leidsa + primer premio de la Lotería Nacional (noche) del mismo día. Devuelve 1 si lo guarda. */
+export async function deriveSuperPale(db: Db, date: string): Promise<number> {
+  const r = rowsOf(await db.execute({
+    sql: `SELECT draw_id, winning_numbers FROM lottery_results
+          WHERE draw_date = ? AND is_active = 1 AND draw_id IN ('draw-lei-quiniela', 'draw-nac-noche')`,
+    args: [date],
+  }));
+  const first = (id: string) => {
+    try { const n = JSON.parse(String(r.find((x) => x.draw_id === id)?.winning_numbers ?? "[]")); return Number.isInteger(n[0]) ? (n[0] as number) : null; } catch { return null; }
+  };
+  const lei = first("draw-lei-quiniela"), nac = first("draw-nac-noche");
+  if (lei === null || nac === null) return 0;
+  const exists = rowsOf(await db.execute({ sql: "SELECT 1 FROM lottery_draws WHERE id = 'draw-lei-superpale' AND is_active = 1", args: [] }));
+  if (!exists.length) return 0;
+  await db.execute({
+    sql: `INSERT INTO lottery_results (id, draw_id, draw_date, winning_numbers, is_active, updated_at)
+          VALUES (?, 'draw-lei-superpale', ?, ?, 1, strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+          ON CONFLICT (draw_id, draw_date) DO UPDATE SET winning_numbers = excluded.winning_numbers, is_active = 1, updated_at = excluded.updated_at`,
+    args: [`res-draw-lei-superpale-${date}`, date, JSON.stringify([lei, nac])],
+  });
+  return 1;
 }

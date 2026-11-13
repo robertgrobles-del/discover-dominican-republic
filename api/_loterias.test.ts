@@ -153,6 +153,27 @@ describe("API de Loterías (Endpoints en api/index.ts)", () => {
     expect(anon.status).toBe(401);
   });
 
+  it("el Super Palé se calcula con el primer premio de Leidsa y el de la Nacional", async () => {
+    const auth = { authorization: `Bearer ${await staffToken()}` };
+    const html = page(ev("Leidsa", "2026-11-05T20:50:00-04:00", [42, 18, 77]), ev("Nacional Noche", "2026-11-05T21:00:00-04:00", [7, 73, 84]));
+    await handle({ method: "POST", path: "/api/v1/admin/lotteries/sync", headers: auth, body: { date: "2026-11-05", htmlContent: html } }, db, SECRET, false);
+    const r = await db.execute({ sql: "SELECT winning_numbers FROM lottery_results WHERE draw_id = 'draw-lei-superpale' AND draw_date = '2026-11-05'", args: [] });
+    expect(String(r.rows[0]?.winning_numbers)).toBe("[42,7]");
+  });
+
+  it("el carrusel del hero se edita en el panel y solo salen las diapositivas activas", async () => {
+    const auth = { authorization: `Bearer ${await staffToken()}` };
+    const on = await handle({ method: "POST", path: "/api/v1/admin/lottery-hero", headers: auth, body: { title: "Loto Leidsa", prize: "RD$ 100 millones", draw_id: "draw-lei-loto", is_active: true } }, db, SECRET, false);
+    expect(on.status).toBe(201);
+    await handle({ method: "POST", path: "/api/v1/admin/lottery-hero", headers: auth, body: { title: "Oculta", is_active: false } }, db, SECRET, false);
+    const bad = await handle({ method: "POST", path: "/api/v1/admin/lottery-hero", headers: auth, body: { title: "X", link_url: "javascript:alert(1)" } }, db, SECRET, false);
+    expect(bad.status).toBe(422);
+    const pub = await handle({ method: "GET", path: "/api/v1/lotteries/hero", headers: {}, body: {} }, db, SECRET);
+    const slides = (pub.body as { data: { title: string; link_url: string | null }[] }).data;
+    expect(slides.map((s) => s.title)).toEqual(["Loto Leidsa"]);
+    expect(slides[0].link_url).toBe("/loteria/leidsa/loto-leidsa");
+  });
+
   it("el panel crea una lotería y un sorteo con validación", async () => {
     const auth = { authorization: `Bearer ${await staffToken()}` };
     const lot = await handle({ method: "POST", path: "/api/v1/admin/lotteries", headers: auth, body: { name: "Lotería Prueba", slug: "loteria-prueba", is_active: true } }, db, SECRET, false);

@@ -1648,8 +1648,25 @@ function getIndicatorsDb(mainDb: Client): Client {
   return mainDb;
 }
 
+/** Datos de contacto de una lotería (editables en el panel). */
+const lotteryInfo = (l: Record<string, unknown>) => Object.fromEntries(
+  (["phone", "address", "tv_channels", "founded", "slogan"] as const).map((k) => [k, l[k] ? String(l[k]) : null]),
+);
+
+/** Carrusel del hero de /loterias: diapositivas activas en su orden, con el enlace al sorteo si lo tienen. */
+async function handleGetLotteryHero(db: Client): Promise<ApiResponse> {
+  const r = await db.execute(`SELECT s.id, s.title, s.prize, s.caption, s.link_url, d.slug AS draw_slug, d.name AS draw_name, l.slug AS lottery_slug, l.name AS lottery_name
+    FROM lottery_hero_slides s LEFT JOIN lottery_draws d ON d.id = s.draw_id LEFT JOIN lotteries l ON l.id = d.lottery_id
+    WHERE s.is_active = 1 ORDER BY s.sort_order, s.created_at`);
+  return { status: 200, body: { data: r.rows.map((x) => ({
+    id: String(x.id), title: String(x.title), prize: x.prize ? String(x.prize) : null, caption: x.caption ? String(x.caption) : null,
+    link_url: x.link_url ? String(x.link_url) : x.draw_slug ? `/loteria/${String(x.lottery_slug)}/${String(x.draw_slug)}` : null,
+    draw_name: x.draw_name ? String(x.draw_name) : null, lottery_name: x.lottery_name ? String(x.lottery_name) : null,
+  })) }, headers: PUBLIC_CACHE };
+}
+
 async function handleGetLotteries(db: Client, dateParam?: string): Promise<ApiResponse> {
-  const lotteriesRes = await db.execute("SELECT id, slug, name, country, logo_url, website_url, description, color_scheme, is_active FROM lotteries WHERE is_active = 1 ORDER BY name COLLATE NOCASE");
+  const lotteriesRes = await db.execute("SELECT id, slug, name, country, logo_url, website_url, description, color_scheme, phone, address, tv_channels, founded, slogan, is_active FROM lotteries WHERE is_active = 1 ORDER BY name COLLATE NOCASE");
   const drawsRes = await db.execute("SELECT id, lottery_id, slug, name, draw_days, draw_time, ball_range_min, ball_range_max, number_of_balls, tombolas_count, has_bonus, bonus_name, schedule_description, how_to_play, is_active FROM lottery_draws WHERE is_active = 1 ORDER BY draw_time");
 
   const resultsRes = dateParam
@@ -1707,6 +1724,7 @@ async function handleGetLotteries(db: Client, dateParam?: string): Promise<ApiRe
     website_url: l.website_url ? String(l.website_url) : null,
     description: l.description ? String(l.description) : null,
     color_scheme: l.color_scheme ? String(l.color_scheme) : null,
+    ...lotteryInfo(l),
     draws: drawsByLottery.get(String(l.id)) || [],
   }));
 
@@ -1777,7 +1795,7 @@ async function handleGetLotteryResults(db: Client, dateParam?: string, companySl
 
 async function handleGetLotteryDetail(db: Client, slug: string): Promise<ApiResponse> {
   const lotRes = await db.execute({
-    sql: "SELECT id, slug, name, country, logo_url, website_url, description, color_scheme FROM lotteries WHERE slug = ? OR id = ?",
+    sql: "SELECT id, slug, name, country, logo_url, website_url, description, color_scheme, phone, address, tv_channels, founded, slogan FROM lotteries WHERE slug = ? OR id = ?",
     args: [slug, slug],
   });
   if (!lotRes.rows.length) return err(404, "Lotería no encontrada");
@@ -1818,6 +1836,7 @@ async function handleGetLotteryDetail(db: Client, slug: string): Promise<ApiResp
         website_url: lot.website_url ? String(lot.website_url) : null,
         description: lot.description ? String(lot.description) : null,
         color_scheme: lot.color_scheme ? String(lot.color_scheme) : null,
+        ...lotteryInfo(lot),
         draws: drawsRes.rows.map((d) => ({
           id: String(d.id),
           slug: String(d.slug),
@@ -1848,7 +1867,7 @@ async function handleGetDrawDetail(
   query?: Record<string, string>
 ): Promise<ApiResponse> {
   const lotRes = await db.execute({
-    sql: "SELECT id, slug, name, country, logo_url, website_url, description, color_scheme FROM lotteries WHERE slug = ? OR id = ?",
+    sql: "SELECT id, slug, name, country, logo_url, website_url, description, color_scheme, phone, address, tv_channels, founded, slogan FROM lotteries WHERE slug = ? OR id = ?",
     args: [companySlug, companySlug],
   });
   if (!lotRes.rows.length) return err(404, "Lotería no encontrada");
@@ -2032,6 +2051,20 @@ const lotterySpec = (b: Fields) => ({
   website_url: () => url(b, "website_url"),
   description: () => str(b, "description", 1000),
   color_scheme: () => str(b, "color_scheme", 80),
+  phone: () => str(b, "phone", 80),
+  address: () => str(b, "address", 200),
+  tv_channels: () => str(b, "tv_channels", 200),
+  founded: () => str(b, "founded", 60),
+  slogan: () => str(b, "slogan", 120),
+  is_active: () => bool(b, "is_active"),
+});
+const heroSpec = (b: Fields) => ({
+  title: () => str(b, "title", 120, true),
+  prize: () => str(b, "prize", 80),
+  caption: () => str(b, "caption", 200),
+  draw_id: () => str(b, "draw_id", 64),
+  link_url: () => { const v = str(b, "link_url", 300); return v instanceof Error || v === null || /^(\/[^/]|https:\/\/)/.test(v) ? v : new Error("link_url: usa una ruta del sitio (/loterias/...) o un enlace https://"); },
+  sort_order: () => int(b, "sort_order", 0, 999) ?? 0,
   is_active: () => bool(b, "is_active"),
 });
 const parseDays = (v: unknown): unknown => {
@@ -2064,9 +2097,11 @@ const drawSpec = (b: Fields) => ({
   is_active: () => bool(b, "is_active"),
 });
 
-async function lotteryAdmin(db: Client, kind: "lotteries" | "lottery_draws", method: string, id: string | undefined, body: Fields): Promise<ApiResponse> {
+async function lotteryAdmin(db: Client, kind: "lotteries" | "lottery_draws" | "lottery_hero_slides", method: string, id: string | undefined, body: Fields): Promise<ApiResponse> {
   if (method === "GET" && !id) {
-    const sql = kind === "lotteries"
+    const sql = kind === "lottery_hero_slides"
+      ? "SELECT s.*, d.name AS draw_name FROM lottery_hero_slides s LEFT JOIN lottery_draws d ON d.id = s.draw_id ORDER BY s.sort_order, s.created_at"
+      : kind === "lotteries"
       ? "SELECT l.*, (SELECT COUNT(*) FROM lottery_draws d WHERE d.lottery_id = l.id) AS draws_count FROM lotteries l ORDER BY l.name COLLATE NOCASE"
       : "SELECT d.*, l.name AS lottery_name, (SELECT MAX(draw_date) FROM lottery_results r WHERE r.draw_id = d.id AND r.is_active = 1) AS last_result FROM lottery_draws d JOIN lotteries l ON l.id = d.lottery_id ORDER BY l.name COLLATE NOCASE, d.draw_time";
     return { status: 200, body: { data: (await db.execute(sql)).rows } };
@@ -2075,15 +2110,18 @@ async function lotteryAdmin(db: Client, kind: "lotteries" | "lottery_draws", met
     if (kind === "lotteries") {
       const n = Number((await db.execute({ sql: "SELECT COUNT(*) AS n FROM lottery_draws WHERE lottery_id = ?", args: [id] })).rows[0]?.n ?? 0);
       if (n) return err(409, `No se puede eliminar: tiene ${n} sorteo${n === 1 ? "" : "s"}. Elimínalos o desactiva la lotería`);
-    } else {
+    } else if (kind === "lottery_draws") {
       await db.execute({ sql: "DELETE FROM lottery_results WHERE draw_id = ?", args: [id] });
     }
     const r = await db.execute({ sql: `DELETE FROM ${kind} WHERE id = ?`, args: [id] });
     return r.rowsAffected ? { status: 204 } : err(404, "No encontrado");
   }
   if (!(method === "POST" && !id) && !(method === "PUT" && id)) return err(405, "Método no permitido");
-  const values = collect(kind === "lotteries" ? lotterySpec(body) : drawSpec(body));
+  const values = collect(kind === "lotteries" ? lotterySpec(body) : kind === "lottery_draws" ? drawSpec(body) : heroSpec(body));
   if (values instanceof Error) return err(422, values.message);
+  if (kind === "lottery_hero_slides" && values.draw_id && !(await db.execute({ sql: "SELECT 1 FROM lottery_draws WHERE id = ?", args: [values.draw_id] })).rows.length) {
+    return err(422, "El sorteo indicado no existe");
+  }
   if (kind === "lottery_draws") {
     if (!(await db.execute({ sql: "SELECT 1 FROM lotteries WHERE id = ?", args: [values.lottery_id] })).rows.length) return err(422, "La lotería indicada no existe");
     if (Number(values.ball_range_min) >= Number(values.ball_range_max)) return err(422, "El número mínimo debe ser menor que el máximo");
@@ -2121,6 +2159,7 @@ export async function handle(req: ApiRequest, db: Client, secret: string, secure
   if (m === "GET" && (path === "/lotteries/results" || path === "/public/lotteries/results")) {
     return handleGetLotteryResults(indicatorsDb, req.query?.date, req.query?.company);
   }
+  if (m === "GET" && (path === "/lotteries/hero" || path === "/public/lotteries/hero")) return handleGetLotteryHero(indicatorsDb);
   const drawMatch = m === "GET" && path.match(/^\/(?:public\/)?lotteries\/([a-z0-9-]+)\/(?:draws\/)?([a-z0-9-]+)$/);
   if (drawMatch && drawMatch[1] !== "sync" && drawMatch[1] !== "results") {
     return handleGetDrawDetail(indicatorsDb, drawMatch[1], drawMatch[2], req.query);
@@ -2207,8 +2246,8 @@ export async function handle(req: ApiRequest, db: Client, secret: string, secure
   }
   const prizes = path.match(/^\/admin\/lotteries\/prizes\/([A-Za-z0-9-]+)$/);
   if (prizes && m === "GET") return manager ? listLotteryPrizes(getIndicatorsDb(db), prizes[1]) : err(403, "Sin permisos");
-  const lot = path.match(/^\/admin\/(lotteries|lottery-draws)(?:\/([A-Za-z0-9-]+))?$/);
-  if (lot) return manager ? lotteryAdmin(getIndicatorsDb(db), lot[1] === "lotteries" ? "lotteries" : "lottery_draws", m, lot[2], body) : err(403, "Solo un editor o administrador gestiona loterías");
+  const lot = path.match(/^\/admin\/(lotteries|lottery-draws|lottery-hero)(?:\/([A-Za-z0-9-]+))?$/);
+  if (lot) return manager ? lotteryAdmin(getIndicatorsDb(db), lot[1] === "lotteries" ? "lotteries" : lot[1] === "lottery-hero" ? "lottery_hero_slides" : "lottery_draws", m, lot[2], body) : err(403, "Solo un editor o administrador gestiona loterías");
   if (path === "/admin/media" && m === "POST") {
     return roles.includes("colaborador") && !manager && !roles.includes("autor") ? err(403, "Un colaborador no puede subir imágenes") : uploadMedia(db, body, user.id);
   }

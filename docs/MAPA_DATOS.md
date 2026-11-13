@@ -40,7 +40,7 @@ Se cruza con el contenido por ID o slug, pero casi siempre se consulta por usuar
 - **Actividad:** `favorites`, `reviews`, `review_votes`, `review_reports`, `province_visits`, `trips` y `trip_*`, `trip_diary_entries`, `traveler_spots`.
 - **Social:** `social_posts`, `social_comments`, `social_likes`, `post_comments`, `post_likes`, `article_reactions`, `ugc_media`, `ugc_reports`, `photo_challenges`, `photo_submissions`, `photo_votes`, `explorer_follows`, `explorer_guilds`, `guild_members`.
 - **Gamificación:** `gamification_*`, `user_gamification`, `user_missions`, `user_league_stats`, `user_xp_milestones`, `xp_milestones`, `achievements`, `user_achievements`, `passport_stamps`, `passport_qr_codes`, `place_qr_codes`, `mission_validation_codes`, `digital_collectibles`, `user_collectibles`, `points_transactions`, `loyalty_points_ledger`, `rewards`, `reward_inventory`, `reward_shipments`, `user_prize_redemptions`, `trivia_*`, `user_route_progress`, `user_checkpoint_completions`.
-- **Sorteos y concursos:** `contests`, `contest_registrations`, `vacation_registrations`, `lotteries`, `lottery_draws`, `lottery_results`; `src/data`: sorteosData, loteriasData, rewardsData, gamificacion*.
+- **Sorteos y concursos:** `contests`, `contest_registrations`, `vacation_registrations`, `lotteries`, `lottery_draws`, `lottery_results`, `lottery_hero_slides` (carrusel del hero de /loterias; vive con las demás tablas de loterías en la base de `TURSO_DB_LOTERY_URL`); `src/data`: sorteosData, loteriasData, rewardsData, gamificacion*.
 
 Se puede separar del contenido. Las consultas cruzadas (por ejemplo, «mis favoritos con su foto») se hacen en dos pasos con `Promise.all`.
 

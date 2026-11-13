@@ -14,6 +14,7 @@ import {
 import {
   fetchLotteryResults,
   adaptResultsForView,
+  fetchLotteries,
 } from "@/services/lotteryService";
 import { LotteryHero } from "@/components/loterias/LotteryHero";
 import { LotteryToolbar } from "@/components/loterias/LotteryToolbar";
@@ -24,6 +25,15 @@ import { LotteryStatsSidebar } from "@/components/loterias/LotteryStatsSidebar";
 export default function Loterias() {
   const { t, locale } = useI18n();
   const [results, setResults] = useState<LotteryResult[]>([]);
+  // Filtros: todas las loterías activas del panel (con su emoji local si lo hay); sin conexión, la lista local.
+  const [companies, setCompanies] = useState(COMPANIES_LIST);
+  useEffect(() => {
+    void fetchLotteries().then((list) => {
+      if (!list.length) return;
+      const logo = (id: string) => COMPANIES_LIST.find((c) => c.id === id)?.logo ?? "🎰";
+      setCompanies([COMPANIES_LIST[0], ...list.map((l) => ({ id: l.slug, name: l.name, logo: logo(l.slug) }))]);
+    });
+  }, []);
   const [selectedCompany, setSelectedCompany] = useState<string>("all");
   const [selectedDate, setSelectedDate] = useState<string>(() => {
     const d = new Date();
@@ -240,7 +250,7 @@ export default function Loterias() {
 
             {/* HERO SECTION */}
             <LotteryHero
-              companies={COMPANIES_LIST}
+              companies={companies}
               selectedCompany={selectedCompany}
               onSelectCompany={setSelectedCompany}
             />

@@ -43,6 +43,11 @@ export interface LotteryCompanyWithDraws {
   website_url?: string | null;
   description?: string | null;
   color_scheme?: string | null;
+  phone?: string | null;
+  address?: string | null;
+  tv_channels?: string | null;
+  founded?: string | null;
+  slogan?: string | null;
   draws: {
     id: string;
     slug: string;

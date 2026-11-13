@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, Navigate } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
@@ -17,7 +17,8 @@ import {
 import { toast } from "sonner";
 import { useI18n } from "@/hooks/useI18n";
 import { LotteryResult, resolveDrawSlug } from "@/data/loteriasData";
-import { fetchLotteryResults, fetchLotteryDetail } from "@/services/lotteryService";
+import { fetchLotteryResults, fetchLotteryDetail, fetchLotteries } from "@/services/lotteryService";
+import type { LotteryCompanyWithDraws } from "@/types/lotteryRelational";
 import { LotteryCard } from "@/components/loterias/LotteryCard";
 import { PreFooterPresidenteBanner } from "@/components/promo";
 
@@ -158,7 +159,31 @@ const COMPANY_INFO: Record<string, {
 export default function LoteriaDetalle() {
   const { slug } = useParams<{ slug: string }>();
   const normalizedSlug = (slug || "leidsa").toLowerCase();
-  const company = COMPANY_INFO[normalizedSlug] || COMPANY_INFO.leidsa;
+  // Ficha del panel (Turso) encima de los datos locales: lo que se rellena en el panel manda.
+  const [remote, setRemote] = useState<LotteryCompanyWithDraws | null | undefined>(undefined);
+  const [allLotteries, setAllLotteries] = useState<LotteryCompanyWithDraws[]>([]);
+  useEffect(() => {
+    setRemote(undefined);
+    void fetchLotteryDetail(normalizedSlug).then(setRemote);
+  }, [normalizedSlug]);
+  useEffect(() => { void fetchLotteries().then(setAllLotteries); }, []);
+  const company = useMemo(() => {
+    const local = COMPANY_INFO[normalizedSlug];
+    const drawNames = remote?.draws.map((d) => d.name) ?? [];
+    const schedules = [...new Set(remote?.draws.map((d) => d.schedule_description).filter(Boolean) as string[] ?? [])];
+    return {
+      name: remote?.name || local?.name || normalizedSlug,
+      fullName: local?.fullName || remote?.name || normalizedSlug,
+      badge: remote?.slogan || local?.badge || remote?.country || "Lotería",
+      logo: local?.logo || "🎰",
+      color: local?.color || "from-sky-600 to-blue-900",
+      heroGradient: local?.heroGradient || "",
+      description: remote?.description || local?.description || "",
+      schedule: local?.schedule || schedules.slice(0, 2).join(" / ") || "",
+      historyText: local?.historyText || remote?.description || "",
+      popularDraws: local?.popularDraws || drawNames.slice(0, 4),
+    };
+  }, [normalizedSlug, remote]);
 
   const [draws, setDraws] = useState<LotteryResult[]>([]);
   const [selectedDate, setSelectedDate] = useState<string>(() => {
@@ -274,6 +299,8 @@ export default function LoteriaDetalle() {
     ]
   }), [company, filteredDraws, normalizedSlug]);
 
+  if (remote === null && !COMPANY_INFO[normalizedSlug]) return <Navigate to="/loterias" replace />;
+
   return (
     <PageTransition>
       <SEOHead
@@ -310,7 +337,7 @@ export default function LoteriaDetalle() {
             </div>
 
             {/* COMPANY HERO */}
-            <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 border border-white/10 text-white p-6 sm:p-10 shadow-2xl">
+            <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-white via-sky-50 to-blue-100 border border-sky-100 text-slate-900 p-6 sm:p-10 shadow-xl">
               <div className="absolute -top-24 -right-24 w-80 h-80 rounded-full bg-primary/20 blur-3xl pointer-events-none" />
               <div className="relative z-10 max-w-3xl space-y-4">
                 <div className="flex items-center gap-4">
@@ -319,23 +346,23 @@ export default function LoteriaDetalle() {
                     <Badge className="bg-primary text-primary-foreground font-black uppercase text-3xs tracking-wider mb-1.5 shadow-sm">
                       {company.badge}
                     </Badge>
-                    <h1 className="font-display text-3xl sm:text-5xl font-black text-white tracking-tight">
+                    <h1 className="font-display text-3xl sm:text-5xl font-black text-slate-900 tracking-tight">
                       {company.name}
                     </h1>
-                    <p className="text-xs sm:text-sm font-semibold text-slate-300 mt-0.5">
+                    <p className="text-xs sm:text-sm font-semibold text-slate-600 mt-0.5">
                       {company.fullName}
                     </p>
                   </div>
                 </div>
 
-                <p className="text-sm sm:text-base text-slate-300 leading-relaxed pt-2">
+                <p className="text-sm sm:text-base text-slate-600 leading-relaxed pt-2">
                   {company.description}
                 </p>
 
                 {/* Popular Draws Pills */}
                 <div className="flex flex-wrap gap-2 pt-2">
                   {company.popularDraws.map((dName, i) => (
-                    <span key={i} className="text-xs font-semibold px-3 py-1 rounded-full bg-white/10 text-white border border-white/10 backdrop-blur-sm">
+                    <span key={i} className="text-xs font-semibold px-3 py-1 rounded-full bg-white text-slate-700 border border-sky-200">
                       {dName}
                     </span>
                   ))}
@@ -472,9 +499,16 @@ export default function LoteriaDetalle() {
                     <ShieldCheck className="h-5 w-5 text-emerald-500" />
                     <span>Sobre {company.fullName}</span>
                   </div>
-                  <p className="text-xs text-muted-foreground leading-relaxed">
-                    {company.historyText}
-                  </p>
+                  {company.historyText ? <p className="text-xs text-muted-foreground leading-relaxed">{company.historyText}</p> : null}
+                  {remote && (remote.founded || remote.phone || remote.address || remote.tv_channels || remote.website_url) ? (
+                    <dl className="grid gap-2 text-xs">
+                      {remote.founded ? <div><dt className="font-semibold text-foreground">Fundación</dt><dd className="text-muted-foreground">{remote.founded}</dd></div> : null}
+                      {remote.tv_channels ? <div><dt className="font-semibold text-foreground">Dónde ver los sorteos</dt><dd className="text-muted-foreground">{remote.tv_channels}</dd></div> : null}
+                      {remote.phone ? <div><dt className="font-semibold text-foreground">Teléfono</dt><dd><a href={`tel:${remote.phone.replace(/[^\d+]/g, "").slice(0, 10)}`} className="text-primary hover:underline">{remote.phone}</a></dd></div> : null}
+                      {remote.address ? <div><dt className="font-semibold text-foreground">Dirección</dt><dd className="text-muted-foreground">{remote.address}</dd></div> : null}
+                      {remote.website_url ? <div><dt className="font-semibold text-foreground">Web oficial</dt><dd><a href={remote.website_url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">{remote.website_url.replace(/^https?:\/\/(www\.)?/, "")}</a></dd></div> : null}
+                    </dl>
+                  ) : null}
                   <p className="text-[11px] text-muted-foreground/70 italic pt-2 border-t border-border/50">
                     Aviso: Los resultados publicados son de carácter meramente informativo y son recolectados de las transmisiones oficiales en vivo. Descubre RD no realiza venta de lotería ni apuestas.
                   </p>
@@ -489,7 +523,7 @@ export default function LoteriaDetalle() {
                 Explorar otras loterías dominicanas
               </h3>
               <div className="flex flex-wrap gap-2.5">
-                {Object.entries(COMPANY_INFO).map(([key, info]) => {
+                {(allLotteries.length ? allLotteries.map((l) => [l.slug, { name: l.name, logo: COMPANY_INFO[l.slug]?.logo || "🎰" }] as const) : Object.entries(COMPANY_INFO)).map(([key, info]) => {
                   if (key === normalizedSlug) return null;
                   return (
                     <Link key={key} to={`/loteria/${key}`}>

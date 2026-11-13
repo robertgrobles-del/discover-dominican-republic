@@ -2,6 +2,8 @@ import { Badge } from "@/components/ui/badge";
 import { useI18n } from "@/hooks/useI18n";
 import { RefreshCw, ShieldCheck, Zap, BarChart3, Sparkles, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { fetchLotteryHero, type LotteryHeroSlide } from "@/services/lotteryService";
 
 interface LotteryHeroProps {
   companies: { id: string; name: string; logo: string }[];
@@ -38,6 +40,14 @@ const PILLARS = [
 
 export function LotteryHero({ companies, selectedCompany, onSelectCompany, onSync, isSyncing }: LotteryHeroProps) {
   const { t } = useI18n();
+  const [slides, setSlides] = useState<LotteryHeroSlide[]>([]);
+  const [idx, setIdx] = useState(0);
+  useEffect(() => { void fetchLotteryHero().then(setSlides); }, []);
+  useEffect(() => {
+    if (slides.length < 2 || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const id = window.setInterval(() => setIdx((i) => (i + 1) % slides.length), 6000);
+    return () => window.clearInterval(id);
+  }, [slides.length]);
 
   return (
     <div className="relative overflow-hidden rounded-3xl border border-sky-100 bg-gradient-to-br from-white via-sky-50 to-blue-100 p-6 text-slate-900 shadow-xl sm:p-10 lg:p-12">
@@ -100,8 +110,9 @@ export function LotteryHero({ companies, selectedCompany, onSelectCompany, onSyn
           </div>
         </div>
 
-        {/* Bombo con bolos (decorativo) */}
-        <div className="hidden flex-col items-center lg:col-span-5 lg:flex">
+        {/* Carrusel de premios (panel) o, sin diapositivas, el bombo decorativo */}
+        <div className={`${slides.length ? "flex" : "hidden lg:flex"} flex-col items-center lg:col-span-5`}>
+          {slides.length ? <HeroSlider slides={slides} idx={idx % slides.length} onPick={setIdx} /> : (
           <div className="relative h-80 w-80">
             <div aria-hidden className="absolute inset-x-8 top-4 h-64 rounded-full border-4 border-white/90 bg-gradient-to-br from-white/70 via-sky-100/40 to-blue-200/50 shadow-[inset_0_-20px_40px_rgba(59,130,246,0.25)]">
               <Ball color="gold" className="left-16 top-28 h-14 w-14" />
@@ -117,6 +128,7 @@ export function LotteryHero({ companies, selectedCompany, onSelectCompany, onSyn
             <Ball color="gold" className="left-24 -bottom-4 h-16 w-16" />
             <Ball color="purple" className="-right-2 bottom-2 h-20 w-20" />
           </div>
+          )}
           <div className="mt-6 flex items-center gap-4 text-xs">
             <Link to="/loterias/como-se-gana" className="flex items-center gap-0.5 font-bold text-blue-700 hover:underline">Cómo se gana <ChevronRight className="h-3 w-3" /></Link>
             <Link to="/loterias/juego-responsable" className="flex items-center gap-0.5 font-bold text-amber-700 hover:underline">Juego responsable <ChevronRight className="h-3 w-3" /></Link>
@@ -124,6 +136,37 @@ export function LotteryHero({ companies, selectedCompany, onSelectCompany, onSyn
           <p className="mt-2 text-2xs text-slate-500">No vendemos boletos ni recibimos apuestas.</p>
         </div>
       </div>
+    </div>
+  );
+}
+
+function HeroSlider({ slides, idx, onPick }: { slides: LotteryHeroSlide[]; idx: number; onPick: (i: number) => void }) {
+  const s = slides[idx];
+  const body = (
+    <>
+      <span className="text-3xs font-bold uppercase tracking-widest text-blue-700">{s.lottery_name || "Premio"}</span>
+      <h2 className="mt-1 font-display text-2xl font-black text-slate-900">{s.title}</h2>
+      {s.prize ? <p className="mt-3 font-display text-4xl font-black tracking-tight text-amber-500 drop-shadow-sm sm:text-5xl">{s.prize}</p> : null}
+      {s.caption ? <p className="mt-3 text-sm text-slate-600">{s.caption}</p> : null}
+      {s.link_url ? <span className="mt-4 inline-flex items-center gap-0.5 text-xs font-bold text-blue-700">Ver sorteo <ChevronRight className="h-3 w-3" /></span> : null}
+    </>
+  );
+  const box = "relative block w-full max-w-sm overflow-hidden rounded-3xl border border-white bg-white/85 p-6 text-center shadow-xl shadow-sky-200/60";
+  return (
+    <div className="w-full max-w-sm" aria-roledescription="carrusel" aria-label="Premios de las loterías">
+      <div aria-live="polite">
+        {s.link_url?.startsWith("/") ? <Link to={s.link_url} className={box}>{body}</Link>
+          : s.link_url ? <a href={s.link_url} target="_blank" rel="noopener noreferrer" className={box}>{body}</a>
+          : <div className={box}>{body}</div>}
+      </div>
+      {slides.length > 1 ? (
+        <div className="mt-3 flex justify-center gap-1.5">
+          {slides.map((x, i) => (
+            <button key={x.id} type="button" onClick={() => onPick(i)} aria-label={`Ver ${x.title}`} aria-current={i === idx}
+              className={`h-2.5 rounded-full transition-all ${i === idx ? "w-6 bg-blue-600" : "w-2.5 bg-sky-200 hover:bg-sky-300"}`} />
+          ))}
+        </div>
+      ) : null}
     </div>
   );
 }

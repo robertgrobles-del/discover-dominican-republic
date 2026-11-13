@@ -30,7 +30,7 @@ export const queryClient = new QueryClient({
  * como un 404: cada pantalla ya trata ese fallo usando su contenido local, y la landing se ahorra ~12 peticiones
  * en la cadena crítica (datasets, clima, gamificación, favoritos, carrito…).
  */
-const STAGING_API = /^\/(auth\/|public\/|admin\/(lotteries|lottery-draws|provinces|news|news-categories|events|venues|municipalities|destinations|beaches|users|media|leads|establishment-requests|contact-messages)\b|ads\/catalog\b|media\/|leads$|contact$|establishments\/register$|events\/submissions$)/;
+const STAGING_API = /^\/(auth\/|public\/|admin\/(lotteries|lottery-draws|lottery-hero|provinces|news|news-categories|events|venues|municipalities|destinations|beaches|users|media|leads|establishment-requests|contact-messages)\b|ads\/catalog\b|media\/|leads$|contact$|establishments\/register$|events\/submissions$)/;
 const FORM_POST = /^\/(leads|contact|establishments\/register|events\/submissions)$/;
 
 /** Copia el campo trampa de la página (ver components/forms/Honeypot) en el envío de un formulario público. */

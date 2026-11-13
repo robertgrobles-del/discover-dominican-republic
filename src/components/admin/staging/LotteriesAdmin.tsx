@@ -13,7 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Box } from "./NewsEditor";
 
 type Row = Record<string, unknown> & { id: string };
-type Kind = "lottery-draws" | "lotteries";
+type Kind = "lottery-draws" | "lotteries" | "lottery-hero";
 const s = (v: unknown) => (v == null ? "" : String(v));
 const apiMessage = (e: unknown) => (e instanceof HttpError ? (e.details as { error?: { message?: string } } | null)?.error?.message : null) ?? (e instanceof Error ? e.message : "Error");
 const toSlug = (v: string) => v.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
@@ -25,12 +25,13 @@ function useRows(kind: Kind) {
 }
 
 export function StagingLotteriesManager() {
-  const [tab, setTab] = useState<"draws" | "lotteries" | "prizes" | "sync">("draws");
+  const [tab, setTab] = useState<"draws" | "lotteries" | "hero" | "prizes" | "sync">("draws");
   const [editing, setEditing] = useState<{ kind: Kind; row: Row | "new" } | null>(null);
+  const listKind: Kind = tab === "draws" ? "lottery-draws" : tab === "hero" ? "lottery-hero" : "lotteries";
   if (editing) {
     const close = () => setEditing(null);
-    return editing.kind === "lotteries"
-      ? <LotteryEditor row={editing.row} onClose={close} />
+    return editing.kind === "lotteries" ? <LotteryEditor row={editing.row} onClose={close} />
+      : editing.kind === "lottery-hero" ? <HeroEditor row={editing.row} onClose={close} />
       : <DrawEditor row={editing.row} onClose={close} />;
   }
   return (
@@ -38,13 +39,14 @@ export function StagingLotteriesManager() {
       <div className="flex flex-wrap items-center gap-3">
         <h2 className="text-2xl font-normal">Loterías</h2>
         <nav aria-label="Secciones de loterías" className="flex gap-1 rounded-md border border-border p-1 text-sm">
-          {([["draws", "Sorteos"], ["lotteries", "Loterías"], ["prizes", "Premios"], ["sync", "Sincronizar resultados"]] as const).map(([v, l]) => (
+          {([["draws", "Sorteos"], ["lotteries", "Loterías"], ["hero", "Carrusel del hero"], ["prizes", "Premios"], ["sync", "Sincronizar resultados"]] as const).map(([v, l]) => (
             <button key={v} type="button" aria-current={tab === v ? "page" : undefined} onClick={() => setTab(v)}
               className={`rounded px-3 py-1.5 ${tab === v ? "bg-primary text-primary-foreground" : "hover:bg-muted"}`}>{l}</button>
           ))}
         </nav>
       </div>
-      {tab === "sync" ? <SyncPanel /> : tab === "prizes" ? <PrizePanel /> : <ListView kind={tab === "draws" ? "lottery-draws" : "lotteries"} onEdit={(row) => setEditing({ kind: tab === "draws" ? "lottery-draws" : "lotteries", row })} />}
+      {tab === "sync" ? <SyncPanel /> : tab === "prizes" ? <PrizePanel />
+        : <ListView key={listKind} kind={listKind} onEdit={(row) => setEditing({ kind: listKind, row })} />}
     </section>
   );
 }
@@ -55,8 +57,9 @@ function ListView({ kind, onEdit }: { kind: Kind; onEdit: (row: Row | "new") => 
   const [q, setQ] = useState("");
   const [view, setView] = useState<"all" | "on" | "off">("all");
   const isDraw = kind === "lottery-draws";
+  const isHero = kind === "lottery-hero";
   const list = useMemo(() => rows.filter((r) => (view === "all" || (view === "on") === (Number(r.is_active) === 1))
-    && `${s(r.name)} ${s(r.lottery_name)} ${s(r.source_name)}`.toLowerCase().includes(q.trim().toLowerCase())), [rows, q, view]);
+    && `${s(r.name)} ${s(r.title)} ${s(r.lottery_name)} ${s(r.source_name)}`.toLowerCase().includes(q.trim().toLowerCase())), [rows, q, view]);
   const n = { all: rows.length, on: rows.filter((r) => Number(r.is_active) === 1).length, off: rows.filter((r) => Number(r.is_active) !== 1).length };
   const del = useMutation({
     mutationFn: (id: string) => fetchApi(`/admin/${kind}/${id}`, { method: "DELETE" }),
@@ -69,7 +72,7 @@ function ListView({ kind, onEdit }: { kind: Kind; onEdit: (row: Row | "new") => 
     <div className="space-y-3">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-3">
-          <Button size="sm" variant="outline" className="border-primary text-primary" onClick={() => onEdit("new")}>{isDraw ? "Añadir sorteo" : "Añadir lotería"}</Button>
+          <Button size="sm" variant="outline" className="border-primary text-primary" onClick={() => onEdit("new")}>{isDraw ? "Añadir sorteo" : isHero ? "Añadir diapositiva" : "Añadir lotería"}</Button>
           <nav aria-label="Filtrar por estado" className="text-sm">
             {(["all", "on", "off"] as const).map((v, i) => (
               <span key={v}>
@@ -87,8 +90,8 @@ function ListView({ kind, onEdit }: { kind: Kind; onEdit: (row: Row | "new") => 
         <table className="w-full min-w-[720px] text-sm">
           <thead className="border-b border-border text-left">
             <tr>
-              <th className="p-3 font-normal">{isDraw ? "Sorteo" : "Lotería"}</th>
-              {isDraw ? <><th className="p-3 font-normal">Lotería</th><th className="p-3 font-normal">Hora (RD)</th><th className="p-3 font-normal">Nombre en la fuente</th><th className="p-3 font-normal">Último resultado</th></>
+              <th className="p-3 font-normal">{isDraw ? "Sorteo" : isHero ? "Diapositiva" : "Lotería"}</th>
+              {isHero ? <><th className="p-3 font-normal">Premio</th><th className="p-3 font-normal">Sorteo</th><th className="p-3 font-normal">Orden</th></> : isDraw ? <><th className="p-3 font-normal">Lotería</th><th className="p-3 font-normal">Hora (RD)</th><th className="p-3 font-normal">Nombre en la fuente</th><th className="p-3 font-normal">Último resultado</th></>
                 : <><th className="p-3 font-normal">País</th><th className="p-3 font-normal">Sorteos</th></>}
               <th className="p-3 font-normal">Estado</th>
             </tr>
@@ -97,15 +100,19 @@ function ListView({ kind, onEdit }: { kind: Kind; onEdit: (row: Row | "new") => 
             {list.length === 0 ? <tr><td colSpan={6} className="p-6 text-muted-foreground">No hay registros que coincidan.</td></tr> : list.map((r, i) => (
               <tr key={r.id} className={`group align-top ${i % 2 ? "" : "bg-muted/40"}`}>
                 <td className="p-3">
-                  <button type="button" className="font-semibold text-primary hover:underline" onClick={() => onEdit(r)}>{s(r.name)}</button>
+                  <button type="button" className="font-semibold text-primary hover:underline" onClick={() => onEdit(r)}>{s(r.name) || s(r.title)}</button>
                   <span className="mt-1 flex gap-2 text-xs opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100">
                     <button type="button" className="text-primary hover:underline" onClick={() => onEdit(r)}>Editar</button>
                     <span className="text-muted-foreground">|</span>
                     <button type="button" className="text-destructive hover:underline" disabled={del.isPending}
-                      onClick={() => { if (window.confirm(isDraw ? `¿Eliminar «${s(r.name)}» y todos sus resultados?` : `¿Eliminar la lotería «${s(r.name)}»?`)) del.mutate(r.id); }}>Eliminar</button>
+                      onClick={() => { if (window.confirm(isDraw ? `¿Eliminar «${s(r.name)}» y todos sus resultados?` : `¿Eliminar «${s(r.name) || s(r.title)}»?`)) del.mutate(r.id); }}>Eliminar</button>
                   </span>
                 </td>
-                {isDraw ? <>
+                {isHero ? <>
+                  <td className="p-3">{s(r.prize) || "—"}</td>
+                  <td className="p-3">{s(r.draw_name) || "—"}</td>
+                  <td className="p-3 tabular-nums">{s(r.sort_order)}</td>
+                </> : isDraw ? <>
                   <td className="p-3">{s(r.lottery_name)}</td>
                   <td className="p-3 tabular-nums">{s(r.draw_time)}{r.sunday_time ? ` · dom ${s(r.sunday_time)}` : ""}<span className="block text-xs text-muted-foreground">{parseDays(r.draw_days).length === 7 ? "Todos los días" : parseDays(r.draw_days).join(", ")}</span></td>
                   <td className="p-3">{s(r.source_name) || <span className="text-amber-600">Sin nombre: no se sincroniza</span>}</td>
@@ -167,7 +174,8 @@ function EditorShell({ title, kind, row, form, onClose, children, aside }: {
 
 function LotteryEditor({ row, onClose }: { row: Row | "new"; onClose: () => void }) {
   const init = (k: string) => (row === "new" ? "" : s(row[k]));
-  const [f, setF] = useState({ name: init("name"), slug: init("slug"), country: init("country") || "República Dominicana", website_url: init("website_url"), logo_url: init("logo_url"), description: init("description"), color_scheme: init("color_scheme") });
+  const [f, setF] = useState({ name: init("name"), slug: init("slug"), country: init("country") || "República Dominicana", website_url: init("website_url"), logo_url: init("logo_url"), description: init("description"), color_scheme: init("color_scheme"),
+    slogan: init("slogan"), founded: init("founded"), phone: init("phone"), address: init("address"), tv_channels: init("tv_channels") });
   const [slugTouched, setSlugTouched] = useState(row !== "new");
   const set = (k: keyof typeof f) => (v: string) => setF((p) => ({ ...p, [k]: v, ...(k === "name" && !slugTouched ? { slug: toSlug(v) } : {}) }));
   return (
@@ -180,6 +188,15 @@ function LotteryEditor({ row, onClose }: { row: Row | "new"; onClose: () => void
         <Field id="lot-country" label="País" value={f.country} onChange={set("country")} />
         <Field id="lot-web" label="Web oficial" type="url" value={f.website_url} onChange={set("website_url")} />
         <div className="space-y-1"><Label htmlFor="lot-desc">Descripción</Label><Textarea id="lot-desc" rows={4} value={f.description} onChange={(e) => set("description")(e.target.value)} /></div>
+      </Box>
+      <Box title="Información de la lotería (sale en su página)">
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Field id="lot-slogan" label="Lema" value={f.slogan} onChange={set("slogan")} />
+          <Field id="lot-founded" label="Fundación" value={f.founded} onChange={set("founded")} hint="Ej.: 30 de julio de 2009" />
+          <Field id="lot-phone" label="Teléfono" value={f.phone} onChange={set("phone")} />
+          <Field id="lot-tv" label="Dónde ver los sorteos" value={f.tv_channels} onChange={set("tv_channels")} hint="Canales de TV o radio" />
+        </div>
+        <Field id="lot-address" label="Dirección" value={f.address} onChange={set("address")} />
       </Box>
     </EditorShell>
   );
@@ -364,5 +381,30 @@ function PrizePanel() {
         </Box>
       </aside>
     </div>
+  );
+}
+
+function HeroEditor({ row, onClose }: { row: Row | "new"; onClose: () => void }) {
+  const { data: draws = [] } = useRows("lottery-draws");
+  const init = (k: string, d = "") => (row === "new" ? d : s(row[k]) || d);
+  const [f, setF] = useState({ title: init("title"), prize: init("prize"), caption: init("caption"), draw_id: init("draw_id"), link_url: init("link_url"), sort_order: init("sort_order", "0") });
+  const set = (k: keyof typeof f) => (v: string) => setF((p) => ({ ...p, [k]: v }));
+  return (
+    <EditorShell title={row === "new" ? "Nueva diapositiva" : `Editar: ${s((row as Row).title)}`} kind="lottery-hero" row={row} form={{ ...f, sort_order: Number(f.sort_order) || 0 }} onClose={onClose}
+      aside={<Box title="Orden"><Field id="hero-order" label="Posición" type="number" value={f.sort_order} onChange={set("sort_order")} hint="Las de número menor salen primero." /></Box>}>
+      <Box title="Diapositiva del hero de /loterias">
+        <Field id="hero-title" label="Título" value={f.title} onChange={set("title")} required hint="Ej.: Loto Leidsa o Mega Millions" />
+        <Field id="hero-prize" label="Premio" value={f.prize} onChange={set("prize")} hint="Texto libre, ej.: RD$ 150 millones. Pon solo la cifra oficial anunciada." />
+        <Field id="hero-caption" label="Texto corto" value={f.caption} onChange={set("caption")} hint="Ej.: Próximo sorteo: sábado 8:55 PM" />
+        <div className="space-y-1">
+          <Label htmlFor="hero-draw">Sorteo (opcional: enlaza a su página)</Label>
+          <select id="hero-draw" value={f.draw_id} onChange={(e) => set("draw_id")(e.target.value)} className="h-9 w-full rounded border border-input bg-background px-2 text-sm">
+            <option value="">Sin sorteo</option>
+            {draws.map((d) => <option key={d.id} value={d.id}>{s(d.lottery_name)} · {s(d.name)}</option>)}
+          </select>
+        </div>
+        <Field id="hero-link" label="Enlace (opcional)" value={f.link_url} onChange={set("link_url")} hint="Sustituye al del sorteo. Ruta del sitio (/loterias/como-se-gana) o https://..." />
+      </Box>
+    </EditorShell>
   );
 }

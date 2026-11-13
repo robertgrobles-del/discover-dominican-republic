@@ -169,3 +169,24 @@ export function adaptResultsForView(relational: LotteryResultRelational[], fallb
   });
 }
 
+
+export interface LotteryHeroSlide {
+  id: string;
+  title: string;
+  prize: string | null;
+  caption: string | null;
+  link_url: string | null;
+  draw_name: string | null;
+  lottery_name: string | null;
+}
+
+/** Diapositivas del hero de /loterias (se editan en el panel). */
+export async function fetchLotteryHero(): Promise<LotteryHeroSlide[]> {
+  try {
+    const res = await fetch("/api/v1/lotteries/hero");
+    if (!res.ok) return [];
+    return ((await res.json()).data as LotteryHeroSlide[]) ?? [];
+  } catch {
+    return [];
+  }
+}
