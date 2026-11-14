@@ -23,6 +23,7 @@ import { StagingUsersManager } from "@/components/admin/staging/StagingUsersMana
 import { StagingLotteriesManager } from "@/components/admin/staging/LotteriesAdmin";
 import { StagingDashboard } from "@/components/admin/staging/StagingDashboard";
 import { AUTOSAVE_EVENT, RESOURCE_TO_TAB, listLocalDrafts } from "@/components/admin/staging/useDraftAutosave";
+import { ConfirmHost } from "@/components/admin/staging/confirmAction";
 import { Shield, Loader2, Menu, X, ChevronRight, ExternalLink, LogOut, MapPin, Newspaper, Users, Tags, Gift, Building2, Moon, Sun, Image as ImageIcon, LayoutDashboard, Mail, CalendarDays, Landmark, Map as MapIcon, Signpost, Waves, WifiOff, History, Ticket } from "lucide-react";
 
 type TabCategory = "home" | "editorial" | "catalog" | "data" | "crm" | "system";
@@ -356,6 +357,7 @@ export default function AdminPanel() {
         </aside>
 
         <div className="flex min-w-0 flex-1 flex-col">
+          <ConfirmHost />
           {!HAS_BACKEND_SESSION && <MockDataNotice />}
 
           <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-3 border-b border-border/60 bg-background/95 px-4 backdrop-blur lg:px-8">

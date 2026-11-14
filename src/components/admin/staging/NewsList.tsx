@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { POST_TYPE_LABEL, type PostType } from "@/lib/stagingContent";
 import { analyzeSeo, splitKeywords } from "@/lib/seoAnalysis";
 import { SeoScore } from "./SeoAnalysisBox";
+import { confirmAction } from "./confirmAction";
 
 type Row = Record<string, unknown> & { id: string };
 type View = "all" | "published" | "scheduled" | "draft";
@@ -81,8 +82,8 @@ export function NewsList({ rows, onNew, onEdit, onDelete, busy }: {
   const shown = list.slice((cur - 1) * PER_PAGE, cur * PER_PAGE);
   const allChecked = shown.length > 0 && shown.every((r) => checked.has(r.id));
   const toggle = (id: string) => setChecked((s) => { const n = new Set(s); if (n.has(id)) n.delete(id); else n.add(id); return n; });
-  const remove = (ids: string[]) => {
-    if (!ids.length || !window.confirm(`¿Mover ${ids.length === 1 ? "esta entrada" : `${ids.length} entradas`} a la papelera? Se eliminarán con sus traducciones.`)) return;
+  const remove = async (ids: string[]) => {
+    if (!ids.length || !(await confirmAction(`¿Mover ${ids.length === 1 ? "esta entrada" : `${ids.length} entradas`} a la papelera? Se eliminarán con sus traducciones.`))) return;
     onDelete(ids);
     setChecked(new Set());
   };

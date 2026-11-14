@@ -19,6 +19,7 @@ import { useTerritory } from "./LocationPicker";
 import { INTRO_LAYOUTS } from "@/components/province/ProvinceIntroSection";
 import { EditorAutosaveStrip } from "./DraftAutosaveBar";
 import { buildAutoDraftSlug, useDraftAutosave } from "./useDraftAutosave";
+import { confirmAction } from "./confirmAction";
 
 // Secciones de la página de provincia, en el orden por defecto. Los catálogos (monumentos, parques, hoteles…) se
 // rellenan solos: aquí solo se decide si salen y en qué orden.
@@ -507,7 +508,7 @@ export function ProvinceEditor({ row, onClose, onNew }: { row: Row | "new"; onCl
             <Button variant="outline" size="sm" disabled={busy || !f.name || !f.slug} onClick={() => save.mutate("draft")}>Guardar borrador</Button>
             <div className="flex items-center justify-between gap-2 border-t border-border pt-3">
               {id ? <button type="button" className="text-sm text-destructive underline underline-offset-2" disabled={busy}
-                onClick={() => { if (window.confirm("¿Eliminar esta provincia? Las noticias que la usan quedarán sin provincia.")) trash.mutate(); }}>Eliminar</button> : <span />}
+                onClick={async () => { if (await confirmAction("¿Eliminar esta provincia? Las noticias que la usan quedarán sin provincia.")) trash.mutate(); }}>Eliminar</button> : <span />}
               <Button disabled={busy || !f.name || !f.slug} onClick={() => save.mutate("published")}>
                 {save.isPending && <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />}{f.status === "published" ? "Actualizar" : "Publicar"}
               </Button>

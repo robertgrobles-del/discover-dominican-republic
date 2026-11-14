@@ -18,6 +18,7 @@ import { Box } from "./NewsEditor";
 import { VENUE_CATEGORY } from "./VenueList";
 import { EditorAutosaveStrip } from "./DraftAutosaveBar";
 import { buildAutoDraftSlug, useDraftAutosave } from "./useDraftAutosave";
+import { confirmAction } from "./confirmAction";
 
 type Row = Record<string, unknown> & { id: string };
 type Photo = { url: string; alt: string };
@@ -254,7 +255,7 @@ export function VenueEditor({ row, onClose, onNew }: { row: Row | "new"; onClose
             <Button variant="outline" size="sm" disabled={busy || !canSave} onClick={() => save.mutate("draft")}>Guardar borrador</Button>
             <div className="flex items-center justify-between gap-2 border-t border-border pt-3">
               {id ? <button type="button" className="text-sm text-destructive underline underline-offset-2" disabled={busy}
-                onClick={() => { if (window.confirm("¿Eliminar este recinto? Los eventos enlazados quedarán sin recinto.")) trash.mutate(); }}>Eliminar</button> : <span />}
+                onClick={async () => { if (await confirmAction("¿Eliminar este recinto? Los eventos enlazados quedarán sin recinto.")) trash.mutate(); }}>Eliminar</button> : <span />}
               <Button disabled={busy || !canSave} onClick={() => save.mutate("published")}>
                 {save.isPending && <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />}{f.status === "published" ? "Actualizar" : "Publicar"}
               </Button>

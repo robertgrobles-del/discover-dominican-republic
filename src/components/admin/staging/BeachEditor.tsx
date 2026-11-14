@@ -16,6 +16,7 @@ import { ImageField } from "./StagingCrudManager";
 import { ACCESS_LABELS, BEACH_TYPE_LABELS, CROWD_LABELS, WAVE_LABELS } from "./BeachList";
 import { EditorAutosaveStrip } from "./DraftAutosaveBar";
 import { buildAutoDraftSlug, useDraftAutosave } from "./useDraftAutosave";
+import { confirmAction } from "./confirmAction";
 
 type Row = Record<string, unknown> & { id: string };
 type Photo = { url: string; alt: string };
@@ -251,7 +252,7 @@ export function BeachEditor({ row, onClose, onNew }: { row: Row | "new"; onClose
 
   const remove = async () => {
     const targetId = (await autosave.settledId()) ?? (id || null);
-    if (!targetId || !window.confirm(`¿Eliminar definitivamente "${name || "esta playa"}"?`)) return;
+    if (!targetId || !(await confirmAction(`¿Eliminar definitivamente "${name || "esta playa"}"?`))) return;
     setDeleting(true);
     try {
       await fetchApi(`/admin/beaches/${targetId}`, { method: "DELETE" });

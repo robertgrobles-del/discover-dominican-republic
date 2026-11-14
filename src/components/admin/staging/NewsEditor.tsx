@@ -18,6 +18,7 @@ import { NewsBody } from "./NewsBody";
 import { ImageField } from "./StagingCrudManager";
 import { DraftAutosaveBar } from "./DraftAutosaveBar";
 import { buildAutoDraftSlug, useDraftAutosave } from "./useDraftAutosave";
+import { confirmAction } from "./confirmAction";
 
 type Row = Record<string, unknown> & { id: string };
 const LANGS = [
@@ -375,7 +376,7 @@ export function NewsEditor({ row, onClose, onNew }: { row: Row | "new"; onClose:
             <div className="flex items-center justify-between gap-2 border-t border-border pt-3">
               {id ? (
                 <button type="button" className="text-sm text-destructive underline underline-offset-2 disabled:opacity-50" disabled={busy}
-                  onClick={() => { if (window.confirm("¿Mover esta noticia a la papelera? Se eliminará con sus traducciones.")) trash.mutate(); }}>Mover a la papelera</button>
+                  onClick={async () => { if (await confirmAction("¿Mover esta noticia a la papelera? Se eliminará con sus traducciones.")) trash.mutate(); }}>Mover a la papelera</button>
               ) : <span />}
               <Button disabled={busy || !base.title || !base.slug} onClick={() => save.mutate("published")}>
                 {save.isPending && <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />}{published ? "Actualizar" : future ? "Programar" : "Publicar"}

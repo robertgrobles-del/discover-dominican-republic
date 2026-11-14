@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Box } from "./NewsEditor";
+import { confirmAction } from "./confirmAction";
 
 type Row = Record<string, unknown> & { id: string };
 type Kind = "lottery-draws" | "lotteries" | "lottery-hero";
@@ -187,7 +188,7 @@ function ListView({ kind, onEdit }: { kind: Kind; onEdit: (row: Row | "new") => 
                     <button type="button" className="text-primary hover:underline" onClick={() => onEdit(r)}>Editar</button>
                     <span className="text-muted-foreground">|</span>
                     <button type="button" className="text-destructive hover:underline" disabled={del.isPending}
-                      onClick={() => { if (window.confirm(isDraw ? `¿Eliminar «${s(r.name)}» y todos sus resultados?` : `¿Eliminar «${s(r.name) || s(r.title)}»?`)) del.mutate(r.id); }}>Eliminar</button>
+                      onClick={async () => { if (await confirmAction(isDraw ? `¿Eliminar «${s(r.name)}» y todos sus resultados?` : `¿Eliminar «${s(r.name) || s(r.title)}»?`)) del.mutate(r.id); }}>Eliminar</button>
                   </span>
                 </td>
                 {isHero ? <>

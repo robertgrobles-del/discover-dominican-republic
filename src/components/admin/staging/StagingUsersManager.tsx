@@ -9,6 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { confirmAction } from "./confirmAction";
 
 interface PanelUser { id: string; email: string; display_name: string | null; roles: string[]; created_at: string }
 
@@ -127,7 +128,7 @@ export function StagingUsersManager() {
                           variant="ghost"
                           aria-label={`Eliminar ${u.email}`}
                           disabled={isMe || remove.isPending}
-                          onClick={() => { if (window.confirm(`¿Eliminar a ${u.email}? Perderá el acceso al panel.`)) remove.mutate(u.id); }}
+                          onClick={async () => { if (await confirmAction(`¿Eliminar a ${u.email}? Perderá el acceso al panel.`)) remove.mutate(u.id); }}
                         >
                           <Trash2 className="h-4 w-4 text-destructive" />
                         </Button>

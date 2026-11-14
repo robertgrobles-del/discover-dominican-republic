@@ -26,6 +26,7 @@ import { PlaceList, PLACE_NOUN, type PlaceKind } from "./PlaceList";
 import { BeachEditor } from "./BeachEditor";
 import { BeachList } from "./BeachList";
 import { MediaPicker } from "./MediaLibrary";
+import { confirmAction } from "./confirmAction";
 
 export type FieldDef = {
   key: string;
@@ -219,7 +220,7 @@ export function StagingCrudManager({ resource, title, titleKey, fields, noun, re
                 variant="ghost"
                 aria-label={`Eliminar ${String(r[titleKey])}`}
                 disabled={remove.isPending}
-                onClick={() => { if (window.confirm(`¿Eliminar «${String(r[titleKey])}»? No se puede deshacer.`)) remove.mutate(r.id); }}
+                onClick={async () => { if (await confirmAction(`¿Eliminar «${String(r[titleKey])}»? No se puede deshacer.`)) remove.mutate(r.id); }}
               >
                 <Trash2 className="h-4 w-4 text-destructive" />
               </Button>

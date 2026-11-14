@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { BulkBar, STATUS_ACTIONS, useChecked } from "./BulkBar";
 import { useTerritory } from "./LocationPicker";
+import { confirmAction } from "./confirmAction";
 
 type Row = Record<string, unknown> & { id: string };
 const s = (v: unknown) => (v == null ? "" : String(v));
@@ -78,7 +79,7 @@ export function VenueList({ rows, onNew, onEdit, onDelete, busy }: {
                         <button type="button" className="text-primary hover:underline" onClick={() => onEdit(r)}>Editar</button>
                         <span className="text-muted-foreground">|</span>
                         <button type="button" className="text-destructive hover:underline" disabled={busy}
-                          onClick={() => { if (window.confirm(`¿Eliminar «${s(r.name)}»? Los eventos enlazados quedarán sin recinto.`)) onDelete([r.id]); }}>Eliminar</button>
+                          onClick={async () => { if (await confirmAction(`¿Eliminar «${s(r.name)}»? Los eventos enlazados quedarán sin recinto.`)) onDelete([r.id]); }}>Eliminar</button>
                       </span>
                     </span>
                   </span>

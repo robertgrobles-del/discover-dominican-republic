@@ -9,6 +9,7 @@ import { HttpError } from "@/lib/httpClient";
 import { IMAGE_ACCEPT, uploadImage } from "@/lib/stagingMedia";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { confirmAction } from "./confirmAction";
 
 export interface MediaItem { id: string; url: string; alt: string | null; width: number | null; height: number | null; size: number; created_at: string }
 
@@ -110,7 +111,7 @@ export function MediaLibrary({ onSelect }: { onSelect?: (item: MediaItem) => voi
             </div>
             <div className="flex items-center justify-between gap-2 border-t border-border pt-3">
               <button type="button" className="inline-flex items-center gap-1 text-xs text-destructive underline underline-offset-2 disabled:opacity-50" disabled={remove.isPending}
-                onClick={() => { if (window.confirm("¿Eliminar esta imagen de forma permanente?")) remove.mutate(selected.id); }}>
+                onClick={async () => { if (await confirmAction("¿Eliminar esta imagen de forma permanente?")) remove.mutate(selected.id); }}>
                 <Trash2 className="h-3.5 w-3.5" />Eliminar
               </button>
               {onSelect && <Button size="sm" onClick={() => onSelect({ ...selected, alt: alt || selected.alt })}>Usar esta imagen</Button>}

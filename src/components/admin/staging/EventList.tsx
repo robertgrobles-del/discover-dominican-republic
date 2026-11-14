@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { BulkBar, STATUS_ACTIONS, useChecked } from "./BulkBar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { confirmAction } from "./confirmAction";
 
 type Row = Record<string, unknown> & { id: string };
 const s = (v: unknown) => (v == null ? "" : String(v));
@@ -79,7 +80,7 @@ export function EventList({ rows, onNew, onEdit, onDelete, busy }: {
                     <button type="button" className="text-primary hover:underline" onClick={() => onEdit(r)}>Editar</button>
                     <span className="text-muted-foreground">|</span>
                     <button type="button" className="text-destructive hover:underline" disabled={busy}
-                      onClick={() => { if (window.confirm(`¿Eliminar «${s(r.name)}»?`)) onDelete([r.id]); }}>Eliminar</button>
+                      onClick={async () => { if (await confirmAction(`¿Eliminar «${s(r.name)}»?`)) onDelete([r.id]); }}>Eliminar</button>
                     {r.status === "published" && !eventEnded(r) && <>
                       <span className="text-muted-foreground">|</span>
                       <a className="text-primary hover:underline" href={`/evento/${s(r.slug)}`} target="_blank" rel="noreferrer">Ver</a>

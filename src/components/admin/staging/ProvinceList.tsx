@@ -6,6 +6,7 @@ import { analyzeSeo, splitKeywords } from "@/lib/seoAnalysis";
 import { SeoScore } from "./SeoAnalysisBox";
 import { BulkBar, STATUS_ACTIONS, useChecked } from "./BulkBar";
 import { INTRO_LAYOUTS } from "@/components/province/ProvinceIntroSection";
+import { confirmAction } from "./confirmAction";
 
 type Row = Record<string, unknown> & { id: string };
 const s = (v: unknown) => (v == null ? "" : String(v));
@@ -76,7 +77,7 @@ export function ProvinceList({ rows, onNew, onEdit, onDelete, busy }: {
                     <button type="button" className="text-primary hover:underline" onClick={() => onEdit(r)}>Editar</button>
                     <span className="text-muted-foreground">|</span>
                     <button type="button" className="text-destructive hover:underline" disabled={busy}
-                      onClick={() => { if (window.confirm(`¿Eliminar «${s(r.name)}»?`)) onDelete([r.id]); }}>Eliminar</button>
+                      onClick={async () => { if (await confirmAction(`¿Eliminar «${s(r.name)}»?`)) onDelete([r.id]); }}>Eliminar</button>
                   </div>
                 </td>
                 <td className="p-3">{REGION[s(r.region)] ?? s(r.region)}{r.capital ? <span className="block text-xs text-muted-foreground">Capital: {s(r.capital)}</span> : null}</td>

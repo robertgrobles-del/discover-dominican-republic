@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useTerritory } from "./LocationPicker";
 import { BulkBar, STATUS_ACTIONS, useChecked, type BulkAction } from "./BulkBar";
+import { confirmAction } from "./confirmAction";
 
 type Row = Record<string, unknown> & { id: string };
 const s = (v: unknown) => (v == null ? "" : String(v));
@@ -85,7 +86,7 @@ export function PlaceList({ kind, rows, onNew, onEdit, onDelete, busy }: {
                     <button type="button" className="text-primary hover:underline" onClick={() => onEdit(r)}>Editar</button>
                     <span className="text-muted-foreground">|</span>
                     <button type="button" className="text-destructive hover:underline" disabled={busy}
-                      onClick={() => { if (window.confirm(`¿Eliminar «${s(r.name)}»? El contenido ubicado aquí se queda solo con la provincia.`)) onDelete([r.id]); }}>Eliminar</button>
+                      onClick={async () => { if (await confirmAction(`¿Eliminar «${s(r.name)}»? El contenido ubicado aquí se queda solo con la provincia.`)) onDelete([r.id]); }}>Eliminar</button>
                   </span>
                 </td>
                 <td className="p-3">{provName(r.province_id) || "—"}</td>

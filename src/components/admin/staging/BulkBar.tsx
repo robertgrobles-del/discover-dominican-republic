@@ -5,6 +5,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { fetchApi } from "@/lib/fastifyClient";
 import { Button } from "@/components/ui/button";
+import { confirmAction } from "./confirmAction";
 
 type Option = [value: string, label: string];
 /** Una acción: un cambio fijo (publicar…) o un campo con opciones a elegir (cambiar provincia a…). */
@@ -41,7 +42,7 @@ export function BulkBar({ resource, ids, actions, onDelete, onDone, busy }: {
 
   const apply = async () => {
     if (key === "delete") {
-      if (window.confirm(`¿Eliminar ${ids.length} ficha${ids.length === 1 ? "" : "s"}? No se puede deshacer.`)) { onDelete(ids); onDone(); setKey(""); }
+      if (await confirmAction(`¿Eliminar ${ids.length} ficha${ids.length === 1 ? "" : "s"}? No se puede deshacer.`)) { onDelete(ids); onDone(); setKey(""); }
       return;
     }
     if (!action) return;

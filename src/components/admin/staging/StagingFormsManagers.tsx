@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { RegistroEstablecimientoModal } from "@/components/forms/RegistroEstablecimientoModal";
 import { EstablishmentCard } from "@/components/establishments/EstablishmentCard";
 import type { PublicEstablishment } from "@/lib/stagingContent";
+import { confirmAction } from "./confirmAction";
 
 const apiMessage = (e: unknown) => (e instanceof HttpError ? (e.details as { error?: { message?: string } } | null)?.error?.message : null) ?? (e instanceof Error ? e.message : "Error");
 const fecha = (iso: string) => new Date(iso).toLocaleString("es-DO", { dateStyle: "medium", timeStyle: "short" });
@@ -89,7 +90,7 @@ export function StagingLeadsManager() {
                   <td className="whitespace-nowrap px-3 py-2.5 text-xs tabular-nums text-muted-foreground">{fecha(r.created_at)}</td>
                   <td className="px-4 py-2.5 text-right">
                     <Button size="icon" variant="ghost" aria-label={`Eliminar a ${r.email}`} disabled={remove.isPending}
-                      onClick={() => { if (window.confirm(`¿Eliminar a ${r.email} del sorteo?`)) remove.mutate(r.id); }}>
+                      onClick={async () => { if (await confirmAction(`¿Eliminar a ${r.email} del sorteo?`)) remove.mutate(r.id); }}>
                       <Trash2 className="h-4 w-4 text-destructive" />
                     </Button>
                   </td>
@@ -237,7 +238,7 @@ export function StagingEstablishmentRequestsManager() {
                       </>
                     )}
                     <Button size="sm" variant="ghost" className="ml-auto text-destructive" disabled={remove.isPending}
-                      onClick={() => { if (window.confirm(`¿Eliminar la solicitud de «${r.name}»?`)) remove.mutate(r.id); }}>
+                      onClick={async () => { if (await confirmAction(`¿Eliminar la solicitud de «${r.name}»?`)) remove.mutate(r.id); }}>
                       <Trash2 className="mr-1.5 h-4 w-4" />Eliminar
                     </Button>
                   </div>
@@ -331,7 +332,7 @@ export function StagingContactMessagesManager() {
               <div className="mt-3 flex items-center gap-2">
                 <Button size="sm" asChild><a href={`mailto:${r.email}?subject=${encodeURIComponent(`Re: ${r.subject ?? "Tu mensaje a Descubre RD"}`)}`}>Responder a {r.email}</a></Button>
                 <Button size="sm" variant="ghost" aria-label={`Eliminar mensaje de ${r.name}`} disabled={remove.isPending}
-                  onClick={() => { if (window.confirm("¿Eliminar este mensaje?")) remove.mutate(r.id); }}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                  onClick={async () => { if (await confirmAction("¿Eliminar este mensaje?")) remove.mutate(r.id); }}><Trash2 className="h-4 w-4 text-destructive" /></Button>
               </div>
             </li>
           ))}
