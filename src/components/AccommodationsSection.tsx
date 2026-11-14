@@ -183,11 +183,11 @@ function AccommodationCard({ item, type, t }: AccommodationCardProps) {
             <span className="text-xl font-bold text-foreground">${item.price}</span>
             <span className="text-sm text-muted-foreground">{t("accommodations.perNight")}</span>
           </div> : <div />}
-          <Link to={item.adUrl || `/alojamiento/${item.id}`} onClick={item.onAdClick}>
-            <Button size="sm" variant={isAirbnb ? "default" : "outline"}>
+          <Button size="sm" variant={isAirbnb ? "default" : "outline"} asChild>
+            <Link to={item.adUrl || `/alojamiento/${item.id}`} onClick={item.onAdClick}>
               {isAirbnb ? t("accommodations.book") : t("accommodations.checkAvailability")}
-            </Button>
-          </Link>
+            </Link>
+          </Button>
         </div>
       </div>
     </motion.div>
@@ -292,12 +292,12 @@ export function AccommodationsSection() {
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
           >
-            <Link to="/alojamientos">
-              <Button variant="link" className="text-primary gap-2">
+            <Button variant="link" className="text-primary gap-2" asChild>
+              <Link to="/alojamientos">
                 {t("accommodations.viewAll")}
                 <ChevronRight className="h-4 w-4" />
-              </Button>
-            </Link>
+              </Link>
+            </Button>
           </motion.div>
         </div>
 

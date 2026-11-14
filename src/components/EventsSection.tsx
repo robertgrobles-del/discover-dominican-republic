@@ -112,79 +112,72 @@ export function EventsSection() {
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
           >
-            <Link to="/eventos">
-              <Button variant="outline" className="gap-2">
+            <Button variant="outline" className="gap-2" asChild>
+              <Link to="/eventos">
                 <Calendar className="h-4 w-4" />
                 {t("events.viewCalendar")}
-              </Button>
-            </Link>
+              </Link>
+            </Button>
           </motion.div>
         </div>
 
         {/* Event Cards */}
         <SectionWithSideAds section="home-eventos">
-        <div className="grid md:grid-cols-3 gap-6">
-          {events.slice(0, 3).map((event, index) => (
-            <motion.div
+        {/* El próximo evento en grande y los siguientes en lista, para que no sean tres tarjetas iguales. */}
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)]">
+          {events.slice(0, 1).map((event) => (
+            <motion.article
               key={event.id}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ delay: index * 0.1 }}
-              className="group bg-surface rounded-2xl overflow-hidden hover:bg-surface-elevated transition-colors"
+              className="group relative overflow-hidden rounded-2xl bg-muted"
             >
-              {/* Image with Date Badge */}
-              <div className="relative aspect-video overflow-hidden">
+              <div className="relative aspect-[4/3] lg:aspect-auto lg:h-full lg:min-h-[420px]">
                 <LazyImage
                   src={event.image}
                   alt={event.title}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                  containerClassName="w-full h-full"
+                  className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  containerClassName="absolute inset-0"
                 />
-                <div className="absolute top-4 left-4 bg-background/90 backdrop-blur-sm rounded-lg px-3 py-2 text-center min-w-[48px]">
-                  <span className="block text-xl font-bold text-foreground leading-none">
-                    {event.date.day}
-                  </span>
-                  <span className="block text-xs text-muted-foreground uppercase mt-1">
-                    {event.date.month}
-                  </span>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                <div className="absolute right-4 top-4 z-10">
+                  <FavoriteButton id={event.id} type="evento" name={event.title} image={event.image} location={event.location} size="sm" />
                 </div>
-                <div className="absolute top-4 right-4 flex items-center gap-2">
-                  <div className={`${event.color} rounded px-2 py-1`}>
-                    <span className="text-xs font-medium text-white">{event.category}</span>
-                  </div>
-                  <FavoriteButton
-                    id={event.id}
-                    type="evento"
-                    name={event.title}
-                    image={event.image}
-                    location={event.location}
-                    size="sm"
-                  />
+                <div className="absolute inset-x-0 bottom-0 p-6 text-white sm:p-8">
+                  <p className="text-sm font-medium text-white/85">{event.date.day} {event.date.month} · {event.category}</p>
+                  <h3 className="mt-1 font-display text-2xl font-bold leading-tight sm:text-3xl">
+                    <Link to={`/evento/${event.id}`} className="after:absolute after:inset-0 hover:underline">{event.title}</Link>
+                  </h3>
+                  <p className="mt-2 flex items-center gap-1 text-sm text-white/85"><MapPin className="h-4 w-4" aria-hidden="true" />{event.location}</p>
                 </div>
               </div>
-
-              {/* Content */}
-              <div className="p-5">
-                <h3 className="font-display text-lg font-bold text-foreground mb-2 group-hover:text-primary transition-colors">
-                  {event.title}
-                </h3>
-                <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
-                  {t("events.description")}
-                </p>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1 text-muted-foreground text-sm">
-                    <MapPin className="h-4 w-4" />
-                    <span>{event.location}</span>
-                  </div>
-                  <Link to={`/evento/${event.id}`} className="text-primary text-sm font-medium flex items-center gap-1 group-hover:gap-2 transition-all">
-                    {t("events.details")}
-                    <ChevronRight className="h-4 w-4" />
-                  </Link>
-                </div>
-              </div>
-            </motion.div>
+            </motion.article>
           ))}
+          <ul className="flex flex-col gap-3">
+            {events.slice(1, 5).map((event, index) => (
+              <motion.li
+                key={event.id}
+                initial={{ opacity: 0, y: 12 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.06 }}
+                className="group relative flex items-center gap-4 rounded-2xl border border-border bg-card p-3 transition-colors hover:border-primary/50"
+              >
+                <div className="relative h-20 w-24 shrink-0 overflow-hidden rounded-xl bg-muted">
+                  <LazyImage src={event.image} alt="" className="h-full w-full object-cover" containerClassName="h-full w-full" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-medium text-muted-foreground">{event.date.day} {event.date.month} · {event.category}</p>
+                  <h3 className="mt-0.5 truncate font-display font-semibold text-foreground group-hover:text-primary">
+                    <Link to={`/evento/${event.id}`} className="after:absolute after:inset-0">{event.title}</Link>
+                  </h3>
+                  <p className="mt-0.5 flex items-center gap-1 truncate text-xs text-muted-foreground"><MapPin className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />{event.location}</p>
+                </div>
+                <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground group-hover:text-primary" aria-hidden="true" />
+              </motion.li>
+            ))}
+          </ul>
         </div>
         </SectionWithSideAds>
       </div>

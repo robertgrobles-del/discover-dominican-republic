@@ -380,12 +380,12 @@ export function RestaurantsBarsSection() {
               whileInView={{ opacity: 1 }}
               viewport={{ once: true }}
             >
-              <Link to="/restaurante">
-                <Button variant="link" className="text-primary gap-2">
+              <Button variant="link" className="text-primary gap-2" asChild>
+                <Link to="/restaurante">
                   {t("restaurants.viewAll")}
                   <ChevronRight className="h-4 w-4" />
-                </Button>
-              </Link>
+                </Link>
+              </Button>
             </motion.div>
           </div>
 
@@ -400,7 +400,7 @@ export function RestaurantsBarsSection() {
       </section>
 
       {/* Bars Section (Ocupa el 100vh en escritorio con Skyscrapers laterales de 120x600) */}
-      <section className="relative bg-card py-10 lg:py-0 lg:min-h-screen flex flex-col justify-center overflow-hidden border-y border-border/40">
+      <section className="relative bg-muted/40 py-14 lg:py-20 overflow-hidden">
         <div className={`${HOME_SECTION_FRAME} py-6`}>
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-8">
             <motion.div
@@ -425,12 +425,12 @@ export function RestaurantsBarsSection() {
               whileInView={{ opacity: 1 }}
               viewport={{ once: true }}
             >
-              <Link to="/vida-nocturna">
-                <Button variant="link" className="text-primary gap-1.5 text-xs sm:text-sm font-semibold p-0">
+              <Button variant="link" className="text-primary gap-1.5 text-xs sm:text-sm font-semibold p-0" asChild>
+                <Link to="/vida-nocturna">
                   {t("bars.exploreNightlife")}
                   <ChevronRight className="h-4 w-4" />
-                </Button>
-              </Link>
+                </Link>
+              </Button>
             </motion.div>
           </div>
 

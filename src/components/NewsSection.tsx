@@ -48,12 +48,12 @@ export function NewsSection() {
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
           >
-            <Link to="/noticias">
-              <Button variant="outline" className="gap-2">
+            <Button variant="outline" className="gap-2" asChild>
+              <Link to="/noticias">
                 {t("news.viewAll")}
                 <ChevronRight className="h-4 w-4" />
-              </Button>
-            </Link>
+              </Link>
+            </Button>
           </motion.div>
         </div>
 
