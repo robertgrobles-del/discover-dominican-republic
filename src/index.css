@@ -785,3 +785,21 @@ img[src=""] { display: none; }
 .wp-visual .ProseMirror img.ProseMirror-selectednode { outline: 3px solid hsl(var(--primary)); }
 .wp-visual .ProseMirror hr { border-color: hsl(var(--border)); margin: 1.5rem 0; }
 .wp-visual .ProseMirror p.is-editor-empty:first-child::before { content: attr(data-placeholder); color: hsl(var(--muted-foreground)); float: left; height: 0; pointer-events: none; }
+
+/* Panel en el móvil: las tablas de listas (.admin-table) pasan a tarjetas y las acciones de fila,
+   que en escritorio salen al pasar el ratón, se ven siempre en pantallas táctiles. */
+@media (max-width: 767px) {
+  .admin-table { min-width: 0 !important; }
+  .admin-table thead { display: none; }
+  .admin-table tbody tr { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 0.25rem 0.75rem; padding: 0.75rem; border-bottom: 1px solid hsl(var(--border)); }
+  .admin-table tbody td { display: block; padding: 0 !important; font-size: 0.8125rem; }
+  .admin-table tbody td:first-child:has(input[type="checkbox"]) { padding-top: 0.125rem !important; }
+  .admin-table tbody td:first-child:has(input[type="checkbox"]) + td { flex: 1 1 calc(100% - 2rem); }
+  .admin-table tbody td:first-child:not(:has(input[type="checkbox"])) { flex-basis: 100%; }
+  .admin-table tbody td:first-child:has(input[type="checkbox"]) ~ td:nth-child(n+3) { margin-left: 1.75rem; }
+  .admin-table tbody td[colspan] { flex-basis: 100%; margin-left: 0 !important; }
+  .admin-table tbody td.hidden { display: none; }
+}
+@media (hover: none) {
+  .admin-table .group-hover\:opacity-100 { opacity: 1; }
+}

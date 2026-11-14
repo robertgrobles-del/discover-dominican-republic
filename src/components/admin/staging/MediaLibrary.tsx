@@ -68,7 +68,7 @@ export function MediaLibrary({ onSelect }: { onSelect?: (item: MediaItem) => voi
           <input ref={fileRef} type="file" accept={IMAGE_ACCEPT} multiple className="hidden" onChange={(e) => void upload(e.target.files)} />
           <div className="relative ml-auto">
             <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-            <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar por descripción" aria-label="Buscar imágenes" className="h-9 w-56 pl-8" />
+            <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar por descripción" aria-label="Buscar imágenes" className="h-9 w-full sm:w-56 pl-8" />
           </div>
         </div>
         {isLoading ? <Loader2 className="h-6 w-6 animate-spin text-primary" /> : error ? (

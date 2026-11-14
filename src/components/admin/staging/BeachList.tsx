@@ -105,7 +105,7 @@ export function BeachList({ rows, onNew, onEdit, onDelete, busy }: {
             <option value="">Todas las provincias</option>
             {provinces.map((p) => <option key={s(p.id)} value={s(p.id)}>{s(p.name)}</option>)}
           </select>
-          <div className="relative w-56">
+          <div className="relative w-full sm:w-56">
             <Search className="pointer-events-none absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar playa o destino…" className="h-9 pl-8" />
           </div>
@@ -122,7 +122,7 @@ export function BeachList({ rows, onNew, onEdit, onDelete, busy }: {
       />
 
       <div className="overflow-x-auto rounded-lg border border-border bg-card">
-        <table className="w-full text-left text-sm">
+        <table className="admin-table w-full text-left text-sm">
           <thead className="border-b border-border bg-muted/40 text-xs uppercase text-muted-foreground">
             <tr>
               <th className="w-9 px-3 py-2.5"><input type="checkbox" checked={allChecked} onChange={toggleAll} aria-label="Seleccionar todas" /></th>

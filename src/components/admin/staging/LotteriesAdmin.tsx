@@ -162,11 +162,11 @@ function ListView({ kind, onEdit }: { kind: Kind; onEdit: (row: Row | "new") => 
               {lotteryNames.map((l) => <option key={l} value={l}>{l}</option>)}
             </select>
           ) : null}
-          <Input value={q} onChange={(e) => setQ(e.target.value)} aria-label="Buscar" placeholder="Buscar" className="h-9 w-56" />
+          <Input value={q} onChange={(e) => setQ(e.target.value)} aria-label="Buscar" placeholder="Buscar" className="h-9 w-full sm:w-56" />
         </div>
       </div>
       <div className="overflow-x-auto rounded border border-border bg-card">
-        <table className="w-full min-w-[720px] text-sm">
+        <table className="admin-table w-full min-w-[720px] text-sm">
           <thead className="border-b border-border text-left">
             <tr>
               <th className="p-3 font-normal">{isDraw ? "Sorteo" : isHero ? "Diapositiva" : "Lotería"}</th>
@@ -457,7 +457,7 @@ function PrizePanel() {
           : prizes.isLoading ? <Loader2 className="h-5 w-5 animate-spin" />
           : !prizes.data?.length ? <p className="text-sm text-muted-foreground">Este sorteo aún no tiene resultados ni premios.</p>
           : (
-            <table className="w-full text-sm">
+            <table className="admin-table w-full text-sm">
               <thead><tr className="border-b border-border text-left text-muted-foreground"><th className="py-2">Fecha</th><th>Números</th><th>Premio</th><th>Estado</th></tr></thead>
               <tbody>{prizes.data.map((p) => (
                 <tr key={p.date} className="cursor-pointer border-b border-border hover:bg-muted" onClick={() => pick(p)}>

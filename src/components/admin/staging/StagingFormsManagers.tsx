@@ -76,7 +76,7 @@ export function StagingLeadsManager() {
         <p className="rounded-lg border border-dashed border-border bg-card/50 p-10 text-center text-sm text-muted-foreground">Todavía no hay participantes.</p>
       ) : (
         <div className="overflow-x-auto rounded-lg border border-border bg-card shadow-xs">
-          <table className="w-full text-sm">
+          <table className="admin-table w-full text-sm">
             <thead className="border-b border-border bg-muted/40 text-left text-xs text-muted-foreground">
               <tr><th className="px-4 py-2.5 font-medium">Nombre</th><th className="px-3 py-2.5 font-medium">Correo</th><th className="px-3 py-2.5 font-medium">Origen</th><th className="px-3 py-2.5 font-medium">Fecha</th><th className="px-4 py-2.5 text-right font-medium"><span className="sr-only">Acciones</span></th></tr>
             </thead>

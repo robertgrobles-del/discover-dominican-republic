@@ -125,7 +125,7 @@ export function NewsList({ rows, onNew, onEdit, onDelete, busy }: {
           ))}
         </nav>
         <form role="search" className="flex gap-2" onSubmit={(e) => { e.preventDefault(); setPage(1); }}>
-          <Input value={q} onChange={(e) => { setQ(e.target.value); setPage(1); }} aria-label="Buscar entradas" className="h-9 w-56" />
+          <Input value={q} onChange={(e) => { setQ(e.target.value); setPage(1); }} aria-label="Buscar entradas" className="h-9 w-full sm:w-56" />
           <Button size="sm" variant="outline" className="h-9 border-primary text-primary" type="submit">Buscar entradas</Button>
         </form>
       </div>
@@ -154,7 +154,7 @@ export function NewsList({ rows, onNew, onEdit, onDelete, busy }: {
       </div>
 
       <div className="overflow-x-auto rounded border border-border bg-card">
-        <table className="w-full min-w-[900px] text-sm">
+        <table className="admin-table w-full min-w-[900px] text-sm">
           <thead className="border-b border-border text-left">
             <tr>
               <th className="w-10 p-3"><input type="checkbox" aria-label="Seleccionar todas" className="h-4 w-4" checked={allChecked}

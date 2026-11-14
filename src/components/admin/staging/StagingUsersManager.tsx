@@ -89,7 +89,7 @@ export function StagingUsersManager() {
         <p role="alert" className="text-sm text-destructive">No se pudo cargar: {apiMessage(error)}</p>
       ) : (
         <div className="overflow-x-auto rounded-lg border border-border bg-card shadow-xs">
-          <table className="w-full text-sm">
+          <table className="admin-table w-full text-sm">
             <thead className="border-b border-border bg-muted/40 text-left text-xs text-muted-foreground">
               <tr>
                 <th className="px-4 py-2.5 font-medium">Nombre</th>

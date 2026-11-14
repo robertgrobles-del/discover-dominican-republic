@@ -60,7 +60,7 @@ export function EventList({ rows, onNew, onEdit, onDelete, busy }: {
       </div>
 
       <div className="overflow-x-auto rounded border border-border bg-card">
-        <table className="w-full min-w-[760px] text-sm">
+        <table className="admin-table w-full min-w-[760px] text-sm">
           <thead className="border-b border-border text-left">
             <tr>
               <th className="w-10 p-3"><input type="checkbox" aria-label="Seleccionar todos" className="h-4 w-4" checked={sel.all} onChange={sel.toggleAll} /></th><th className="p-3 font-normal">Evento</th><th className="p-3 font-normal">Tipo</th><th className="p-3 font-normal">Fecha</th>

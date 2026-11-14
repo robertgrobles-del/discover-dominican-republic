@@ -341,7 +341,7 @@ export function StagingDashboard({ sections }: { sections: SectionRef[] }) {
               <p className="p-5 text-sm text-muted-foreground">Aún no hay actividad registrada.</p>
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full text-sm">
+                <table className="admin-table w-full text-sm">
                   <thead className="border-b border-border bg-muted/30 text-left text-xs text-muted-foreground">
                     <tr>
                       <th className="px-4 py-2.5 font-medium sm:px-5">Título</th>
