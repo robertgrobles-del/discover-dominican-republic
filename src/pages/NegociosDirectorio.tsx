@@ -52,7 +52,7 @@ export default function NegociosDirectorio() {
   }, [establishments, selectedCategory, selectedProvince, search]);
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-dvh bg-background text-foreground">
       <SEOHead
         title="Directorio de Empresas y Negocios Turísticos | Descubre RD"
         description="Explora hoteles, restaurantes, bares, operadores de tours y negocios locales verificados en República Dominicana. Contacto directo y sin comisiones."

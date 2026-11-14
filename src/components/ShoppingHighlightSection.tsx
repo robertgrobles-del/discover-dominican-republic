@@ -24,7 +24,7 @@ export function ShoppingHighlightSection() {
           <Badge className="mb-3 bg-pink-500/15 text-pink-400 border-pink-500/25">
             <ShoppingBag className="h-3 w-3 mr-1" /> {t("shoppingMalls.badge")}
           </Badge>
-          <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-3">
+          <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-3 text-balance">
             {t("shoppingMalls.title")}
           </h2>
           <p className="text-muted-foreground max-w-xl mx-auto">

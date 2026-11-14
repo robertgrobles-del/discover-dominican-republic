@@ -22,7 +22,7 @@ export default function MiViaje() {
   const { user, loading: authLoading } = useAuth();
 
   if (authLoading) {
-    return <div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
+    return <div className="min-h-dvh flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
   }
 
   // El planificador guarda itinerarios y favoritos en la cuenta: sin sesión se pide entrar o registrarse.
@@ -30,7 +30,7 @@ export default function MiViaje() {
     return (
       <PageTransition>
         <SEOHead title={pc.t("SEOHead.title.1", "Mi Viaje: Planificador e Itinerario Personal")} description={pc.t("SEOHead.description.1", "Inicia sesión o crea una cuenta para planificar tu viaje a República Dominicana y guardar tu itinerario.")} />
-        <div className="min-h-screen bg-background flex flex-col">
+        <div className="min-h-dvh bg-background flex flex-col">
           <Header />
           <main className="flex-1 flex items-center justify-center px-4 pt-28 pb-16">
             <Card className="max-w-md mx-auto">
@@ -69,7 +69,7 @@ export default function MiViaje() {
         title={pc.t("SEOHead.title.2", "Mi Viaje: Planificador e Itinerario Personal")}
         description={pc.t("SEOHead.description.2", "Organiza tu viaje a República Dominicana: planifica tu itinerario, guarda tus destinos, hoteles y experiencias favoritas, y recibe recomendaciones personalizadas.")}
       />
-      <div className="min-h-screen flex flex-col bg-background">
+      <div className="min-h-dvh flex flex-col bg-background">
         <Header />
 
         {/* Profile Section */}

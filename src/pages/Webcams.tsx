@@ -76,7 +76,7 @@ export default function Webcams() {
 
   return (
     <PageTransition>
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <Header />
         <h1 className="sr-only">Webcams en vivo de República Dominicana</h1>
 

@@ -168,7 +168,7 @@ export default function CentroAyuda() {
         title={pc.t("SEOHead.title.1", "Centro de Ayuda - Asistencia y Emergencias para el Visitante")}
         description={pc.t("SEOHead.description.1", "Encuentra contactos de emergencia como POLITUR y el 911, preguntas frecuentes sobre visa y salud, y canales de soporte para resolver cualquier inconveniente durante tu viaje.")}
       />
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <Header />
 
         {/* Hero Section */}

@@ -261,7 +261,7 @@ export default function SouvenirsDigitales() {
         title={pc.t("SEOHead.title.1", "Souvenirs Digitales - Coleccionables RD")}
         description={pc.t("SEOHead.description.1", "Colecciona souvenirs digitales únicos explorando República Dominicana. Tarjetas, sellos y más.")}
       />
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <Header />
 
         {/* Hero */}

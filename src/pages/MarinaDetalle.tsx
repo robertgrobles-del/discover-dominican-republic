@@ -27,7 +27,7 @@ export default function MarinaDetalle() {
   if (!marina) {
     return (
       <PageTransition>
-        <div className="min-h-screen flex flex-col bg-background">
+        <div className="min-h-dvh flex flex-col bg-background">
           <Header />
           <div className="flex-1 flex items-center justify-center">
             <div className="text-center p-8">
@@ -64,7 +64,7 @@ export default function MarinaDetalle() {
           geo: { "@type": "GeoCoordinates", latitude: lat, longitude: lng },
         }}
       />
-      <div className="min-h-screen flex flex-col bg-background">
+      <div className="min-h-dvh flex flex-col bg-background">
         <Header />
 
         <main className="flex-1">

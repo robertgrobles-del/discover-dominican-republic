@@ -85,7 +85,7 @@ export default function RutaHermanasMirabal() {
         title={pc.t("SEOHead.title.1", "Ruta Histórica Hermanas Mirabal - Descubre RD")}
         description={pc.t("SEOHead.description.1", "Sigue los pasos de Patria, Minerva y María Teresa Mirabal en Salcedo. Explora el museo, su casa natal, los famosos murales artísticos y el Ecoparque de la Paz.")}
       />
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <Header />
 
         <main className="pt-20">

@@ -165,7 +165,7 @@ export default function EventoDetalle() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex flex-col">
+      <div className="min-h-dvh bg-background flex flex-col">
         <Header />
         <main className="container mx-auto px-4 py-10 max-w-7xl space-y-6 flex-1">
           <Skeleton className="h-[400px] w-full rounded-3xl" />
@@ -214,7 +214,7 @@ export default function EventoDetalle() {
         })}
       />
 
-      <div className="min-h-screen bg-background flex flex-col pb-16 md:pb-0">
+      <div className="min-h-dvh bg-background flex flex-col pb-16 md:pb-0">
         <Header />
 
         {/* Hero Header Component */}

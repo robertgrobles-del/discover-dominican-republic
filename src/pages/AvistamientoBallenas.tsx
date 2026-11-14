@@ -76,7 +76,7 @@ export default function AvistamientoBallenas() {
       />
       <Header />
 
-      <main className="min-h-screen bg-background">
+      <main className="min-h-dvh bg-background">
         <section className="relative isolate overflow-hidden pt-28 pb-16 md:pt-36 md:pb-24">
           <picture>
             <source srcSet={pc.img("asset.whaleAvif", whaleAvif)} type="image/avif" />

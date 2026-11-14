@@ -105,7 +105,7 @@ export default function SuscripcionesSabores() {
         title={pc.t("SEOHead.title.1", "Suscripción Sabores RD | Descubre RD")}
         description={pc.t("SEOHead.description.1", "Recibe una caja mensual de productos dominicanos auténticos directos a tu puerta. Dulces criollos, café orgánico, ron premium y más.")}
       />
-      <div className="min-h-screen flex flex-col bg-background">
+      <div className="min-h-dvh flex flex-col bg-background">
         <Header />
 
         <main className="flex-grow pt-24 pb-16">

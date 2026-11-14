@@ -25,7 +25,7 @@ export default function ItinerariosRecomendados() {
         description={pc.t("SEOHead.description.1", "Itinerarios prediseñados para tu viaje a RD: escapada de 3 días, ruta cultural de 5 días, tour completo de 7 días o gran aventura de 14 días.")}
         keywords="itinerario viaje dominicana, plan viaje RD, ruta 7 días dominicana, que hacer en dominicana"
       />
-      <div className="min-h-screen flex flex-col bg-background">
+      <div className="min-h-dvh flex flex-col bg-background">
         <Header />
 
         <section className="relative py-20 bg-gradient-to-b from-primary/10 to-background">

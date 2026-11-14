@@ -22,7 +22,7 @@ export function MinimalLayout({
   showSecurityBadge = true,
 }: MinimalLayoutProps) {
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 text-foreground selection:bg-primary/20 selection:text-primary">
+    <div className="min-h-dvh flex flex-col bg-slate-50 dark:bg-slate-950 text-foreground selection:bg-primary/20 selection:text-primary">
       {/* Header simplificado */}
       <header className="sticky top-0 z-40 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">

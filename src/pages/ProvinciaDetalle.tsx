@@ -268,7 +268,7 @@ export default function ProvinciaDetalle() {
     return (
       <PageTransition>
         <Header />
-        <main className="min-h-screen flex items-center justify-center">
+        <main className="min-h-dvh flex items-center justify-center">
           <div className="text-center">
             <h1 className="text-2xl font-bold mb-4">{pc.tx("h1.1", "Provincia no encontrada")}</h1>
             <Link to="/destinos" className="text-primary hover:underline">{pc.tx("Link.1", "Volver a destinos")}</Link>
@@ -582,7 +582,7 @@ export default function ProvinciaDetalle() {
 
       <Header />
 
-      <main className={`min-h-screen bg-background ${theme.className ?? ""}`} style={theme.style}>
+      <main className={`min-h-dvh bg-background ${theme.className ?? ""}`} style={theme.style}>
         {order.map((k) => <Fragment key={k}>{blocks[k]}</Fragment>)}
       </main>
 

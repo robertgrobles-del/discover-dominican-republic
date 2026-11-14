@@ -46,7 +46,7 @@ export class RouteErrorBoundary extends Component<Props, State> {
       const isStaleChunk = CHUNK_LOAD_ERROR.test(this.state.error?.message ?? "");
       if (isStaleChunk) {
         return (
-          <div className="min-h-screen flex flex-col">
+          <div className="min-h-dvh flex flex-col">
             <Header />
             <main className="flex-1 flex flex-col items-center justify-center gap-4 px-4 py-24 text-center">
               <h1 className="text-2xl font-bold text-foreground">
@@ -68,7 +68,7 @@ export class RouteErrorBoundary extends Component<Props, State> {
         );
       }
       return (
-        <div className="min-h-screen flex flex-col">
+        <div className="min-h-dvh flex flex-col">
           <Header />
           <main className="flex-1 flex flex-col items-center justify-center gap-4 px-4 py-24 text-center">
             <h1 className="text-2xl font-bold text-foreground">

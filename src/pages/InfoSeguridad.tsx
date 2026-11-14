@@ -107,7 +107,7 @@ export default function InfoSeguridad() {
         title={pc.t("SEOHead.title.1", "Seguridad y Consejos de Viaje en República Dominicana")}
         description={pc.t("SEOHead.description.1", "Números de emergencia, consejos de salud, información práctica sobre moneda y electricidad, y respuestas a preguntas frecuentes para viajar seguro por República Dominicana.")}
       />
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <Header />
 
         {/* Hero Section */}

@@ -95,7 +95,7 @@ export default function Establecimientos() {
         description={pc.t("SEOHead.description.1", "Directorio oficial de establecimientos turísticos registrados en República Dominicana: hoteles, restaurantes, agencias de viajes, tiendas y más.")}
       />
       <Header />
-      <main className="min-h-screen bg-background pt-20">
+      <main className="min-h-dvh bg-background pt-20">
         {/* Hero */}
         <section className="bg-gradient-to-br from-primary/10 via-background to-accent/10 py-16">
           <div className="container mx-auto px-4 text-center">

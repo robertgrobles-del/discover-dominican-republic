@@ -87,7 +87,7 @@ export default function GuiaLGBTQ() {
         description={pc.t("SEOHead.description.1", "Descubre los mejores destinos gay friendly en República Dominicana: Zona Colonial, Cabarete, Punta Cana, hoteles inclusivos, vida nocturna y consejos de viaje.")}
         keywords="LGBTQ dominicana, viaje gay caribe, hoteles gay friendly punta cana, bodas same sex dominicana, turismo inclusivo rd"
       />
-      <div className="min-h-screen flex flex-col bg-background">
+      <div className="min-h-dvh flex flex-col bg-background">
         <Header />
 
         <main className="flex-1">

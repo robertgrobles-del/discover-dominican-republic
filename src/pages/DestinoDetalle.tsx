@@ -44,7 +44,7 @@ export default function DestinoDetalle() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <Header />
         <div className="container mx-auto px-4 pt-28 pb-12">
           <Skeleton className="mb-8 h-[50vh] w-full rounded-3xl" />
@@ -57,7 +57,7 @@ export default function DestinoDetalle() {
   }
   if (!destination) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <Header />
         <div className="container mx-auto px-4 py-32 text-center">
           <h1 className="mb-4 text-3xl font-bold">Destino no encontrado</h1>

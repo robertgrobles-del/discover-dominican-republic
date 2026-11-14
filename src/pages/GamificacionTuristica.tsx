@@ -308,7 +308,7 @@ export default function GamificacionTuristica() {
         description="Explora las 32 provincias de República Dominicana, desbloquea insignias oficiales, completa misiones turísticas y sube en el ranking nacional de exploradores."
         keywords="gamificacion turistica dominicana, pasaporte digital rd, 32 provincias republica dominicana, insignias de viaje, ranking exploradores rd"
       />
-      <div className="min-h-screen bg-background flex flex-col">
+      <div className="min-h-dvh bg-background flex flex-col">
         <Header />
 
 

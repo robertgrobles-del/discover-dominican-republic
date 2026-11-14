@@ -141,7 +141,7 @@ export default function EventosVivo() {
         title={pc.t("SEOHead.title.1", "Eventos en Vivo Ahora mismo en RD")}
         description={pc.t("SEOHead.description.1", "Descubre conciertos, fiestas, juegos de béisbol y eventos culturales pasando esta noche en cada ciudad de la República Dominicana.")}
       />
-      <div className="min-h-screen bg-background flex flex-col justify-between">
+      <div className="min-h-dvh bg-background flex flex-col justify-between">
         <Header />
 
         <main className="flex-grow pt-24 pb-16">

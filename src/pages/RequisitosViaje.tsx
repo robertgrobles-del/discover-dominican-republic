@@ -261,7 +261,7 @@ export default function RequisitosViaje() {
         breadcrumbs={[{ name: "Inicio", url: "/" }, { name: "Planifica", url: "/planifica" }, { name: "Requisitos de viaje", url: "/requisitos-viaje" }]}
         jsonLd={generateFAQSchema(preguntas.map((p) => ({ question: p.q, answer: p.a })))}
       />
-      <div className="min-h-screen flex flex-col bg-background text-foreground">
+      <div className="min-h-dvh flex flex-col bg-background text-foreground">
         <Header />
 
         {/* Hero */}

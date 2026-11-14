@@ -81,7 +81,7 @@ export default function Casinos() {
         description={pc.t("SEOHead.description.1", "Descubre los mejores casinos de RD. Hard Rock Casino, entretenimiento nocturno y más.")}
         keywords="casinos, República Dominicana, Hard Rock Casino, juegos, entretenimiento, Punta Cana"
       />
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <Header />
 
         {/* Hero */}

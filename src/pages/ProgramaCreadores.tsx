@@ -61,7 +61,7 @@ export default function ProgramaCreadores() {
         description="Crea contenido de viajes sobre República Dominicana, únete a campañas de marcas y estancias en hoteles aliados, y gestiona tus ingresos desde tu panel de creador."
         keywords="creadores turismo rd, influencers republica dominicana, estancias para creadores, campañas de marcas rd"
       />
-      <div className="flex min-h-screen flex-col bg-background">
+      <div className="flex min-h-dvh flex-col bg-background">
         <Header />
         <main className="flex-1">
           {/* Portada */}

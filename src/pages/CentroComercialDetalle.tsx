@@ -33,7 +33,7 @@ export default function CentroComercialDetalle() {
   if (!mall) {
     return (
       <PageTransition>
-        <div className="min-h-screen bg-background">
+        <div className="min-h-dvh bg-background">
           <Header />
           <div className="container mx-auto px-4 py-32 text-center">
             <h1 className="text-3xl font-bold text-foreground mb-4">{pc.tx("h1.1", "Centro comercial no encontrado")}</h1>
@@ -60,7 +60,7 @@ export default function CentroComercialDetalle() {
         title={`${mall.nombre} - Compras en ${mall.ciudad} | DescubreRD`}
         description={mall.shortDescription}
       />
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <Header />
 
         {/* Hero */}

@@ -97,7 +97,7 @@ export default function ViveLocal() {
         title="Vive como un Local en RD - Turismo Cultural"
         description="Explora experiencias dominicanas auténticas: jugar dominó en la acera, el colmado tradicional, clases de cocina criolla y béisbol real."
       />
-      <div className="min-h-screen bg-background flex flex-col justify-between">
+      <div className="min-h-dvh bg-background flex flex-col justify-between">
         <Header />
 
         <main className="flex-grow pt-24 pb-16">

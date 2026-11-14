@@ -88,7 +88,7 @@ export default function ViajerosSenior() {
         description={pc.t("SEOHead.description.1", "Destinos accesibles, resorts adaptados, transporte cómodo, actividades relajadas y servicios de salud para viajeros mayores en República Dominicana.")}
         keywords="viajeros senior dominicana, turismo tercera edad caribe, resorts accesibles punta cana, vacaciones mayores RD"
       />
-      <div className="min-h-screen flex flex-col bg-background">
+      <div className="min-h-dvh flex flex-col bg-background">
         <Header />
 
         <section className="relative py-20 bg-gradient-to-b from-primary/10 to-background">

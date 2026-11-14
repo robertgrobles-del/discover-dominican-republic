@@ -79,7 +79,7 @@ export default function AgenciaDetalle() {
         image={agencia.coverImage}
         keywords={`${agencia.name}, ${agencia.type}, ${agencia.location}, tours república dominicana, ${agencia.specialties.join(", ")}`}
       />
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <Header />
 
         {/* Hero */}

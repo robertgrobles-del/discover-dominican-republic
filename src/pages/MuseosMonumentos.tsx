@@ -200,7 +200,7 @@ export default function MuseosMonumentos() {
         description={pc.t("SEOHead.description.1", "Explora los museos y monumentos históricos de RD: arte taíno, historia colonial, ámbar dominicano, obeliscos y los mausoleos de los Padres de la Patria.")}
         image="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1600&auto=format&fit=crop&q=80"
       />
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <Header />
 
         <main>

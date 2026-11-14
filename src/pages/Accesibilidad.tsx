@@ -81,7 +81,7 @@ export default function Accesibilidad() {
         description={pc.t("SEOHead.description.1", "Prepara un viaje accesible con preguntas prácticas sobre transporte, alojamiento y actividades. Confirma cada servicio directamente antes de reservar.")}
         keywords="guía viaje accesible República Dominicana, turismo inclusivo, movilidad, accesibilidad"
       />
-      <div className="min-h-screen bg-background text-foreground">
+      <div className="min-h-dvh bg-background text-foreground">
         <Header variant="white" />
 
         <main id="main-content">

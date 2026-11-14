@@ -87,7 +87,7 @@ export default function Astroturismo() {
         title={pc.t("SEOHead.title.1", "Astroturismo en República Dominicana - Observatorios y Cielos Estrellados")}
         description={pc.t("SEOHead.description.1", "Descubre los mejores observatorios y miradores de montaña y playa en Constanza, Jarabacoa y Bayahíbe, y consulta el calendario de eventos astronómicos del Caribe.")}
       />
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <Header />
 
         {/* Hero */}

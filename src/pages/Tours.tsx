@@ -163,7 +163,7 @@ export default function Tours() {
         description={pc.t("SEOHead.description.1", "Encuentra las mejores excursiones y paquetes organizados: Bahía de las Águilas, Ascenso al Pico Duarte, Avistamiento de Ballenas en Samaná y Ciudad Colonial.")}
         keywords="tours republica dominicana, paquetes excursiones rd, bahia de las aguilas tour, pico duarte excursion, tours samana ballenas"
       />
-      <div className="min-h-screen bg-background text-foreground flex flex-col selection:bg-primary selection:text-white">
+      <div className="min-h-dvh bg-background text-foreground flex flex-col selection:bg-primary selection:text-white">
         <Header />
 
         {/* HERO EDITORIAL DE TOURS */}

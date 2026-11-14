@@ -50,7 +50,7 @@ export function ActividadDetalle() {
   // Render Loader
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-dvh bg-background flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <Skeleton className="h-12 w-12 rounded-full" />
           <p className="text-muted-foreground text-sm font-medium">{pc.tx("p.1", "Cargando detalles de actividad...")}</p>
@@ -64,7 +64,7 @@ export function ActividadDetalle() {
     return (
       <PageTransition>
         <Header />
-        <div className="min-h-screen bg-background flex flex-col items-center justify-center text-center px-4">
+        <div className="min-h-dvh bg-background flex flex-col items-center justify-center text-center px-4">
           <AlertCircle className="h-16 w-16 text-destructive mb-4" />
           <h1 className="text-3xl font-display font-bold text-foreground mb-2">{pc.tx("h1.1", "Actividad No Encontrada")}</h1>
           <p className="text-muted-foreground mb-6 max-w-md">{pc.tx("p.2", "Lo sentimos, la actividad solicitada no se encuentra disponible o ha sido desactivada.")}</p>
@@ -145,7 +145,7 @@ export function ActividadDetalle() {
         image={activity.imagen}
       />
       
-      <div className="min-h-screen flex flex-col bg-background text-foreground">
+      <div className="min-h-dvh flex flex-col bg-background text-foreground">
         <Header />
 
         {/* Hero Section */}

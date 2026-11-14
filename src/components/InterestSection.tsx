@@ -70,7 +70,7 @@ export function InterestSection() {
             viewport={{ once: true }}
             className="max-w-2xl"
           >
-            <h2 className="font-display text-3xl md:text-4xl font-bold tracking-tight text-foreground">
+            <h2 className="font-display text-3xl md:text-4xl font-bold tracking-tight text-foreground text-balance">
               {t("interest.title")}{" "}
               <span className="text-primary">
                 {t("interest.titleHighlight")}

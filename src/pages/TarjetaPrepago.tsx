@@ -168,7 +168,7 @@ export default function TarjetaPrepago() {
         title={pc.t("SEOHead.title.1", "Tarjeta Turística RD Pass | Descubre RD")}
         description={pc.t("SEOHead.description.1", "Consigue la tarjeta turística prepagada RD Pass. Recibe descuentos del 10% al 20% en hoteles, restaurantes y tours afiliados en República Dominicana.")}
       />
-      <div className="min-h-screen flex flex-col bg-background">
+      <div className="min-h-dvh flex flex-col bg-background">
         <Header />
 
         <main className="flex-grow pt-24 pb-16">

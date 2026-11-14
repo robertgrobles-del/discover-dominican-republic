@@ -62,7 +62,7 @@ export default function HistoriaIndex() {
         description={pc.t("SEOHead.description.1", "Explora la historia completa de la República Dominicana: la biografía de Juan Pablo Duarte, la Independencia Efímera, la Restauración y los monumentos patrimoniales.")}
         keywords="historia dominicana, juan pablo duarte biografia, independencia efimera, guerra restauracion, historia de la republica dominicana"
       />
-      <div className="min-h-screen bg-background flex flex-col">
+      <div className="min-h-dvh bg-background flex flex-col">
         <Header />
 
         <main className="flex-1">

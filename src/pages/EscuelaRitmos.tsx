@@ -100,7 +100,7 @@ export default function EscuelaRitmos() {
         description={pc.t("SEOHead.description.1", "Descubre el alma de República Dominicana a través del baile. Aprende Merengue y Bachata con videotutoriales y escuelas certificadas.")}
         keywords="aprender merengue, clases bachata, escuelas baile RD, ritmos dominicanos, danza caribeña"
       />
-      <div className="min-h-screen flex flex-col bg-background">
+      <div className="min-h-dvh flex flex-col bg-background">
         <Header />
         
         {/* Hero */}

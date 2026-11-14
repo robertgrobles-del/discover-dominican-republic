@@ -150,7 +150,7 @@ export default function EditorialMagazineHub() {
       />
       <Header />
 
-      <main className="min-h-screen bg-background pt-28 pb-20">
+      <main className="min-h-dvh bg-background pt-28 pb-20">
         {/* Cabecera de la revista */}
         <header className="container mx-auto px-4">
           <div className="flex flex-col gap-6 border-b-2 border-foreground pb-6 md:flex-row md:items-end md:justify-between">

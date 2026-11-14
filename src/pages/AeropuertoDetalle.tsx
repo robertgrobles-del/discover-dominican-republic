@@ -309,7 +309,7 @@ export default function AeropuertoDetalle() {
   if (!airport) {
     return (
       <PageTransition>
-        <div className="min-h-screen bg-background">
+        <div className="min-h-dvh bg-background">
           <Header />
           <div className="container mx-auto px-4 py-32 text-center max-w-lg">
             <div className="w-16 h-16 rounded-2xl bg-muted/60 flex items-center justify-center mx-auto mb-4 border border-border">
@@ -377,7 +377,7 @@ export default function AeropuertoDetalle() {
         })}
       />
 
-      <div className="min-h-screen bg-[#f8fafc] text-slate-800 antialiased selection:bg-[#005ea6] selection:text-white">
+      <div className="min-h-dvh bg-[#f8fafc] text-slate-800 antialiased selection:bg-[#005ea6] selection:text-white">
         
         {/* Global Site Header */}
         <Header />

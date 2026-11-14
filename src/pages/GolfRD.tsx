@@ -129,7 +129,7 @@ export default function GolfRD() {
         description={pc.t("SEOHead.description.1", "Explora los campos de golf premium de la República Dominicana: Teeth of the Dog, Corales PGA Tour, Punta Espada y Playa Grande con tarifas y diseñadores legendarios.")}
         keywords="golf republica dominicana, pga tour corales, teeth of the dog casa de campo, punta espada golf cap cana, campos de golf caribe"
       />
-      <div className="min-h-screen bg-background flex flex-col">
+      <div className="min-h-dvh bg-background flex flex-col">
         <Header />
 
         <main className="flex-1">

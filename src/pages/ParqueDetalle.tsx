@@ -52,7 +52,7 @@ export default function ParqueDetalle() {
       />
       <Header />
 
-      <main className="min-h-screen bg-background pb-16">
+      <main className="min-h-dvh bg-background pb-16">
         {/* Unified Hero Header */}
         <DetailHeroHeader
           title={parque.nombre}

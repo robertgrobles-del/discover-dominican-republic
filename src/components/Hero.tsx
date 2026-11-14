@@ -18,7 +18,7 @@ export function Hero() {
   ];
 
   return (
-    <section className="relative h-screen w-full flex flex-col overflow-hidden">
+    <section className="relative h-dvh w-full flex flex-col overflow-hidden">
       {/* Background Image */}
       <div className="absolute inset-0 z-0">
         <motion.div

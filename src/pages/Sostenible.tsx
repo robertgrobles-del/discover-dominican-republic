@@ -257,7 +257,7 @@ export default function Sostenible() {
         title={pc.t("SEOHead.title.1", "Turismo Sostenible en RD | Descubre RD")}
         description={pc.t("SEOHead.description.1", "Calcula tu huella de carbono de viaje, apoya la reforestación de manglares, conoce hoteles con sello Eco-Verified y participa como voluntario en limpiezas de playa.")}
       />
-      <div className="min-h-screen bg-background flex flex-col">
+      <div className="min-h-dvh bg-background flex flex-col">
         <Header />
         
         {/* Hero Section */}

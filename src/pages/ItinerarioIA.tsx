@@ -140,7 +140,7 @@ export default function ItinerarioIA() {
         title={t("planifica.itineraryAI") || "Generador de Itinerarios con IA - República Dominicana"}
         description={t("planifica.itineraryAIDesc") || "Crea tu itinerario perfecto para República Dominicana con inteligencia artificial. Personalizado según tus intereses y presupuesto."}
       />
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <Header />
         
         <main className="pt-20">

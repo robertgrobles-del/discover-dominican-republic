@@ -82,7 +82,7 @@ export function TravelerToolsStrip() {
     <section className="bg-muted/40 py-14 lg:py-20">
       <div className="container mx-auto px-4 lg:px-8">
         <div className="mb-10 max-w-2xl">
-          <h2 className="font-display text-3xl md:text-4xl font-bold tracking-tight text-foreground">{t("travelerTools.title")}</h2>
+          <h2 className="font-display text-3xl md:text-4xl font-bold tracking-tight text-foreground text-balance">{t("travelerTools.title")}</h2>
           <p className="mt-3 text-sm md:text-base leading-relaxed text-muted-foreground">{t("travelerTools.subtitle")}</p>
         </div>
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">

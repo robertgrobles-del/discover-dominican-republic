@@ -89,7 +89,7 @@ export default function GuardianCaribe() {
         description="Únete a la misión de proteger los océanos y la vida marina de República Dominicana."
         keywords="conservación marina, arrecifes, ballenas, tortugas, República Dominicana, ecoturismo"
       />
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <Header />
 
         {/* Hero */}

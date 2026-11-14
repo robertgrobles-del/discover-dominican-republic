@@ -123,7 +123,7 @@ export default function BebidasRD() {
         description={pc.t("SEOHead.description.1", "Descubre las bebidas emblemáticas de RD: Ron dominicano añejo, Mamajuana taína, Cerveza Presidente, Morir Soñando y Mabí. Recetas y rutas de degustación.")}
         keywords="bebidas republica dominicana, ron dominicano, mamajuana receta, morir soñando dominicano, cerveza presidente, mabi seibano"
       />
-      <div className="min-h-screen bg-background text-foreground flex flex-col">
+      <div className="min-h-dvh bg-background text-foreground flex flex-col">
         <Header />
 
         {/* Hero Section */}

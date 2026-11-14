@@ -133,7 +133,7 @@ export function DestinationsSection() {
             <span className="inline-flex items-center gap-2 text-muted-foreground text-sm font-medium mb-3">
               {t("destinations.popular")}
             </span>
-            <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight">
+            <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight text-balance">
               {t("destinations.immerse")}{" "}
               <span className="text-primary">{t("destinations.paradise")}</span>
             </h2>

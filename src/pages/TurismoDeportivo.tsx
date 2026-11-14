@@ -159,7 +159,7 @@ export default function TurismoDeportivo() {
   const upcomingEvents = pc.data("upcomingEvents", __pcData.upcomingEvents);
   return (
     <PageTransition>
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <Header />
 
         {/* Hero */}

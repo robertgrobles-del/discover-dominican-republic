@@ -71,7 +71,7 @@ export default function GanaConDescubreRD() {
         title="Participa y gana con Descubre RD"
         description="Conoce las formas de participar en el Pasaporte Digital, el programa de embajadores, creadores, aliados y membresías de Descubre RD."
       />
-      <div className="min-h-screen bg-background text-foreground">
+      <div className="min-h-dvh bg-background text-foreground">
         <Header />
         <main>
           <section className="relative isolate overflow-hidden border-b border-border bg-brand-lagoon text-white">

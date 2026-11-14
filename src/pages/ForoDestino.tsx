@@ -142,7 +142,7 @@ export default function ForoDestino() {
       />
       <Header />
 
-      <main className="min-h-screen pt-24 pb-16 bg-background">
+      <main className="min-h-dvh pt-24 pb-16 bg-background">
         <div className="container mx-auto px-4 max-w-5xl space-y-8">
           {/* Header */}
           <div className="text-center space-y-3 max-w-2xl mx-auto">

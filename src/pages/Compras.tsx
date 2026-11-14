@@ -89,7 +89,7 @@ export default function Compras() {
 
   return (
     <PageTransition>
-      <div className="min-h-screen flex flex-col bg-background">
+      <div className="min-h-dvh flex flex-col bg-background">
         <Header />
 
         {/* Hero */}

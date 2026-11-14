@@ -181,7 +181,7 @@ export default function Galeria() {
         title={pc.t("SEOHead.title.1", "Galería Multimedia de República Dominicana")}
         description={pc.t("SEOHead.description.1", "Explora fotos y videos curados de playas, naturaleza, gastronomía, arquitectura colonial y cultura dominicana, organizados por categoría.")}
       />
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <Header />
 
         {/* Hero Section */}

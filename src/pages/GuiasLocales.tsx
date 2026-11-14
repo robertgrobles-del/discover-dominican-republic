@@ -269,7 +269,7 @@ export default function GuiasLocales() {
         description={pc.t("SEOHead.description.1", "Encuentra y reserva guías turísticos y ecológicos certificados en República Dominicana. Experiencias seguras y sustentables en cada rincón de la isla.")}
         keywords="guías turísticos, guías ecológicos, medio ambiente, Los Haitises, Pico Duarte, senderismo RD"
       />
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <Header />
 
         {/* Hero */}

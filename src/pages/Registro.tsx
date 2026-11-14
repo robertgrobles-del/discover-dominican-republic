@@ -150,7 +150,7 @@ export default function Registro() {
         title="Crear Cuenta Gratis"
         description="Regístrate gratis en Descubre RD para guardar tus destinos favoritos, recibir el boletín con ofertas turísticas exclusivas y planificar tu viaje a República Dominicana."
       />
-      <div className="min-h-screen bg-background flex flex-col justify-between">
+      <div className="min-h-dvh bg-background flex flex-col justify-between">
         {/* Minimal Auth Header */}
         <header className="p-4 sm:p-6 flex items-center justify-between border-b border-border/40">
           <Link to="/" className="flex items-center gap-2 group">

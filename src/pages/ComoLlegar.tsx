@@ -48,7 +48,7 @@ export default function ComoLlegar() {
         title={t("logistica.title") || "Cómo Llegar a República Dominicana y Moverse por el País"}
         description={t("logistica.subtitle") || "Consulta conexiones aéreas internacionales, rutas de ferries y cruceros, vuelos internos y una calculadora de distancias para planificar tu transporte por toda la isla."}
       />
-      <div className="min-h-screen flex flex-col bg-background">
+      <div className="min-h-dvh flex flex-col bg-background">
         <Header />
 
         {/* Hero */}

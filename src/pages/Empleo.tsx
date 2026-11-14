@@ -101,7 +101,7 @@ export default function Empleo() {
         description="Encuentra las mejores oportunidades laborales en el sector turístico de República Dominicana."
         keywords="empleo turismo, trabajo hoteles, vacantes Punta Cana, empleo hotelería"
       />
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <Header />
 
         {/* Hero */}

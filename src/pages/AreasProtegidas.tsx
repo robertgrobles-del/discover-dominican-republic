@@ -114,7 +114,7 @@ export default function AreasProtegidas() {
         title={pc.t("SEOHead.title.1", "Áreas Protegidas y Parques Nacionales de RD")}
         description={pc.t("SEOHead.description.1", "Explora las áreas protegidas de República Dominicana. Los Haitises, Ébano Verde y Santuario de Ballenas Jorobadas. Regulaciones, tarifas y visitas.")}
       />
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <Header />
 
         <main className="pt-20">

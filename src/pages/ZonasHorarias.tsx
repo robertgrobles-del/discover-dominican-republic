@@ -98,7 +98,7 @@ export default function ZonasHorarias() {
         keywords="hora actual republica dominicana, zona horaria punta cana, hora santo domingo ahora, diferencia horaria espana dominicana, hora ast caribe"
       />
       
-      <div className="min-h-screen bg-background flex flex-col justify-between">
+      <div className="min-h-dvh bg-background flex flex-col justify-between">
         <Header />
 
         <main className="pb-20">

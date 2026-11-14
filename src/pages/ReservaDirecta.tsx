@@ -147,7 +147,7 @@ export default function ReservaDirecta() {
         description={pc.t("SEOHead.description.1", "Reserva directo con hoteles, resorts y operadores certificados en República Dominicana. Sin comisiones ocultas, mejor tarifa garantizada y cancelación flexible.")}
         keywords="reserva directa hoteles rd, reservar resort punta cana, tours certificados dominicana, reserva directa descubrerd"
       />
-      <div className="min-h-screen flex flex-col bg-background text-foreground">
+      <div className="min-h-dvh flex flex-col bg-background text-foreground">
         <Header />
 
         {/* Hero Section */}

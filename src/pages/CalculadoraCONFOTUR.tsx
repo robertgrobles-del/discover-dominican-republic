@@ -94,7 +94,7 @@ export default function CalculadoraCONFOTUR() {
         title="Calculadora de Beneficios CONFOTUR - Descubre RD"
         description="Calcula tus ahorros en impuestos de transferencia, IPI e Impuesto sobre la Renta al invertir en propiedades turísticas bajo la Ley de CONFOTUR en República Dominicana."
       />
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <Header />
 
         <main className="pt-20">

@@ -136,7 +136,7 @@ export default function CalculadoraPeajes() {
         title={pc.t("SEOHead.title.1", "Calculadora de Peajes de Carreteras - Descubre RD")}
         description={pc.t("SEOHead.description.1", "Calcula el costo total de peajes para viajar en auto por República Dominicana (Autopista Duarte, del Nordeste, Las Américas) según tu tipo de vehículo.")}
       />
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <Header />
 
         <main className="pt-20">

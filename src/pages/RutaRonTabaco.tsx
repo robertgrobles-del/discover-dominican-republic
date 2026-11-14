@@ -79,7 +79,7 @@ export default function RutaRonTabaco() {
         title={pc.t("SEOHead.title.1", "Ruta del Ron y del Tabaco Dominicano - Tour Sensorial")}
         description={pc.t("SEOHead.description.1", "Recorre las destilerías de ron más famosas y las plantaciones y fábricas de cigarros artesanales en Santiago, Puerto Plata y La Romana.")}
       />
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <Header />
 
         <main className="pt-20">

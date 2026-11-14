@@ -23,7 +23,7 @@ export default function HistoriaDetalle() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background" aria-busy="true">
+      <div className="min-h-dvh flex items-center justify-center bg-background" aria-busy="true">
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
       </div>
     );
@@ -32,7 +32,7 @@ export default function HistoriaDetalle() {
   if (isError || !article) {
     return (
       <PageTransition>
-        <div className="min-h-screen bg-background flex flex-col">
+        <div className="min-h-dvh bg-background flex flex-col">
           <Header />
           <main className="flex-1 flex items-center justify-center py-20 px-4 text-center">
             <div className="max-w-md space-y-4">
@@ -84,7 +84,7 @@ export default function HistoriaDetalle() {
           }
         }}
       />
-      <div className="min-h-screen bg-background flex flex-col">
+      <div className="min-h-dvh bg-background flex flex-col">
         <Header />
 
         <main className="flex-1">

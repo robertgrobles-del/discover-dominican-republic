@@ -92,7 +92,7 @@ export default function CheckInDigital() {
         title="Check-in Digital en Destinos - República Dominicana"
         description="Registra tu visita a los destinos de RD y gana puntos, badges y recompensas exclusivas."
       />
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <Header />
         
         <main className="pt-20">

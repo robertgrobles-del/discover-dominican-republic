@@ -93,7 +93,7 @@ export default function GuiaViajeroResponsable() {
         description="Aprende cómo minimizar tu impacto ambiental, proteger los corales, respetar la fauna endémica y apoyar a las comunidades locales en RD."
         keywords="turismo sostenible republica dominicana, ecoturismo rd, viajero responsable, proteccion arrecifes caribe, cuidar playas dominicana"
       />
-      <div className="min-h-screen flex flex-col bg-background text-foreground">
+      <div className="min-h-dvh flex flex-col bg-background text-foreground">
         <Header />
 
         {/* Hero Section */}

@@ -158,7 +158,7 @@ export default function AvistamientoAves() {
         title={pc.t("SEOHead.title.1", "Guía de Avistamiento de Aves Endémicas - Descubre RD")}
         description={pc.t("SEOHead.description.1", "Explora las aves endémicas de La Española, incluyendo la Cigua Palmera y el Barrancolí. Conoce los mejores puntos de observación como Sierra de Bahoruco.")}
       />
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <Header />
 
         <main className="pt-20">

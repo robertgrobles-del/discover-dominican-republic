@@ -191,7 +191,7 @@ export default function CuevaDetalle() {
   if (!cueva) {
     return (
       <PageTransition>
-        <div className="min-h-screen flex flex-col bg-background">
+        <div className="min-h-dvh flex flex-col bg-background">
           <Header />
           <div className="flex-1 flex items-center justify-center">
             <div className="text-center">
@@ -222,7 +222,7 @@ export default function CuevaDetalle() {
         description={cueva.descripcion}
         keywords={`${cueva.nombre}, cuevas RD, espeleología dominicana, turismo de aventura`}
       />
-      <div className="min-h-screen flex flex-col bg-background">
+      <div className="min-h-dvh flex flex-col bg-background">
         <Header />
         
         <main className="flex-1">

@@ -434,7 +434,7 @@ export default function Perfil() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="min-h-dvh flex items-center justify-center bg-background">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-primary" />
       </div>
     );
@@ -448,7 +448,7 @@ export default function Perfil() {
         title="Mi Perfil"
         description="Gestiona tu perfil, favoritos y opiniones en Descubre República Dominicana."
       />
-      <div className="min-h-screen flex flex-col bg-background">
+      <div className="min-h-dvh flex flex-col bg-background">
         <Header />
 
         <main className="flex-1 pt-20">

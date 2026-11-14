@@ -151,7 +151,7 @@ export default function CineRD() {
         keywords="cine dominicano, locaciones de peliculas en republica dominicana, film commission rd, ley de cine 108-10, jurassic park samana, el padrino zona colonial"
       />
       
-      <div className="min-h-screen bg-background flex flex-col justify-between">
+      <div className="min-h-dvh bg-background flex flex-col justify-between">
         <Header />
 
         <main className="pb-20">

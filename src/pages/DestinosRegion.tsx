@@ -103,7 +103,7 @@ export default function DestinosRegion() {
     return (
       <PageTransition>
         <Header />
-        <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="min-h-dvh bg-background flex items-center justify-center">
           <div className="text-center">
             <h1 className="text-2xl font-bold text-foreground mb-4">{pc.tx("h1.1", "Región no encontrada")}</h1>
             <Link to="/destinos">
@@ -123,7 +123,7 @@ export default function DestinosRegion() {
         description={regionInfo.description}
         keywords={`${regionInfo.name}, turismo, República Dominicana, destinos, viajes, ecoturismo`}
       />
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <Header />
 
         {/* Hero Section */}

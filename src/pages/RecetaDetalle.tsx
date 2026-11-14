@@ -68,7 +68,7 @@ export default function RecetaDetalle() {
     : 0;
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col">
+    <div className="min-h-dvh bg-background text-foreground flex flex-col">
       <SEOHead
         title={`${recipe.title} - Receta Típica Dominicana`}
         description={`Aprende a preparar ${recipe.title}: ${recipe.tagline.replace(/"/g, "")} ${recipe.description}`}

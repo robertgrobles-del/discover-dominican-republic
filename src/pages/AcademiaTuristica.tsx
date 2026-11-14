@@ -98,7 +98,7 @@ export default function AcademiaTuristica() {
         title="Academia Turística - Cursos y Certificaciones para el Sector"
         description="Capacítate con cursos en línea de inglés técnico, hotelería, protocolo y patrimonio cultural, y obtén certificaciones para trabajar en el turismo dominicano."
       />
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <Header />
 
         {/* Hero Section */}

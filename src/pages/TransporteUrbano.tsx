@@ -130,7 +130,7 @@ export default function TransporteUrbano() {
         title={pc.t("SEOHead.title.1", "Guía del Transporte Urbano Integrado - Descubre RD")}
         description={pc.t("SEOHead.description.1", "Información de tarifas, horarios y estaciones del Metro de Santo Domingo, Teleférico y el Monorriel de Santiago. Planifica tu ruta urbana fácilmente.")}
       />
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <Header />
 
         <main className="pt-20">

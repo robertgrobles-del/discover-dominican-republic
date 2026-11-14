@@ -367,7 +367,7 @@ export function RestaurantsBarsSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
             >
-              <h2 className="font-display text-3xl md:text-4xl font-bold">
+              <h2 className="font-display text-3xl md:text-4xl font-bold text-balance">
                 {t("restaurants.title")} <span className="text-primary">{t("restaurants.featured")}</span>
               </h2>
               <p className="text-muted-foreground mt-3 max-w-lg">
@@ -412,7 +412,7 @@ export function RestaurantsBarsSection() {
                 <span className="w-6 h-px bg-primary" />
                 {t("bars.nightlife")}
               </span>
-              <h2 className="font-display text-2xl sm:text-3xl lg:text-4xl font-extrabold text-foreground">
+              <h2 className="font-display text-2xl sm:text-3xl lg:text-4xl font-extrabold text-foreground text-balance">
                 {t("bars.title")} <span className="text-primary">{t("bars.recommended")}</span>
               </h2>
               <p className="text-muted-foreground mt-1.5 text-xs sm:text-sm max-w-lg">

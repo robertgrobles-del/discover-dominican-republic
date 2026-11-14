@@ -105,7 +105,7 @@ export default function CentroSaludDetalle() {
         description={`Servicios médicos, emergencias, seguros aceptados y contacto para ${centro.name} en ${centro.address}, ${centro.region}. Atención turística bilingüe.`}
       />
 
-      <div className="min-h-screen bg-background flex flex-col justify-between">
+      <div className="min-h-dvh bg-background flex flex-col justify-between">
         <Header />
 
         <main className="flex-grow pt-24 pb-16">

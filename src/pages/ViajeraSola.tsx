@@ -121,7 +121,7 @@ export default function ViajeraSola() {
         description={pc.t("SEOHead.description.1", "Guía completa para mujeres que viajan solas a RD: destinos seguros, consejos prácticos de seguridad, hospedajes recomendados y comunidades de viajeras.")}
         keywords="viajera sola dominicana, mujer viaja sola RD, seguridad mujer turista, destinos seguros dominicana, solo female travel dominican republic"
       />
-      <div className="min-h-screen flex flex-col bg-background text-foreground">
+      <div className="min-h-dvh flex flex-col bg-background text-foreground">
         <Header />
 
         {/* Hero Section */}

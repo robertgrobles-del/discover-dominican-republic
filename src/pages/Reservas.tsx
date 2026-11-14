@@ -72,7 +72,7 @@ export default function Reservas() {
   if (!user) {
     return (
       <PageTransition>
-        <div className="min-h-screen bg-background flex flex-col">
+        <div className="min-h-dvh bg-background flex flex-col">
           <Header />
           <main className="flex-1 flex items-center justify-center">
             <Card className="max-w-md mx-auto">
@@ -105,7 +105,7 @@ export default function Reservas() {
   return (
     <PageTransition>
       <SEOHead title="Mis Reservas | DescubreRD" description="Gestiona tus reservaciones turísticas en República Dominicana" />
-      <div className="min-h-screen bg-background flex flex-col">
+      <div className="min-h-dvh bg-background flex flex-col">
         <Header />
         <main className="flex-1 container mx-auto px-4 py-8 max-w-4xl">
           <h1 className="font-display text-3xl font-bold mb-6">Mis Reservas</h1>

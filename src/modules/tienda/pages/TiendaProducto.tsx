@@ -49,7 +49,7 @@ export default function TiendaProducto() {
   const [size, setSize] = useState("");
   const [color, setColor] = useState("");
 
-  if (isLoading) return <div className="min-h-screen" />;
+  if (isLoading) return <div className="min-h-dvh" />;
   if (isError) return (
     <PageTransition>
       <Header variant="white" />

@@ -73,7 +73,7 @@ export default function SeguridadVial() {
         description={pc.t("SEOHead.description.1", "Todo lo que necesitas saber para conducir de forma segura en República Dominicana: reglas, consejos y empresas de alquiler.")}
         keywords="conducir, seguridad vial, alquiler de autos, República Dominicana, reglas de tránsito"
       />
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <Header />
 
         {/* Hero */}

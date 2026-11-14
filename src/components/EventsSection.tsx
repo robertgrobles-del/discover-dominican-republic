@@ -99,7 +99,7 @@ export function EventsSection() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
-            <h2 className="font-display text-3xl md:text-4xl font-bold">
+            <h2 className="font-display text-3xl md:text-4xl font-bold text-balance">
               {t("events.next")} <span className="text-primary">{t("events.events")}</span>
             </h2>
             <p className="text-muted-foreground mt-3 max-w-lg">

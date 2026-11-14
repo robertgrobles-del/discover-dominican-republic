@@ -42,7 +42,7 @@ const Index = () => {
         geo={{ placename: "República Dominicana", region: "DO", latitude: 18.7357, longitude: -70.1627 }}
         jsonLd={generateOrganizationSchema()}
       />
-      <div className="min-h-screen bg-background" id="main-content">
+      <div className="min-h-dvh bg-background" id="main-content">
         <Header onOpenSearch={() => setIsGlobalSearchOpen(true)} />
         <h1 className="sr-only">Descubre República Dominicana: destinos, experiencias y planificación de viaje</h1>
         <HeroSlideshow onOpenSearch={() => setIsGlobalSearchOpen(true)} />

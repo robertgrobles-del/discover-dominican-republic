@@ -80,7 +80,7 @@ export default function Conectividad() {
         description={pc.t("SEOHead.description.1", "Todo lo que necesitas saber sobre Internet, SIM cards y WiFi en República Dominicana para turistas.")}
         keywords="internet, wifi, sim card, conectividad, República Dominicana, turista"
       />
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <Header />
 
         {/* Hero */}

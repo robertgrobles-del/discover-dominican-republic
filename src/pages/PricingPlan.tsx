@@ -19,7 +19,7 @@ export default function PricingPlan() {
         title="Planes y Publicidad para Empresas Turísticas - Descubre República Dominicana"
         description="Registra o reclama tu hotel, restaurante, bar o tour en Descubre República Dominicana. Conecta con viajeros nacionales e internacionales sin pagar comisiones por reserva."
       />
-      <div className="min-h-screen bg-background flex flex-col justify-between">
+      <div className="min-h-dvh bg-background flex flex-col justify-between">
         <Header />
 
         <main className="flex-grow pt-24 pb-20">

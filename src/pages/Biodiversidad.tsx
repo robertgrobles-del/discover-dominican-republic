@@ -224,7 +224,7 @@ export default function Biodiversidad() {
         description={pc.t("SEOHead.description.1", "Conoce las especies endémicas, flora nativa y áreas protegidas de la isla: solenodonte, cotorra de la hispaniola, ballenas jorobadas y parques nacionales.")}
         keywords="biodiversidad republica dominicana, animales endemicos rd, solenodonte, cotorra hispaniola, rosa bayahibe, parques nacionales rd"
       />
-      <div className="min-h-screen bg-background text-foreground flex flex-col selection:bg-emerald-500 selection:text-white">
+      <div className="min-h-dvh bg-background text-foreground flex flex-col selection:bg-emerald-500 selection:text-white">
         <Header />
 
         {/* HERO EDITORIAL DE BIODIVERSIDAD */}

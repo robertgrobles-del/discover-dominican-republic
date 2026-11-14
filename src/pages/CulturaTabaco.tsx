@@ -86,7 +86,7 @@ export default function CulturaTabaco() {
         description={pc.t("SEOHead.description.1", "Descubre la tradición del cigarro premium dominicano. Tours de fábricas, casas productoras legendarias y experiencias de maridaje en Santiago de los Caballeros.")}
         keywords="cigarros dominicanos, tabaco premium, La Aurora, Arturo Fuente, Davidoff, ruta del tabaco, Santiago"
       />
-      <div className="min-h-screen flex flex-col bg-background">
+      <div className="min-h-dvh flex flex-col bg-background">
         <Header />
         
         {/* Hero */}

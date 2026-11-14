@@ -13,7 +13,7 @@ const MapaInteractivo = () => {
         title={pc.t("SEOHead.title.1", "Mapa Interactivo - Descubre República Dominicana")}
         description={pc.t("SEOHead.description.1", "Explora destinos, hoteles, playas y restaurantes de República Dominicana en un mapa interactivo.")}
       />
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <Header />
         <main className="container mx-auto px-4 py-8">
           <div className="max-w-6xl mx-auto">

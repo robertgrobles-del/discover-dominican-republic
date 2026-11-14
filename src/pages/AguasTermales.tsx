@@ -114,7 +114,7 @@ export default function AguasTermales() {
         title={pc.t("SEOHead.title.1", "Aguas Termales y Balnearios de Bienestar - Descubre RD")}
         description={pc.t("SEOHead.description.1", "Explora los balnearios de aguas termales y azufradas naturales en República Dominicana, como Aguas Calientes en SAJOMA y Canoa en Barahona.")}
       />
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <Header />
 
         <main className="pt-20">

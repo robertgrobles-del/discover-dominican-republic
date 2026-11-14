@@ -171,7 +171,7 @@ export default function ReporteOlasViento() {
         keywords="reporte olas dominicana, viento cabarete hoy, surf playa encuentro, kitesurf dominicana mareas, olas punta cana macao"
       />
       
-      <div className="min-h-screen bg-background flex flex-col justify-between">
+      <div className="min-h-dvh bg-background flex flex-col justify-between">
         <Header />
 
         <main className="pb-20">

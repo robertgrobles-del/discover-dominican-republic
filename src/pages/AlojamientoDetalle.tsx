@@ -114,7 +114,7 @@ export default function AlojamientoDetalle() {
 
   if (!loading && !staticHotel && !dbHotel) {
     return (
-      <div className="min-h-screen bg-background text-foreground">
+      <div className="min-h-dvh bg-background text-foreground">
         <Header />
         <div className="container mx-auto px-4 py-32 text-center">
           <Bed className="h-16 w-16 text-muted-foreground mx-auto mb-6" />
@@ -130,7 +130,7 @@ export default function AlojamientoDetalle() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-dvh bg-background text-foreground">
       <SEOHead
         title={`${hotelName} - Reserva y Opiniones en República Dominicana`}
         description={hotelShortDesc || hotelDescription?.substring(0, 160)}

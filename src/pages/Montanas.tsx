@@ -124,7 +124,7 @@ export default function Montanas() {
         description={pc.t("SEOHead.description.1", "Explora las montañas, cordilleras y picos principales de RD: Pico Duarte (3,098m), Isabel de Torres, Montaña Redonda, La Pelona y rutas de trekking.")}
         keywords="montañas republica dominicana, pico duarte, cordillera central, senderismo rd, trekking caribe, montaña redonda, isabel de torres"
       />
-      <div className="min-h-screen bg-background flex flex-col text-foreground">
+      <div className="min-h-dvh bg-background flex flex-col text-foreground">
         <Header />
 
         {/* Hero Section */}

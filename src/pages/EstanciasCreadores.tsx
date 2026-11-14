@@ -201,7 +201,7 @@ export default function EstanciasCreadoresPage() {
         title="Estancias para Creadores & Influencers — Descubre RD"
         description="Aplica a estancias gratuitas en hoteles y resorts de República Dominicana a cambio de crear contenido auténtico para tu comunidad."
       />
-      <div className="min-h-screen bg-background flex flex-col">
+      <div className="min-h-dvh bg-background flex flex-col">
         <Header />
 
         {/* Hero */}

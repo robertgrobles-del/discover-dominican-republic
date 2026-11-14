@@ -185,7 +185,7 @@ export default function AudioGuias() {
         description={pc.t("SEOHead.description.1", "Explora la Zona Colonial, Samaná, el Pico Duarte y Los Haitises con audioguías interactivas narradas por expertos. Descarga sin conexión.")}
         keywords="audioguias republica dominicana, audioguia zona colonial, audio tour rd, relatos dominicanos, tours guiados con gps"
       />
-      <div className="min-h-screen bg-background text-foreground flex flex-col">
+      <div className="min-h-dvh bg-background text-foreground flex flex-col">
         <Header />
 
         {/* Hero Section */}

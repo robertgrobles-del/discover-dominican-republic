@@ -24,7 +24,7 @@ const SIGNS = [
 
 export default function LoteriasJuegoResponsable() {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-dvh bg-background">
       <SEOHead
         title="Juego responsable | Loterías en República Dominicana"
         description="Consejos para jugar a la lotería con responsabilidad, señales de alerta del juego problemático y dónde pedir ayuda en República Dominicana."

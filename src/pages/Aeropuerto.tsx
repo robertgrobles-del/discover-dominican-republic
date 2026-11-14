@@ -130,7 +130,7 @@ export default function Aeropuerto() {
   const airportsList = pc.data("ALL_AIRPORTS", __pcData.ALL_AIRPORTS);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-dvh bg-background">
       <SEOHead
         title={pc.t("SEOHead.title.1", "Aeropuertos de República Dominicana | Vuelos, FIDS y Terminales en Vivo")}
         description={pc.t("SEOHead.description.1", "Guía oficial de los 8 aeropuertos internacionales de República Dominicana: llegadas y salidas en tiempo real, terminales, salas VIP, estacionamiento y trámite de E-Ticket migratorio gratuito.")}

@@ -182,7 +182,7 @@ export default function ClubRecompensas() {
         description="Canjea tus monedas de exploración turística por day passes en resorts todo incluido, catas de ron y tours. Empresas verificadas pueden registrar y patrocinar recompensas."
         keywords="club de recompensas turismo rd, empresas aliadas turismo rd, validar empresa rnc mitur recompensas, canje de monedas descubrerd"
       />
-      <div className="min-h-screen bg-background flex flex-col">
+      <div className="min-h-dvh bg-background flex flex-col">
         <Header />
 
         {/* Central Gamification Breadcrumb Bar */}

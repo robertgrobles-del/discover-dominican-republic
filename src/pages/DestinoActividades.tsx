@@ -41,7 +41,7 @@ export default function DestinoActividades() {
       />
       <Header />
 
-      <main className="min-h-screen bg-background pt-28 pb-20">
+      <main className="min-h-dvh bg-background pt-28 pb-20">
         <div className="container mx-auto px-4">
           <Button variant="ghost" size="sm" asChild className="mb-4 -ml-2">
             <Link to={`/destino/${slug}`}><ArrowLeft className="h-4 w-4 mr-1" />{" "}{pc.tx("Link.1", "Volver a")}{" "}{name}</Link>

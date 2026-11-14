@@ -158,7 +158,7 @@ export default function Ecoturismo() {
         description={pc.t("SEOHead.description.1", "Descubre la naturaleza salvaje de RD: espeleología en cuevas milenarias, avistamiento de aves endémicas, ballenas jorobadas en Samaná y parques nacionales.")}
         keywords="ecoturismo RD, cuevas dominicanas, birdwatching Caribe, ballenas Samaná, parques nacionales dominicanos"
       />
-      <div className="min-h-screen flex flex-col bg-background">
+      <div className="min-h-dvh flex flex-col bg-background">
         <Header />
         
         {/* Hero */}

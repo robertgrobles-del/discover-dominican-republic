@@ -44,7 +44,7 @@ export function AboutRepublicaDominicanaSection() {
             className="lg:col-span-6 space-y-6"
           >
             {/* Main Unified Heading */}
-            <h2 className="font-display text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-foreground leading-[1.15]">{pc.tx("h2.1", "Un Viaje Más Allá de lo Ordinario:")}{" "}
+            <h2 className="font-display text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-foreground leading-[1.15] text-balance">{pc.tx("h2.1", "Un Viaje Más Allá de lo Ordinario:")}{" "}
               <span className="text-primary">{pc.tx("span.1", "República Dominicana")}</span>
             </h2>
 

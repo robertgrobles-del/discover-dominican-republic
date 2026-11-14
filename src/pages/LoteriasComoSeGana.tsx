@@ -32,7 +32,7 @@ export default function LoteriasComoSeGana() {
   }, [lotteries, q]);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-dvh bg-background">
       <SEOHead
         title="Cómo se gana en cada lotería dominicana | Reglas por sorteo"
         description="Reglas de cada sorteo de las loterías dominicanas y de EE. UU. jugadas en RD: cuántos números salen, su rango y cómo se gana en quiniela, palé, tripleta y loto."

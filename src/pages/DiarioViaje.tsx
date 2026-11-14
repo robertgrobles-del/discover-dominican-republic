@@ -97,7 +97,7 @@ export default function DiarioViaje() {
         title="Diario de Viaje Digital | Descubre RD"
         description="Crea tu diario de viajes interactivo en formato de revista digital con fotos y bloques de texto. Compártelo con amigos."
       />
-      <div className="min-h-screen flex flex-col bg-background print:bg-white print:text-black">
+      <div className="min-h-dvh flex flex-col bg-background print:bg-white print:text-black">
         <div className="print:hidden">
           <Header />
         </div>

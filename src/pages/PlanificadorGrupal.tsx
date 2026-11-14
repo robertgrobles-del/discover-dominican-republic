@@ -49,7 +49,7 @@ export default function PlanificadorGrupal() {
         description={pc.t("SEOHead.description.1", "Organiza tu viaje grupal a República Dominicana con herramientas colaborativas.")}
         keywords="viaje grupal, planificador, grupo, República Dominicana, itinerario"
       />
-      <div className="min-h-screen bg-background flex flex-col">
+      <div className="min-h-dvh bg-background flex flex-col">
         <Header />
 
         <main className="flex-1 container mx-auto px-4 lg:px-8 py-8">

@@ -137,7 +137,7 @@ export default function Sitemap() {
         description={pc.t("SEOHead.description.1", "Índice exhaustivo de todas las provincias, playas, ríos, rutas gastronómicas, hoteles y experiencias de República Dominicana.")}
         keywords="sitemap descubre rd, mapa del sitio turismo republica dominicana, directorio turismo dominicano"
       />
-      <div className="min-h-screen bg-background text-foreground flex flex-col selection:bg-primary selection:text-white">
+      <div className="min-h-dvh bg-background text-foreground flex flex-col selection:bg-primary selection:text-white">
         <Header />
 
         {/* Hero */}

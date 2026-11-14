@@ -77,7 +77,7 @@ export default function IdentificadorComida() {
         title={pc.t("SEOHead.title.1", "Identificador de Comida Dominicana con IA")}
         description={pc.t("SEOHead.description.1", "Escanea platos dominicanos con tu cámara para descubrir ingredientes, información nutricional y dónde encontrar comidas típicas como la bandera, mangú, sancocho y mofongo.")}
       />
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <Header />
 
         {/* Hero */}

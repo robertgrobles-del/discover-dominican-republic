@@ -71,7 +71,7 @@ export default function CalculadoraTributaria() {
         title="Calculadora Tributaria Restaurantes DOP - Descubre RD"
         description="Calcula fácilmente la cuenta de restaurantes en República Dominicana desglosando el 18% del ITBIS y el 10% de la propina de ley."
       />
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <Header />
 
         <main className="pt-20">

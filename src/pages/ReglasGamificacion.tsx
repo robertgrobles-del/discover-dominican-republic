@@ -51,7 +51,7 @@ export default function ReglasGamificacion() {
         title="Reglas de XP, monedas y Pasaporte Digital"
         description="Consulta cómo se acreditan XP y monedas, los topes de acciones, los niveles y las ligas del Pasaporte Digital de Descubre RD."
       />
-      <div className="min-h-screen bg-background text-foreground">
+      <div className="min-h-dvh bg-background text-foreground">
         <Header />
         <main>
           <section className="border-b border-border bg-brand-lagoon text-white">

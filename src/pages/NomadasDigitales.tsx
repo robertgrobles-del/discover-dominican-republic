@@ -150,7 +150,7 @@ export default function NomadasDigitales() {
         title="Nómadas Digitales y Retirados en República Dominicana"
         description="Guía completa para nómadas digitales y retirados en RD. Visados, incentivos de la Ley 171-07, costo de vida, coworking y destinos populares."
       />
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <Header />
 
         {/* Hero */}

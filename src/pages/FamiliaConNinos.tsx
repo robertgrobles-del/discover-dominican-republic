@@ -66,7 +66,7 @@ export default function FamiliaConNinos() {
         description={pc.t("SEOHead.description.1", "Guía completa para viajar en familia a RD: resorts con kids club, actividades por edad, destinos seguros, salud infantil y consejos prácticos.")}
         keywords="viaje familia dominicana, vacaciones niños RD, resorts kids club punta cana, actividades niños caribe"
       />
-      <div className="min-h-screen flex flex-col bg-background">
+      <div className="min-h-dvh flex flex-col bg-background">
         <Header />
 
         <section className="relative min-h-[40vh] flex items-center overflow-hidden">

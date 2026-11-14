@@ -41,7 +41,7 @@ export default function Destinos() {
         description={t("destinos.seoDescription")}
         keywords="destinos República Dominicana, turismo RD, playas Caribe, Punta Cana, Santo Domingo, Samaná"
       />
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <Header />
         
 

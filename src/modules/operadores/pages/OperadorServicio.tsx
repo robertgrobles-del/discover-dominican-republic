@@ -89,7 +89,7 @@ export default function OperadorServicio() {
   const spots = useMemo(() => (sq ? sq.remaining ?? 0 : listing && !server ? availableSpots(listing, bookingsQ.data || [], date, selectedTime) : 0), [sq, listing, server, bookingsQ.data, date, selectedTime]);
   const roomsFree = useMemo(() => (sq ? sq.remaining ?? 0 : listing && room && !server ? availableRooms(listing, room.id, bookingsQ.data || [], date, checkOut) : 0), [sq, listing, room, server, bookingsQ.data, date, checkOut]);
 
-  if (orgQ.isLoading || (org && listingQ.isLoading)) return <div className="min-h-screen" />;
+  if (orgQ.isLoading || (org && listingQ.isLoading)) return <div className="min-h-dvh" />;
   if (!org || !listing || (listing.status !== "published" && !isOwner)) {
     return (
       <PageTransition>

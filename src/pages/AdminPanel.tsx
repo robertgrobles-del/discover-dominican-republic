@@ -233,7 +233,7 @@ export default function AdminPanel() {
   if (authLoading || accessLoading) {
     return (
       <PageTransition>
-        <div className="min-h-screen flex items-center justify-center">
+        <div className="min-h-dvh flex items-center justify-center">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
       </PageTransition>
@@ -254,7 +254,7 @@ export default function AdminPanel() {
           description="Consola interna restringida"
         />
         <Header />
-        <main className="min-h-screen pt-28 pb-16 flex items-center justify-center px-4">
+        <main className="min-h-dvh pt-28 pb-16 flex items-center justify-center px-4">
           <AccessDeniedState
             title="Consola de Administración"
             description="Tu cuenta no tiene capacidades de administración (admin.read). Solicita acceso al equipo responsable."
@@ -347,9 +347,9 @@ export default function AdminPanel() {
   return (
     <>
       <SEOHead title="Consola de administración | Descubre RD" description="Consola empresarial unificada: CMS, ERP, CRM y control de plataforma." />
-      <div className="flex min-h-screen bg-muted/20 text-foreground">
+      <div className="flex min-h-dvh bg-muted/20 text-foreground">
         {/* Menú lateral: fijo en escritorio, cajón en móvil */}
-        <aside className="sticky top-0 hidden h-screen w-52 shrink-0 flex-col border-r border-border/60 bg-background lg:flex">{sidebar}</aside>
+        <aside className="sticky top-0 hidden h-dvh w-52 shrink-0 flex-col border-r border-border/60 bg-background lg:flex">{sidebar}</aside>
         {mobileMenuOpen && <div className="fixed inset-0 z-40 bg-black/50 lg:hidden" onClick={() => setMobileMenuOpen(false)} aria-hidden="true" />}
         <aside className={`fixed inset-y-0 left-0 z-50 flex w-60 flex-col border-r border-border/60 bg-background shadow-xl transition-transform duration-200 lg:hidden ${mobileMenuOpen ? "translate-x-0" : "-translate-x-full"}`} aria-hidden={!mobileMenuOpen}>
           {sidebar}
@@ -407,7 +407,7 @@ export default function AdminPanel() {
                 <>
                   <div className="mb-6 pb-4 border-b border-border/50 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                     <div>
-                      <h1 className="text-2xl font-bold tracking-tight text-foreground">{activeTab.label}</h1>
+                      <h1 className="text-2xl font-bold tracking-tight text-foreground text-balance">{activeTab.label}</h1>
                       <p className="text-xs text-muted-foreground mt-0.5">{TAB_DESCRIPTIONS[activeTab.value] ?? CATEGORY_CONFIG[activeTab.category].description}</p>
                     </div>
                   </div>

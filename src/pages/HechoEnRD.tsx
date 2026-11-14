@@ -112,7 +112,7 @@ export default function HechoEnRD() {
         description={pc.t("SEOHead.description.1", "Descubre la riqueza artesanal de República Dominicana: Larimar, Ámbar, artesanías tradicionales y rutas culturales.")}
         keywords="artesanías, larimar, ámbar, productos dominicanos, souvenirs, República Dominicana"
       />
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <Header />
 
         {/* Hero */}

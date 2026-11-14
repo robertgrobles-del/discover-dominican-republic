@@ -104,7 +104,7 @@ export default function LeyesTurista() {
         description={pc.t("SEOHead.description.1", "Conoce las leyes clave para viajeros en RD: uso de drones, normas de tránsito, leyes sobre estupefacientes, aduanas, derechos del turista y teléfonos de POLITUR.")}
         keywords="leyes turista dominicana, normas viajero rd, drones republica dominicana ley, politur telefono emergencia, conducir en dominicana turista"
       />
-      <div className="min-h-screen flex flex-col bg-background text-foreground">
+      <div className="min-h-dvh flex flex-col bg-background text-foreground">
         <Header />
 
         {/* Hero Section */}

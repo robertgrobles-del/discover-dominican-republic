@@ -230,7 +230,7 @@ export default function ReclamarReserva() {
         title="Reclamar una reserva de invitado"
         description="Vincula a tu cuenta una reserva hecha como invitado usando el enlace de un solo uso que enviamos a tu correo."
       />
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <Header />
 
         <main className="pt-20">

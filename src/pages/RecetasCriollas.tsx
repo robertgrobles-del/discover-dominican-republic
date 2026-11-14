@@ -56,7 +56,7 @@ export default function RecetasCriollas() {
         keywords="recetas dominicanas, como hacer mangu, sancocho dominicano receta, habichuelas con dulce, pescado al coco samana, gastronomia dominicana"
       />
 
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <Header />
 
         {/* Hero Section */}

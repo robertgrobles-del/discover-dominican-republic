@@ -71,7 +71,7 @@ export default function EstadoServicio() {
   }, [fetchStatus]);
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-dvh bg-background flex flex-col">
       <SEOHead
         title={pc.t("SEOHead.title.1", "Estatus del servicio")}
         description={pc.t("SEOHead.description.1", "Estado en vivo de los servicios de Descubre República Dominicana: base de datos, correo y caché.")}

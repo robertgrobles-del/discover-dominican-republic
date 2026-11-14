@@ -108,7 +108,7 @@ export default function GuiaVegana() {
         description={pc.t("SEOHead.description.1", "Descubre los mejores restaurantes veganos en Santo Domingo, Punta Cana, Cabarete y Las Terrenas. Guía de platos dominicanos tradicionales plant-based.")}
         keywords="comida vegana republica dominicana, restaurantes veganos punta cana, guia vegetariana rd, mangu vegano, restaurantes plant based santo domingo"
       />
-      <div className="min-h-screen flex flex-col bg-background text-foreground">
+      <div className="min-h-dvh flex flex-col bg-background text-foreground">
         <Header />
 
         {/* Hero Section */}

@@ -59,7 +59,7 @@ export default function VuelveACasa() {
         description={pc.t("SEOHead.description.1", "Guía para dominicanos en el exterior que regresan de visita. Novedades del país, paquetes especiales, experiencias nostálgicas y datos prácticos.")}
         keywords="dominicanos exterior, diaspora dominicana, volver a RD, paquetes navidad dominicana"
       />
-      <div className="min-h-screen flex flex-col bg-background">
+      <div className="min-h-dvh flex flex-col bg-background">
         <Header />
 
         <section className="relative min-h-[45vh] flex items-center overflow-hidden">

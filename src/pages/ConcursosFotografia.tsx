@@ -132,7 +132,7 @@ export default function ConcursosFotografia() {
         title="Concursos de Fotografía Mensual | Descubre RD"
         description="Participa en nuestro concurso fotográfico mensual 'Captura RD'. Sube tus fotos de viajes y gana premios increíbles."
       />
-      <div className="min-h-screen flex flex-col bg-background">
+      <div className="min-h-dvh flex flex-col bg-background">
         <Header />
 
         <main className="flex-1 pt-24 pb-12">

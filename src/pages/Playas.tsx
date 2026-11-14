@@ -114,7 +114,7 @@ export default function Playas() {
         description={pc.t("SEOHead.description.1", "Descubre las mejores playas de República Dominicana: arena blanca, bahías vírgenes, surf en Cabarete, piscinas naturales en Saona y Bahía de las Águilas.")}
         keywords="playas republica dominicana, playa bavaro, bahia de las aguilas, playa rincon, playa juanillo, cabarete surf, mejores playas caribe"
       />
-      <div className="min-h-screen flex flex-col bg-background">
+      <div className="min-h-dvh flex flex-col bg-background">
         <Header />
         
         {/* Editorial Cinematic Hero */}

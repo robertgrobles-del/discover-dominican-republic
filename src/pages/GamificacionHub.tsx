@@ -197,7 +197,7 @@ export default function GamificacionHub() {
         onClose={() => setShowLevelUp(false)}
       />
 
-      <div className="min-h-screen bg-background pb-20">
+      <div className="min-h-dvh bg-background pb-20">
         <Header />
 
         <HubHero

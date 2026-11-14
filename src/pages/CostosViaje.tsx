@@ -178,7 +178,7 @@ export default function CostosViaje() {
         title={pc.t("SEOHead.title.1", "Costos de Viaje a República Dominicana - Guía de Presupuesto")}
         description={pc.t("SEOHead.description.1", "Descubre cuánto cuesta viajar a RD. Presupuestos por tipo de viajero, costos detallados y calculadora interactiva.")}
       />
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <Header />
         
         <main className="pt-20">

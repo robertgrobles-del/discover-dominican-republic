@@ -75,7 +75,7 @@ export default function EmbajadasConsulados() {
         description={pc.t("SEOHead.description.1", "Directorio completo de embajadas y consulados en Santo Domingo. Teléfonos de emergencia 24h, direcciones, horarios y correos de atención consular.")}
         keywords="embajadas dominicana, consulados Santo Domingo, emergencia consular, embajada EEUU RD"
       />
-      <div className="min-h-screen flex flex-col bg-background">
+      <div className="min-h-dvh flex flex-col bg-background">
         <Header />
 
         {/* ── HERO ─────────────────────────────────────────────────────── */}

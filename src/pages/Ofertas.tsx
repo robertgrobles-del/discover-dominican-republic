@@ -369,7 +369,7 @@ export default function Ofertas() {
         title={pc.t("SEOHead.title.1", "Ofertas Relámpago y Cupones Geolocalizados - Descubre RD")}
         description={pc.t("SEOHead.description.1", "Encuentra cupones y ofertas flash geolocalizadas cuando estés cerca de atracciones y hoteles en República Dominicana.")}
       />
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <Header />
 
         <main>

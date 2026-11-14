@@ -38,7 +38,7 @@ export default function MembresiasPasaporte() {
   return (
     <PageTransition>
       <SEOHead title="Membresías Pasaporte RD" description="Compara el acceso gratuito y los planes VIP configurados para Pasaporte RD. Consulta beneficios, multiplicadores y estado de disponibilidad." />
-      <div className="min-h-screen bg-background text-foreground">
+      <div className="min-h-dvh bg-background text-foreground">
         <Header />
         <main>
           <section className="bg-brand-lagoon text-white">

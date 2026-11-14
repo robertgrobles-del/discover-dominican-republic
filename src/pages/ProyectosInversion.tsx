@@ -205,7 +205,7 @@ export default function ProyectosInversion() {
         description="Conecta con desarrolladores turísticos, fondos de capital privado e inversionistas ángeles para proyectos hoteleros, eco-turismo e infraestructura en RD."
         keywords="inversion turistica dominicana, proyectos hoteleros rd, capital privado dominicana, invertir en turismo caribe"
       />
-      <div className="min-h-screen bg-background flex flex-col">
+      <div className="min-h-dvh bg-background flex flex-col">
         <Header />
 
         <main className="flex-1">

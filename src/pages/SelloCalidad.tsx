@@ -96,7 +96,7 @@ export default function SelloCalidad() {
   const certifiedBusinesses = pc.data("certifiedBusinesses", __pcData.certifiedBusinesses);
   return (
     <PageTransition>
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <Header />
 
         {/* Hero */}

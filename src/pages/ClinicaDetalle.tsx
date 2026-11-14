@@ -94,7 +94,7 @@ export default function ClinicaDetalle() {
         image={clinica.image}
         keywords={`${clinica.name}, ${clinica.type}, turismo médico república dominicana, ${clinica.location}, ${clinica.certifications.join(", ")}`}
       />
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <Header />
 
         {/* Hero */}

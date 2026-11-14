@@ -79,7 +79,7 @@ export default function RioDetalle() {
           title={pc.t("SEOHead.title.1", "Río no encontrado")}
           description={pc.t("SEOHead.description.1", "El río o cascada que buscas no existe o ha sido movido. Explora todos los ríos y cascadas de República Dominicana.")}
         />
-        <div className="min-h-screen bg-background">
+        <div className="min-h-dvh bg-background">
           <Header />
           <div className="container mx-auto px-4 py-32 text-center">
             <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
@@ -112,7 +112,7 @@ export default function RioDetalle() {
         keywords={`rio ${river.name}, cascada ${river.name}, ${river.province}, ecoturismo rd, balnearios republica dominicana`}
       />
 
-      <div className="min-h-screen bg-background pb-16 md:pb-0">
+      <div className="min-h-dvh bg-background pb-16 md:pb-0">
         <Header />
 
         {/* Hero Header Component */}

@@ -76,7 +76,7 @@ export default function AutorInvitado() {
         description="Publica tu artículo sobre turismo en República Dominicana. Comparte tu experiencia con miles de viajeros."
         keywords="autor invitado, guest post turismo, escribir sobre RD, blog turismo dominicano"
       />
-      <div className="min-h-screen flex flex-col bg-background">
+      <div className="min-h-dvh flex flex-col bg-background">
         <Header />
 
         {/* Hero */}

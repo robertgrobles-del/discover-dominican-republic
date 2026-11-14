@@ -117,7 +117,7 @@ export default function RDEnMovimiento() {
         description={pc.t("SEOHead.description.1", "Descubre las mejores rutas de running y ciclismo en República Dominicana. Eventos, mapas y comunidad.")}
         keywords="running, ciclismo, bicicleta, rutas, maratón, República Dominicana, deportes"
       />
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <Header />
 
         {/* Hero */}

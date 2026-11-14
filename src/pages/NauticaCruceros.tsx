@@ -28,7 +28,7 @@ export default function NauticaCruceros() {
   const pc = usePageContent("nautica-cruceros");
   return (
     <PageTransition>
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <Header />
 
         {/* Hero */}

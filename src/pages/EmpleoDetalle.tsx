@@ -96,7 +96,7 @@ export default function EmpleoDetalle() {
   if (isLoading) {
     return (
       <PageTransition>
-        <div className="min-h-screen bg-background">
+        <div className="min-h-dvh bg-background">
           <Header />
           <div className="container mx-auto px-4 py-32">
             <Skeleton className="h-8 w-2/3 mb-4" />
@@ -113,7 +113,7 @@ export default function EmpleoDetalle() {
   if (!job) {
     return (
       <PageTransition>
-        <div className="min-h-screen bg-background">
+        <div className="min-h-dvh bg-background">
           <Header />
           <div className="container mx-auto px-4 py-32 text-center">
             <Briefcase className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
@@ -134,7 +134,7 @@ export default function EmpleoDetalle() {
         description={job.short_description || job.description?.slice(0, 160) || ''}
         keywords={`empleo, ${job.title}, ${job.company_name}, turismo, República Dominicana`}
       />
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <Header />
 
         {/* Breadcrumbs */}

@@ -318,7 +318,7 @@ export default function LoteriaDetalle() {
         ]}
       />
 
-      <div className="min-h-screen bg-background flex flex-col justify-between">
+      <div className="min-h-dvh bg-background flex flex-col justify-between">
         <Header />
 
         <main className="flex-grow pt-24 pb-16">

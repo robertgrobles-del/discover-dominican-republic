@@ -148,7 +148,7 @@ export default function Bodas() {
         keywords="bodas republica dominicana, destination weddings punta cana, casarse en dominicana requisitos, luna de miel samana, bodas zona colonial"
       />
       
-      <div className="min-h-screen flex flex-col bg-background">
+      <div className="min-h-dvh flex flex-col bg-background">
         <Header />
 
         <main className="pb-20">

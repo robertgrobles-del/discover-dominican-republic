@@ -65,7 +65,7 @@ export default function Experiencias() {
         description={t("experiencias.seoDesc")}
         keywords="experiencias República Dominicana, actividades RD, qué hacer en RD, ecoturismo, aventura, deportes acuáticos, cultura dominicana, turismo"
       />
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <Header />
 
         {/* Hero Section */}

@@ -89,7 +89,7 @@ export default function Newsletter() {
           title={pc.t("SEOHead.title.1", "Newsletter - Suscripción Exitosa")}
           description={pc.t("SEOHead.description.1", "Te has suscrito al newsletter de RD Turismo")}
         />
-        <div className="min-h-screen bg-background">
+        <div className="min-h-dvh bg-background">
           <Header />
           <main className="container mx-auto px-4 lg:px-8 py-20">
             <motion.div
@@ -119,7 +119,7 @@ export default function Newsletter() {
         description={pc.t("SEOHead.description.2", "Suscríbete a nuestro newsletter y recibe ofertas personalizadas según tus intereses de viaje.")}
         keywords="newsletter, ofertas, República Dominicana, turismo, descuentos, promociones"
       />
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <Header />
 
         {/* Hero */}

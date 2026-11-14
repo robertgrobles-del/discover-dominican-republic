@@ -82,7 +82,7 @@ export default function PlayaDetalle() {
   if (isLoading) {
     return (
       <PageTransition>
-        <div className="min-h-screen bg-background">
+        <div className="min-h-dvh bg-background">
           <Header />
           <div className="container mx-auto px-4 py-24">
             <Skeleton className="h-[450px] w-full rounded-3xl mb-8" />
@@ -99,7 +99,7 @@ export default function PlayaDetalle() {
   if (!rawBeach) {
     return (
       <PageTransition>
-        <div className="min-h-screen bg-background">
+        <div className="min-h-dvh bg-background">
           <Header />
           <div className="container mx-auto px-4 py-32 text-center">
             <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
@@ -170,7 +170,7 @@ export default function PlayaDetalle() {
         })}
       />
 
-      <div className="min-h-screen bg-background pb-16 md:pb-0">
+      <div className="min-h-dvh bg-background pb-16 md:pb-0">
         <Header />
 
         {/* Hero Header Component */}

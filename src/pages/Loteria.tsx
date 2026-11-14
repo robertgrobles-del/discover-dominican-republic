@@ -174,7 +174,7 @@ export default function Loteria() {
             title={`Histórico del Sorteo: ${draw.name} | ${lottery?.name || "Lotería"}`}
             description={`Resultados históricos de ${draw.name} de la lotería ${lottery?.name || ""}. Busca números ganadores por fecha y estadísticas de bolos.`}
           />
-          <div className="min-h-screen bg-background flex flex-col justify-between">
+          <div className="min-h-dvh bg-background flex flex-col justify-between">
             <div>
               <Header />
               <main className="pt-24 pb-16">
@@ -198,7 +198,7 @@ export default function Loteria() {
         description={pc.t("SEOHead.description.1", "Consulta en tiempo real los resultados de los sorteos y marcas de lotería en República Dominicana y loterías americanas con histórico y buscador.")}
         keywords="loteria rd, leidsa loto, loteria nacional, quiniela pale, loteka, real, loterias dominicanas"
       />
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <Header />
 
         {/* Hero */}

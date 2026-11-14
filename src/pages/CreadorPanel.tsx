@@ -63,7 +63,7 @@ export default function CreadorPanel() {
   );
 
   return (
-    <div className="min-h-screen bg-muted/30">
+    <div className="min-h-dvh bg-muted/30">
       <SEOHead title={`${current.label} · Panel de creador | Descubre RD`} description="Panel privado del creador de contenido." />
       <Header />
       <div className="container mx-auto max-w-7xl px-4 pb-16 pt-24">

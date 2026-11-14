@@ -57,7 +57,7 @@ export default function Biblioteca() {
         title="Biblioteca Digital - Mapas y Guías Turísticas Descargables"
         description="Descarga mapas oficiales, guías regionales y la revista MITUR en alta resolución para planificar tu viaje por República Dominicana desde casa."
       />
-      <div className="min-h-screen flex flex-col bg-background">
+      <div className="min-h-dvh flex flex-col bg-background">
         <Header />
 
         {/* Hero */}

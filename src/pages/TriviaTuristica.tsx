@@ -319,7 +319,7 @@ export default function TriviaTuristica() {
         description="Pon a prueba tus conocimientos sobre geografía, próceres, gastronomía y patrimonio de República Dominicana. Gana puntos XP y sube en el ranking."
         keywords="trivia dominicana, quiz turismo rd, preguntas republica dominicana, gamificacion trivia"
       />
-      <div className="min-h-screen bg-background flex flex-col">
+      <div className="min-h-dvh bg-background flex flex-col">
         <Header />
 
         {/* Hub Breadcrumb */}

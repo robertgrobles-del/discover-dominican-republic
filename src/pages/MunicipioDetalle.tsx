@@ -37,7 +37,7 @@ export default function MunicipioDetalle() {
     return (
       <PageTransition>
         <Header />
-        <main className="min-h-screen flex items-center justify-center">
+        <main className="min-h-dvh flex items-center justify-center">
           <div className="text-center">
             <h1 className="text-2xl font-bold mb-4">{pc.tx("h1.1", "Municipio no encontrado")}</h1>
             <Link to="/destinos" className="text-primary hover:underline">{pc.tx("Link.1", "Volver a destinos")}</Link>
@@ -94,7 +94,7 @@ export default function MunicipioDetalle() {
 
       <Header />
 
-      <main className={`min-h-screen bg-background ${destinationTheme(municipality.slug, municipality.provinceSlug).className ?? ""}`} style={destinationTheme(municipality.slug, municipality.provinceSlug).style}>
+      <main className={`min-h-dvh bg-background ${destinationTheme(municipality.slug, municipality.provinceSlug).className ?? ""}`} style={destinationTheme(municipality.slug, municipality.provinceSlug).style}>
         {/* Breadcrumb */}
         <div className="container mx-auto px-4 pt-4">
           <nav className="flex items-center gap-2 text-sm text-muted-foreground flex-wrap">

@@ -59,7 +59,7 @@ export default function RutaLarimar() {
         title={pc.t("SEOHead.title.1", "Ruta Histórica y Natural del Larimar - Barahona")}
         description={pc.t("SEOHead.description.1", "Recorre los yacimientos de la única gema azul pectolita del mundo en Barahona, República Dominicana. Aprende sobre minería artesanal y compra joyería local.")}
       />
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <Header />
 
         <main className="pt-20">

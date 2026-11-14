@@ -152,7 +152,7 @@ export default function ClimaTemporadas() {
         keywords="clima República Dominicana, temporadas, mejor época visitar, temperatura Punta Cana, huracanes Caribe, vacaciones"
         jsonLd={generateClimateSchema()}
       />
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <Header />
 
         {/* Hero */}

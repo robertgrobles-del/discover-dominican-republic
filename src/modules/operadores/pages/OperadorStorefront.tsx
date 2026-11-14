@@ -25,7 +25,7 @@ export default function OperadorStorefront() {
   const isOwner = !!siteQ.data?.isOwner;
   const live = !!org && org.verification === "verified" && org.website_enabled;
 
-  if (orgQ.isLoading) return <div className="min-h-screen" />;
+  if (orgQ.isLoading) return <div className="min-h-dvh" />;
 
   if (!org || (!live && !isOwner)) {
     return (

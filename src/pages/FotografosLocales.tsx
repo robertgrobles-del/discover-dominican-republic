@@ -92,7 +92,7 @@ export default function FotografosLocales() {
         description={pc.t("SEOHead.description.1", "Encuentra los mejores fotógrafos profesionales de República Dominicana para capturar tus momentos especiales.")}
         keywords="fotógrafos, República Dominicana, bodas, retratos, fotografía profesional"
       />
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <Header />
 
         {/* Hero */}

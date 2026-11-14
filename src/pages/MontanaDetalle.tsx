@@ -34,7 +34,7 @@ export default function MontanaDetalle() {
           title={pc.t("SEOHead.title.1", "Montaña no encontrada")}
           description={pc.t("SEOHead.description.1", "La montaña que buscas no existe o ha sido movida. Explora todas las montañas de República Dominicana.")}
         />
-        <div className="min-h-screen bg-background">
+        <div className="min-h-dvh bg-background">
           <Header />
           <div className="container mx-auto px-4 py-32 text-center">
             <h1 className="text-3xl font-bold mb-4">{pc.tx("h1.1", "Montaña no encontrada")}</h1>
@@ -59,7 +59,7 @@ export default function MontanaDetalle() {
         image={mountain.imageUrl}
         keywords={`${mountain.name}, montañas república dominicana, ${rangeLabels[mountain.range]}, senderismo, ${diff.label}`}
       />
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <Header />
 
         {/* Hero */}

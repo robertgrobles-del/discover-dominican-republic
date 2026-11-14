@@ -103,7 +103,7 @@ export default function Volunturismo() {
   const testimonials = pc.data("testimonials", __pcData.testimonials);
   return (
     <PageTransition>
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <Header />
 
         {/* Hero */}

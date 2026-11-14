@@ -86,7 +86,7 @@ export default function Wellness() {
   const zonas = pc.data("zonas", __pcData.zonas);
   return (
     <PageTransition>
-      <div className="min-h-screen flex flex-col bg-background">
+      <div className="min-h-dvh flex flex-col bg-background">
         <Header />
 
         {/* Hero */}

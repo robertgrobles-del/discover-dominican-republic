@@ -83,7 +83,7 @@ export default function Badges() {
         title="Badges y Logros - República Dominicana"
         description="Colecciona insignias por cada lugar que visites en República Dominicana y compara tu progreso con otros viajeros."
       />
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <Header />
 
         <main className="pt-20">

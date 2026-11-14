@@ -75,7 +75,7 @@ export default function EstadioDetalle() {
           touristType: [venue.categoryLabel, "Recinto Deportivo y Espectáculos", "Estadio"],
         })}
       />
-      <div className="min-h-screen bg-background flex flex-col">
+      <div className="min-h-dvh bg-background flex flex-col">
         <Header />
 
         {/* Hero Section */}

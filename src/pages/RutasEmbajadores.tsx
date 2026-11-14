@@ -94,7 +94,7 @@ export default function RutasEmbajadores() {
         description="Descubre República Dominicana a través de los ojos de sus celebridades más icónicas."
         keywords="embajadores, celebridades, rutas, Juan Luis Guerra, República Dominicana"
       />
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <Header />
 
         {/* Hero */}

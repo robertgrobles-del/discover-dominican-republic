@@ -29,7 +29,7 @@ export default function PlanificadorEscala() {
   return (
     <PageTransition>
       <SEOHead title={pc.t("SEOHead.title.1", "Planificador de escalas aeroportuarias | Descubre RD")} description={pc.t("SEOHead.description.1", "Estima el tiempo libre de una escala en República Dominicana y revisa los factores que debes confirmar antes de salir del aeropuerto.")} />
-      <div className="min-h-screen flex flex-col bg-background">
+      <div className="min-h-dvh flex flex-col bg-background">
         <Header />
         <main className="container mx-auto max-w-5xl flex-1 px-4 py-16">
           <Badge variant="outline" className="mb-4 gap-2"><Plane className="h-4 w-4" aria-hidden="true" />{" "}{pc.tx("Badge.1", "Planifica con margen")}</Badge>

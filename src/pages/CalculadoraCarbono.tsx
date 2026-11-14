@@ -123,7 +123,7 @@ export default function CalculadoraCarbono() {
         description={pc.t("SEOHead.description.1", "Calcula el impacto ambiental de tu vuelo, transporte terrestre y lanchas en República Dominicana. Compensa con reforestación en Valle Nuevo y Los Haitises.")}
         keywords="calculadora carbono vuelos rd, reforestacion valle nuevo, los haitises carbono azul, certificado viajero sostenible republica dominicana"
       />
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <Header />
 
         <main className="pt-20">

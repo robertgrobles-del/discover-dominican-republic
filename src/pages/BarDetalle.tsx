@@ -117,7 +117,7 @@ export default function BarDetalle() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <Header />
         <div className="container mx-auto px-4 py-32 text-center text-muted-foreground">{pc.tx("div.1", "Cargando detalles de vida nocturna...")}</div>
         <Footer />
@@ -128,7 +128,7 @@ export default function BarDetalle() {
   if (!bar) {
     return (
       <PageTransition>
-        <div className="min-h-screen bg-background">
+        <div className="min-h-dvh bg-background">
           <Header />
           <div className="container mx-auto px-4 py-32 text-center max-w-md">
             <GlassWater className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
@@ -162,7 +162,7 @@ export default function BarDetalle() {
         })}
       />
 
-      <div className="min-h-screen bg-background text-foreground">
+      <div className="min-h-dvh bg-background text-foreground">
         <Header hasHero />
 
         {/* Hero Slider with ONLY bar's own images */}

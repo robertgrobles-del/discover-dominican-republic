@@ -67,7 +67,7 @@ export default function Inversion() {
         title="Invertir en República Dominicana: Incentivos y Oportunidades"
         description="Explora los incentivos fiscales de la Ley 158-01, indicadores clave del turismo dominicano y las principales zonas de desarrollo como Punta Cana, Miches y Pedernales para inversionistas."
       />
-      <div className="min-h-screen flex flex-col bg-background">
+      <div className="min-h-dvh flex flex-col bg-background">
         <Header />
 
         {/* Hero */}

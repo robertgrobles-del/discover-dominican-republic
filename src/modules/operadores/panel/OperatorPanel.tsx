@@ -76,7 +76,7 @@ function OrgOnboarding({ userId, defaultName, email }: { userId: string; default
   const name = asCompany ? companyName.trim() : defaultName;
 
   return (
-    <div className="min-h-screen bg-secondary/30 flex items-center justify-center p-4">
+    <div className="min-h-dvh bg-secondary/30 flex items-center justify-center p-4">
       <SEOHead title="Crear organización — Operadores RD" description="Crea tu organización para publicar servicios y recibir reservas directas en Descubre RD." />
       <Card className="w-full max-w-xl">
         <CardHeader>
@@ -185,7 +185,7 @@ function Shell() {
   );
 
   return (
-    <div className="min-h-screen bg-secondary/30">
+    <div className="min-h-dvh bg-secondary/30">
       {sidebarOpen && <div className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm md:hidden" onClick={() => setSidebarOpen(false)} aria-hidden="true" />}
       <aside className={`fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r border-border bg-background shadow-xl transition-transform duration-300 md:hidden ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`} aria-hidden={!sidebarOpen}>
         <div className="flex h-14 items-center justify-between border-b border-border/60 px-4">
@@ -279,7 +279,7 @@ export default function OperatorPanel() {
   const orgQuery = useMyOrg(user?.id, user?.email);
 
   if (authLoading || (user && orgQuery.isLoading)) {
-    return <div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
+    return <div className="min-h-dvh flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
   }
   if (!user) return <Navigate to="/login?returnTo=/operadores/panel" replace />;
   if (!orgQuery.data) {

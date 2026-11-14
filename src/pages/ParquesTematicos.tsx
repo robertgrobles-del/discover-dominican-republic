@@ -200,7 +200,7 @@ export default function ParquesTematicos() {
       />
       <Header />
 
-      <main className="min-h-screen bg-background">
+      <main className="min-h-dvh bg-background">
         {/* Hero */}
         <section className="relative py-20 bg-gradient-to-b from-primary/10 to-background">
           <div className="container mx-auto px-4">

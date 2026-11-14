@@ -107,7 +107,7 @@ export default function MICE() {
         keywords="turismo mice dominicana, congresos punta cana, centro de convenciones santo domingo, eventos corporativos republica dominicana, rfp eventos rd"
       />
       
-      <div className="min-h-screen flex flex-col bg-background">
+      <div className="min-h-dvh flex flex-col bg-background">
         <Header />
 
         <main className="pb-20">

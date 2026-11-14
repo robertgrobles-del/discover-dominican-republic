@@ -143,7 +143,7 @@ export default function MapaMisiones() {
   return (
     <PageTransition>
       <SEOHead title="Mapa de Misiones - Explora RD" description="Descubre misiones turísticas en el mapa interactivo de República Dominicana." />
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <Header />
 
         <section className="pt-24 pb-4">

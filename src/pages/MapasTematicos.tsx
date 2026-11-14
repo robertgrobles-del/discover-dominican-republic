@@ -183,7 +183,7 @@ export default function MapasTematicos() {
         description={pc.t("SEOHead.description.1", "Explora nuestra colección de mapas ilustrados artísticamente. Desde la ruta de la bachata hasta los rincones secretos de nuestras playas.")}
         keywords="mapas ilustrados, mapas temáticos, República Dominicana, arte, turismo, rutas"
       />
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <Header />
 
         {/* Hero */}

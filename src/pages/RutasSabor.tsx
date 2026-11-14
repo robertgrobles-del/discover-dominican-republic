@@ -49,7 +49,7 @@ export default function RutasSabor() {
         keywords="rutas gastronomicas republica dominicana, ruta del cafe jarabacoa, ruta del cacao san francisco, ruta del tabaco santiago santiago la aurora, pescado al coco samana"
       />
 
-      <div className="min-h-screen flex flex-col bg-background text-foreground selection:bg-amber-500 selection:text-white">
+      <div className="min-h-dvh flex flex-col bg-background text-foreground selection:bg-amber-500 selection:text-white">
         <Header />
 
         {/* HERO EDITORIAL SENSORIAL */}

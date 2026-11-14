@@ -20,7 +20,7 @@ export default function PuertosMarinas() {
         description={pc.t("SEOHead.description.1", "Descubre los principales puertos de cruceros y marinas de República Dominicana. Información sobre líneas, facilidades y actividades cercanas.")}
         keywords="puertos, cruceros, marinas, República Dominicana, náutica, yates"
       />
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <Header />
 
         {/* Hero */}

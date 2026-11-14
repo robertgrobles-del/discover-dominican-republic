@@ -72,7 +72,7 @@ export default function HistoriaVivaAR() {
         description={pc.t("SEOHead.description.1", "Viaja en el tiempo con Realidad Aumentada. Descubre el Alcázar de Colón, Monasterio de San Francisco y más monumentos históricos como eran hace 500 años.")}
         keywords="realidad aumentada RD, historia dominicana, monumentos coloniales, AR turismo, Ciudad Colonial virtual"
       />
-      <div className="min-h-screen flex flex-col bg-background">
+      <div className="min-h-dvh flex flex-col bg-background">
         <Header />
         
         {/* Hero */}

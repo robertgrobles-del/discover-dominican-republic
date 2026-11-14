@@ -100,7 +100,7 @@ export default function PicoDuarte() {
         keywords="pico duarte republica dominicana, ascenso pico duarte rutas, senderismo jarabacoa pico duarte, parque armando bermudez, guias la cienaga"
       />
       
-      <div className="min-h-screen bg-background flex flex-col justify-between">
+      <div className="min-h-dvh bg-background flex flex-col justify-between">
         <Header />
 
         <main className="pb-20">

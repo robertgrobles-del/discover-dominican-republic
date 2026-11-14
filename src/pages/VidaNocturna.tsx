@@ -111,7 +111,7 @@ export default function VidaNocturna() {
   }, [allVenues, activeCategory, searchQuery]);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-dvh bg-background">
       <Header />
       
       {/* Hero Section */}

@@ -110,7 +110,7 @@ export default function Restaurantes() {
   }, [searchQuery, selectedPrice, selectedDestination, selectedTag, selectedCuisine, sortBy]);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-dvh bg-background">
       <Header />
       
       

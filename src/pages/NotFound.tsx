@@ -44,7 +44,7 @@ export default function NotFound() {
         noindex={true}
         breadcrumbs={[]}
       />
-      <div className="min-h-screen bg-background flex flex-col">
+      <div className="min-h-dvh bg-background flex flex-col">
         <Header />
 
         {/* Hero Section */}

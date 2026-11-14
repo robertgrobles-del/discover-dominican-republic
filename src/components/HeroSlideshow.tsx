@@ -270,7 +270,7 @@ export function HeroSlideshow({ onOpenSearch }: { onOpenSearch?: () => void }) {
 
   return (
     <section 
-      className="relative min-h-[92vh] lg:min-h-screen w-full flex flex-col justify-between overflow-hidden touch-pan-y"
+      className="relative min-h-[92vh] lg:min-h-dvh w-full flex flex-col justify-between overflow-hidden touch-pan-y"
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >

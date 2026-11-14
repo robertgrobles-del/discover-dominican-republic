@@ -200,7 +200,7 @@ export default function ContratarInfluencers() {
         description="Conecta tu marca con influencers de turismo en República Dominicana. Campañas en redes sociales, videos y cobertura fotográfica profesional."
         keywords="influencers turismo RD, marketing turístico, campañas redes sociales, influencer marketing dominicano"
       />
-      <div className="min-h-screen flex flex-col bg-background">
+      <div className="min-h-dvh flex flex-col bg-background">
         <Header />
 
         {/* Hero */}

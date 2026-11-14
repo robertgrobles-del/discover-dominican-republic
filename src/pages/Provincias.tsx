@@ -69,7 +69,7 @@ export default function Provincias() {
       />
       <Header />
       
-      <main className="min-h-screen bg-background">
+      <main className="min-h-dvh bg-background">
         {/* Dynamic 5-Slide Cover Slider with 2 Sponsored Experiences */}
         <ProvincesHeroSlider />
 

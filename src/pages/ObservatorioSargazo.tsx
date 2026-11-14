@@ -69,7 +69,7 @@ export default function ObservatorioSargazo() {
         title={pc.t("SEOHead.title.1", "Observatorio de Sargazo RD - Estado de Playas")}
         description={pc.t("SEOHead.description.1", "Consulta en tiempo real la presencia de sargazo en las playas de República Dominicana. Planifica tus vacaciones sabiendo qué playas están limpias.")}
       />
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <Header />
 
         <main className="pt-20">

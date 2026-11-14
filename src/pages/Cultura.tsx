@@ -120,7 +120,7 @@ export default function Cultura() {
         description={pc.t("SEOHead.description.1", "Explora 500 años de patrimonio: la Ciudad Colonial UNESCO, el Merengue, la Bachata, el Carnaval Vegano y la auténtica gastronomía criolla.")}
         keywords="cultura dominicana, merengue unesco, bachata dominicana, carnaval vegano, zona colonial historia, gastronomia criolla rd"
       />
-      <div className="min-h-screen bg-background text-foreground flex flex-col selection:bg-amber-500 selection:text-white">
+      <div className="min-h-dvh bg-background text-foreground flex flex-col selection:bg-amber-500 selection:text-white">
         <Header />
 
         {/* HERO EDITORIAL CULTURA */}

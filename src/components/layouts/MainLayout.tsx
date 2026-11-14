@@ -17,7 +17,7 @@ export function MainLayout({
   className,
 }: MainLayoutProps) {
   return (
-    <div className="min-h-screen flex flex-col bg-background text-foreground selection:bg-primary/20 selection:text-primary">
+    <div className="min-h-dvh flex flex-col bg-background text-foreground selection:bg-primary/20 selection:text-primary">
       <Header hasHero={hasHero} variant={headerVariant} />
       <main id="main-content" className={cn("flex-1", className)}>
         {children}

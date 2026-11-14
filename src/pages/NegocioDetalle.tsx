@@ -51,7 +51,7 @@ export default function NegocioDetalle() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <Header />
         <main className="container mx-auto max-w-5xl px-4 pb-20 pt-28">
           <Skeleton className="mb-4 h-6 w-48" />
@@ -71,7 +71,7 @@ export default function NegocioDetalle() {
 
   if (!e) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <SEOHead
           title="Empresa no encontrada | Descubre RD"
           description="El negocio que buscas no existe o aún está en proceso de revisión."
@@ -153,7 +153,7 @@ export default function NegocioDetalle() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-dvh bg-background text-foreground">
       <SEOHead
         title={`${e.name} | ${tipoLabel} en ${e.province || "RD"} - Descubre RD`}
         description={(e.description || `Descubre ${e.name}, ${tipoLabel} ubicado en ${e.province}. Horario, contacto, fotos y detalles oficiales.`).slice(0, 160)}

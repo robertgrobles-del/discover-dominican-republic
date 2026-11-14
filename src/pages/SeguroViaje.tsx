@@ -108,7 +108,7 @@ export default function SeguroViaje() {
         description={pc.t("SEOHead.description.1", "Compara seguros de viaje para RD: cobertura médica en Punta Cana y Santo Domingo, rescate en deportes acuáticos, cancelación y clínicas de primer nivel.")}
         keywords="seguro viaje republica dominicana, seguro medico turista rd, cobertura medica punta cana, seguro cancelacion vuelo rd, hospiten centro medico"
       />
-      <div className="min-h-screen flex flex-col bg-background text-foreground">
+      <div className="min-h-dvh flex flex-col bg-background text-foreground">
         <Header />
 
         {/* Hero Section */}

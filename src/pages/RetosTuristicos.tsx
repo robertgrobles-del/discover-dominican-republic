@@ -82,7 +82,7 @@ export default function RetosTuristicos() {
         description="Completa misiones de exploración por las 32 provincias, gana puntos XP, medallas y recompensas exclusivas mientras recorres República Dominicana."
         keywords="retos turisticos rd, misiones gamificacion dominicana, pasaporte digital misiones, puntos xp turismo"
       />
-      <div className="min-h-screen bg-background flex flex-col">
+      <div className="min-h-dvh bg-background flex flex-col">
         <Header />
 
         {/* Hub Breadcrumb Navigation Bar */}

@@ -35,7 +35,7 @@ export default function RestauranteDetalle() {
   if (isLoading) {
     return (
       <PageTransition>
-        <div className="min-h-screen bg-background">
+        <div className="min-h-dvh bg-background">
           <Header />
           <div className="container mx-auto px-4 py-32 space-y-6">
             <Skeleton className="h-[450px] w-full rounded-3xl" />
@@ -55,7 +55,7 @@ export default function RestauranteDetalle() {
   if (!restaurant) {
     return (
       <PageTransition>
-        <div className="min-h-screen bg-background">
+        <div className="min-h-dvh bg-background">
           <Header />
           <div className="container mx-auto px-4 py-32 text-center max-w-md">
             <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary mx-auto mb-4">
@@ -138,7 +138,7 @@ export default function RestauranteDetalle() {
         })}
       />
 
-      <div className="min-h-screen bg-background text-foreground">
+      <div className="min-h-dvh bg-background text-foreground">
         <Header hasHero />
 
         {/* Hero Slider */}

@@ -121,7 +121,7 @@ export default function TurismoComunitario() {
         description={pc.t("SEOHead.description.1", "Vive experiencias auténticas con comunidades locales. Alojamiento familiar, gastronomía rural, artesanía y naturaleza en República Dominicana.")}
         keywords="turismo comunitario RD, turismo sostenible, experiencias locales, agroturismo dominicano"
       />
-      <div className="min-h-screen flex flex-col bg-background">
+      <div className="min-h-dvh flex flex-col bg-background">
         <Header />
 
         {/* Hero */}

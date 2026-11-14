@@ -44,7 +44,7 @@ export default function PasaporteDigital() {
   if (!user) {
     return (
       <PageTransition>
-        <div className="min-h-screen bg-background">
+        <div className="min-h-dvh bg-background">
           <Header />
           <div className="container mx-auto px-4 py-24">
             <Card>
@@ -73,7 +73,7 @@ export default function PasaporteDigital() {
 
   return (
     <PageTransition>
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <Header />
 
         {/* Profile Header */}

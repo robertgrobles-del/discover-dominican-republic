@@ -60,7 +60,7 @@ export default function ViajarConMascotas() {
         description={pc.t("SEOHead.description.1", "Guía completa para traer tu mascota a RD: requisitos de entrada, hoteles pet-friendly, playas para perros, veterinarios y consejos prácticos.")}
         keywords="mascotas dominicana, perros playa caribe, pet friendly punta cana, viajar con perro RD, veterinarios dominicana"
       />
-      <div className="min-h-screen flex flex-col bg-background">
+      <div className="min-h-dvh flex flex-col bg-background">
         <Header />
 
         <section className="relative py-20 bg-gradient-to-b from-primary/10 to-background">

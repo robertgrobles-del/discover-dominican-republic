@@ -33,7 +33,7 @@ export default function Actividades() {
   const adventureActivities = pc.data("adventureActivities", __pcData.adventureActivities);
   const seaActivities = pc.data("seaActivities", __pcData.seaActivities);
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-dvh bg-background">
       <SEOHead
         title={pc.t("SEOHead.title.1", "Actividades y Experiencias en República Dominicana")}
         description={pc.t("SEOHead.description.1", "Explora aventuras de montaña, buceo y avistamiento de ballenas, y experiencias culturales en la Zona Colonial para vivir la isla más allá de sus playas.")}

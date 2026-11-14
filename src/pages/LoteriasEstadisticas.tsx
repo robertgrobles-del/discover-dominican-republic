@@ -69,7 +69,7 @@ export default function LoteriasEstadisticas() {
   const max = stats?.draw.ball_range_max ?? 99;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-dvh bg-background">
       <SEOHead
         title="Números calientes y fríos | Loterías dominicanas"
         description="Cuántas veces ha salido cada número en cada sorteo de las loterías dominicanas y de EE. UU., cuándo salió por última vez y su probabilidad."

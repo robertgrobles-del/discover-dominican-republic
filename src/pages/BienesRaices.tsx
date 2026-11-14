@@ -188,7 +188,7 @@ export default function BienesRaices() {
         description="Encuentra villas de playa, apartamentos de golf y terrenos exclusivos para inversión en Punta Cana, Samaná, Santo Domingo y Jarabacoa con beneficios de Ley CONFOTUR."
         keywords="bienes raices republica dominicana, invertir en punta cana, confotur rd, comprar villa cap cana, apartamentos las terrenas"
       />
-      <div className="min-h-screen bg-background flex flex-col">
+      <div className="min-h-dvh bg-background flex flex-col">
         <Header />
 
         <main className="flex-1">

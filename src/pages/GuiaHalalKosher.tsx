@@ -61,7 +61,7 @@ export default function GuiaHalalKosher() {
         description={pc.t("SEOHead.description.1", "Información completa de viaje para comunidades musulmanas y judías en RD: restaurantes Halal y Kosher, resorts con menús especiales, orientación Qibla y productos importados.")}
         keywords="halal dominicana, kosher caribe, comida halal punta cana, restaurantes kosher santo domingo, viaje judio republica dominicana"
       />
-      <div className="min-h-screen flex flex-col bg-background">
+      <div className="min-h-dvh flex flex-col bg-background">
         <Header />
 
         <main className="flex-1">

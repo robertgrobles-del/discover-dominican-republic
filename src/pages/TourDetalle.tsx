@@ -52,7 +52,7 @@ export default function TourDetalle() {
   });
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <Header />
         <div className="container mx-auto px-4 pt-24 pb-12 space-y-8">
           <Skeleton className="h-[400px] w-full rounded-2xl" />
@@ -75,7 +75,7 @@ export default function TourDetalle() {
   if (!tour) {
     return (
       <PageTransition>
-        <div className="min-h-screen bg-background">
+        <div className="min-h-dvh bg-background">
           <Header />
           <div className="container mx-auto px-4 py-32 text-center">
             <h1 className="text-3xl font-bold mb-4">{pc.tx("h1.1", "Tour no encontrado")}</h1>
@@ -96,7 +96,7 @@ export default function TourDetalle() {
         title={`${tour.name} - Tours República Dominicana`}
         description={tour.short_description || tour.description?.slice(0, 160) || ''}
       />
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <Header />
 
         {/* Hero */}

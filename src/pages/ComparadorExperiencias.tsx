@@ -116,7 +116,7 @@ export default function ComparadorExperiencias() {
         description={pc.t("SEOHead.description.1", "Compara experiencias turísticas en República Dominicana: precios, valoraciones y características.")}
         keywords="comparador, experiencias, tours, República Dominicana, turismo"
       />
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <Header />
 
         {/* Hero */}

@@ -140,7 +140,7 @@ export default function ConversorMoneda() {
           title={`Historial de Tasa de Cambio: ${activeCurrency} | Descubre RD`}
           description={`Consulta el historial de tasas de compra y venta de ${coinInfo.name} (${activeCurrency}) a pesos dominicanos (DOP).`}
         />
-        <div className="min-h-screen bg-background flex flex-col justify-between">
+        <div className="min-h-dvh bg-background flex flex-col justify-between">
           <Header />
           <CurrencyDetailHistoryView
             activeCurrency={activeCurrency}
@@ -161,7 +161,7 @@ export default function ConversorMoneda() {
         description={pc.t("SEOHead.description.1", "Convierte tus divisas a pesos dominicanos (DOP). Consulta el histórico de tasas de compra y venta de Dólar, Euro, Libra y más.")}
         keywords="tasa de cambio rd, dolar a pesos dominicanos, euro a dop, conversor de divisas republica dominicana, casas de cambio rd"
       />
-      <div className="min-h-screen bg-background flex flex-col justify-between">
+      <div className="min-h-dvh bg-background flex flex-col justify-between">
         <div>
           <Header />
           

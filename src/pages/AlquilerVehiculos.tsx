@@ -137,7 +137,7 @@ export default function AlquilerVehiculos() {
         description={pc.t("SEOHead.description.1", "Encuentra las mejores agencias de alquiler de autos, SUVs 4x4 y camionetas en aeropuertos y ciudades de RD. Precios transparentes, consejos viales y reserva directa.")}
         keywords="rent a car dominicana, alquiler vehiculos punta cana, rent car santo domingo, alquiler jeep 4x4 republica dominicana, nelly rent a car, national rent a car rd"
       />
-      <div className="min-h-screen bg-background flex flex-col justify-between">
+      <div className="min-h-dvh bg-background flex flex-col justify-between">
         <Header />
 
         <main className="pb-16">

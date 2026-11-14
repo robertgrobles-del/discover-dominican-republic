@@ -294,7 +294,7 @@ export default function ExperienciaDetalle() {
         image={experiencia.heroImage}
         keywords={`${experiencia.nombre}, ${experiencia.highlights.join(", ")}, república dominicana, turismo, tours`}
       />
-      <div className="min-h-screen flex flex-col bg-background text-foreground selection:bg-primary selection:text-white">
+      <div className="min-h-dvh flex flex-col bg-background text-foreground selection:bg-primary selection:text-white">
         <Header hasHero />
 
         {/* Hero Slider */}

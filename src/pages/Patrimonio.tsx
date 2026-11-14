@@ -117,7 +117,7 @@ export default function Patrimonio() {
         description={pc.t("SEOHead.description.1", "Explora los monumentos, fortalezas, museos coloniales y sitios patrimoniales de República Dominicana, conectados con sus crónicas históricas oficiales.")}
         keywords="monumentos republica dominicana, alcazar de colon, fortaleza ozama, catedral primada, monumento santiago, historia dominicana"
       />
-      <div className="min-h-screen flex flex-col bg-background">
+      <div className="min-h-dvh flex flex-col bg-background">
         <Header />
         
         {/* Hero Section */}

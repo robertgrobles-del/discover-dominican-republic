@@ -107,7 +107,7 @@ export default function MisLogros() {
         title="Mis Logros - Colección de Insignias | DescubreRD"
         description="Tu colección de logros e insignias ganadas explorando República Dominicana."
       />
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <Header />
 
         <main className="container mx-auto px-4 lg:px-8 py-8">

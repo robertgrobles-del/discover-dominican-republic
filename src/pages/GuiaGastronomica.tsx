@@ -282,7 +282,7 @@ export default function GuiaGastronomica() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-dvh bg-background">
       <SEOHead
         title={pc.t("SEOHead.title.1", "Guía Gastronómica de República Dominicana - Sabores, Cartas y Rutas Culinarias")}
         description={pc.t("SEOHead.description.1", "Descubre los platos típicos dominicanos, menús oficiales en PDF o platos detallados, rutas gastronómicas y da de alta tu restaurante.")}

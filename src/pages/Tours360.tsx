@@ -86,7 +86,7 @@ export default function Tours360() {
         description={pc.t("SEOHead.description.1", "Explora República Dominicana desde casa con tours virtuales inmersivos en 360 grados.")}
         keywords="tours virtuales, 360, VR, realidad virtual, República Dominicana, inmersivo"
       />
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <Header />
 
         {/* Hero */}

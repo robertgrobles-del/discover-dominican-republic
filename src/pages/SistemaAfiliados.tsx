@@ -211,7 +211,7 @@ export default function SistemaAfiliados() {
         title="Programa de Afiliados - Gana con Descubre RD"
         description="Conoce el programa de afiliados de Descubre RD: comisiones sujetas a pedidos elegibles, atribución y validación."
       />
-      <div className="min-h-screen bg-background flex flex-col justify-between">
+      <div className="min-h-dvh bg-background flex flex-col justify-between">
         <Header />
 
         {/* Hero */}

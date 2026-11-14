@@ -206,7 +206,7 @@ export default function ComparadorHoteles() {
         description={pc.t("SEOHead.description.1", "Compara lado a lado tarifas por noche, amenidades exclusivas, playa privada, régimen de comidas y calificaciones de los mejores hoteles de República Dominicana.")}
         keywords="comparador hoteles republica dominicana, comparar resorts punta cana, hoteles todo incluido vs boutique rd"
       />
-      <div className="min-h-screen bg-background text-foreground flex flex-col selection:bg-rose-500 selection:text-white">
+      <div className="min-h-dvh bg-background text-foreground flex flex-col selection:bg-rose-500 selection:text-white">
         <Header />
 
         {/* HERO EDITORIAL */}

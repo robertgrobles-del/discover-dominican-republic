@@ -74,7 +74,7 @@ export default function TurismoReligioso() {
         description={pc.t("SEOHead.description.1", "Descubre los destinos sagrados de RD: Catedral Primada de América, Santo Cerro y Basílica de Higüey. Rutas de peregrinación y horarios de misas.")}
         keywords="turismo religioso RD, Basílica Higüey, Catedral Primada, Santo Cerro, peregrinación dominicana"
       />
-      <div className="min-h-screen flex flex-col bg-background">
+      <div className="min-h-dvh flex flex-col bg-background">
         <Header />
         
         {/* Hero */}

@@ -273,7 +273,7 @@ export default function FeedSocial() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-dvh bg-background">
       <SEOHead title="Feed Social | Viajeros RD" description="Comparte tus experiencias de viaje en República Dominicana." />
       <Header />
 

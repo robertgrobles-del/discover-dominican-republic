@@ -144,7 +144,7 @@ export default function PerfilJugador() {
   if (!user) {
     return (
       <PageTransition>
-        <div className="min-h-screen bg-background">
+        <div className="min-h-dvh bg-background">
           <Header />
           <div className="container mx-auto px-4 py-24 text-center">
             <User className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
@@ -167,7 +167,7 @@ export default function PerfilJugador() {
         title="Mi Perfil Turístico - Gamificación RD"
         description="Tu perfil de explorador: nivel, puntos, insignias y logros en República Dominicana."
       />
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <Header />
 
         {/* Profile Header */}

@@ -31,7 +31,7 @@ export default function DescubrimientoLocal() {
   return (
     <PageTransition>
       <SEOHead title={pc.t("SEOHead.title.1", "Descubrimiento local y comunidad | Descubre RD")} description={pc.t("SEOHead.description.1", "Agenda local, movilidad, guías, artesanía, naturaleza e historias para descubrir República Dominicana con contexto y respeto.")} />
-      <div className="min-h-screen flex flex-col bg-background">
+      <div className="min-h-dvh flex flex-col bg-background">
         <Header />
         <main className="container mx-auto max-w-6xl flex-1 px-4 py-16">
           <Badge variant="outline" className="mb-4 gap-2"><MapPin className="h-4 w-4" aria-hidden="true" />{" "}{pc.tx("Badge.1", "Descubrimiento local")}</Badge>

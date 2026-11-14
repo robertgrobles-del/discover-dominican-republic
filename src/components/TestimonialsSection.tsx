@@ -56,7 +56,7 @@ export function TestimonialsSection() {
               {t("testimonials.real")}
             </Badge>
           </div>
-          <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-3">
+          <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-3 text-balance">
             {t("testimonials.title")}
           </h2>
           <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground mt-2">

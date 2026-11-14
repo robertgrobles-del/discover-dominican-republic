@@ -209,7 +209,7 @@ export default function SpaDetalle() {
   if (isLoading) {
     return (
       <PageTransition>
-        <div className="min-h-screen bg-background">
+        <div className="min-h-dvh bg-background">
           <Header />
           <div className="container mx-auto px-4 py-32">
             <Skeleton className="h-[300px] w-full rounded-xl mb-8" />
@@ -225,7 +225,7 @@ export default function SpaDetalle() {
   if (!rawSpa) {
     return (
       <PageTransition>
-        <div className="min-h-screen bg-background">
+        <div className="min-h-dvh bg-background">
           <Header />
           <div className="container mx-auto px-4 py-20 text-center">
             <h1 className="text-3xl font-bold mb-4">{pc.tx("h1.1", "Spa no encontrado")}</h1>
@@ -269,7 +269,7 @@ export default function SpaDetalle() {
         description={spa.description}
         keywords={`spa, wellness, ${spa.name}, ${spa.location}, República Dominicana`}
       />
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <Header />
 
         {/* Hero */}

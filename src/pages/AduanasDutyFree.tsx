@@ -187,7 +187,7 @@ export default function AduanasDutyFree() {
         keywords="aduanas republica dominicana, duty free punta cana, limite alcohol aduana rd, comprar puros dominicana aduana, franquicia equipaje dga"
       />
       
-      <div className="min-h-screen flex flex-col bg-background">
+      <div className="min-h-dvh flex flex-col bg-background">
         <Header />
 
         <main className="pb-20">

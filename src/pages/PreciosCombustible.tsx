@@ -205,7 +205,7 @@ export default function PreciosCombustible() {
           title={`Historial de Precios: ${cardInfo.name} | Descubre RD`}
           description={`Consulta el histórico de precios de ${cardInfo.name} en República Dominicana. Estadísticas de máximos, mínimos y variaciones semanales.`}
         />
-        <div className="min-h-screen bg-background flex flex-col justify-between">
+        <div className="min-h-dvh bg-background flex flex-col justify-between">
           <div>
             <Header />
             <main className="pt-24 pb-16">
@@ -328,7 +328,7 @@ export default function PreciosCombustible() {
         description={pc.t("SEOHead.description.1", "Consulta oficial e histórica de precios de gasolina premium, regular, gasoil óptimo, regular, GLP y GNV en República Dominicana.")}
         keywords="precios gasolina rd, combustible republica dominicana, gasolina premium precio, glp precio hoy, micm combustibles"
       />
-      <div className="min-h-screen bg-background flex flex-col justify-between">
+      <div className="min-h-dvh bg-background flex flex-col justify-between">
         <div>
           <Header />
 

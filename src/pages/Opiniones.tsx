@@ -364,7 +364,7 @@ export default function Opiniones() {
         description={pc.t("SEOHead.description.1", "Lee reseñas verificadas de viajeros que visitaron República Dominicana. Comparte tu experiencia y ayuda a otros a planificar su viaje perfecto.")}
         keywords="opiniones, reseñas, viajeros, República Dominicana, experiencias, turismo"
       />
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <Header />
 
         {/* Hero */}

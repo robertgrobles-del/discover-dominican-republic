@@ -279,7 +279,7 @@ export function AccommodationsSection() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
-            <h2 className="font-display text-3xl md:text-4xl font-bold">
+            <h2 className="font-display text-3xl md:text-4xl font-bold text-balance">
               {t("accommodations.title")} <span className="text-primary">{t("accommodations.featured")}</span>
             </h2>
             <p className="text-muted-foreground mt-3 max-w-lg">
@@ -314,7 +314,7 @@ export function AccommodationsSection() {
           </TabsList>
 
           <TabsContent value="todos">
-            <div className="grid md:grid-cols-3 gap-6">
+            <div className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-2 [scrollbar-width:none] [&>*]:w-[82%] [&>*]:shrink-0 [&>*]:snap-start md:mx-0 md:grid md:grid-cols-3 md:gap-6 md:overflow-visible md:px-0 md:pb-0 md:[&>*]:w-auto">
               {[adHotel ?? hotels[1], hotels[0], airbnbs[0]].filter(Boolean).map((item) => (
                 <AccommodationCard
                   key={item.id}
@@ -327,7 +327,7 @@ export function AccommodationsSection() {
           </TabsContent>
 
           <TabsContent value="hoteles">
-            <div className="grid md:grid-cols-3 gap-6">
+            <div className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-2 [scrollbar-width:none] [&>*]:w-[82%] [&>*]:shrink-0 [&>*]:snap-start md:mx-0 md:grid md:grid-cols-3 md:gap-6 md:overflow-visible md:px-0 md:pb-0 md:[&>*]:w-auto">
               {[...(adHotel ? [adHotel] : []), ...hotels].map((hotel) => (
                 <AccommodationCard key={hotel.id} item={hotel} type="hotel" t={t} />
               ))}
@@ -335,7 +335,7 @@ export function AccommodationsSection() {
           </TabsContent>
 
           <TabsContent value="airbnb">
-            <div className="grid md:grid-cols-3 gap-6">
+            <div className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-2 [scrollbar-width:none] [&>*]:w-[82%] [&>*]:shrink-0 [&>*]:snap-start md:mx-0 md:grid md:grid-cols-3 md:gap-6 md:overflow-visible md:px-0 md:pb-0 md:[&>*]:w-auto">
               {[...(adAirbnb ? [adAirbnb] : []), ...airbnbs].map((airbnb) => (
                 <AccommodationCard key={airbnb.id} item={airbnb} type="airbnb" t={t} />
               ))}

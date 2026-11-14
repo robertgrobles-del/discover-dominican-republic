@@ -143,7 +143,7 @@ export default function ListaEmpaque() {
         title={pc.t("SEOHead.title.1", "Lista de Empaque para República Dominicana")}
         description={pc.t("SEOHead.description.1", "Lista completa de qué empacar para tu viaje a RD. Personalizable e interactiva con todo lo esencial.")}
       />
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <Header />
         
         <main className="pt-20">

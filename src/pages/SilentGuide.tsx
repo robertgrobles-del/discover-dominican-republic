@@ -111,7 +111,7 @@ export default function SilentGuide() {
         title={pc.t("SEOHead.title.1", "Silent Guide - Audio Transmisor Grupal en Vivo")}
         description={pc.t("SEOHead.description.1", "Escucha a tu guía turístico en tiempo real con la función Silent Guide de Descubre RD. Sin megáfonos, sin interferencias.")}
       />
-      <div className="min-h-screen bg-background flex flex-col justify-between">
+      <div className="min-h-dvh bg-background flex flex-col justify-between">
         <Header />
         <h1 className="sr-only">Silent Guide: audio transmisor grupal en vivo</h1>
 

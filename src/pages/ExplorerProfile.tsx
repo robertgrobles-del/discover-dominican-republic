@@ -306,7 +306,7 @@ export default function ExplorerProfile() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex flex-col justify-between">
+      <div className="min-h-dvh bg-background flex flex-col justify-between">
         <Header />
         <div className="flex-1 flex flex-col items-center justify-center py-20">
           <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4" />
@@ -319,7 +319,7 @@ export default function ExplorerProfile() {
 
   if (!profile || !gamification) {
     return (
-      <div className="min-h-screen bg-background flex flex-col justify-between">
+      <div className="min-h-dvh bg-background flex flex-col justify-between">
         <Header />
         <div className="flex-1 container mx-auto px-4 py-20 text-center">
           <User className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
@@ -340,7 +340,7 @@ export default function ExplorerProfile() {
         title={`${profile.display_name || "Explorador"} - Perfil de Aventura Descubre RD`}
         description={`Conoce a ${profile.display_name}, viajero nivel ${gamification.current_level} (${currentLevel?.title}). Mira sus insignias, logros e historial en República Dominicana.`}
       />
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <Header />
 
         {/* Back Link */}

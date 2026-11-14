@@ -68,7 +68,7 @@ export default function PersonajeHistorico() {
   if (isLoading) {
     return (
       <PageTransition>
-        <div className="min-h-screen bg-background">
+        <div className="min-h-dvh bg-background">
           <Header />
           <div className="container mx-auto px-4 py-32">
             <Skeleton className="h-10 w-2/3 mb-4" />
@@ -83,7 +83,7 @@ export default function PersonajeHistorico() {
   if (!figure) {
     return (
       <PageTransition>
-        <div className="min-h-screen bg-background">
+        <div className="min-h-dvh bg-background">
           <Header />
           <div className="container mx-auto px-4 py-32 text-center">
             <Crown className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
@@ -103,7 +103,7 @@ export default function PersonajeHistorico() {
         description={figure.short_description || ""}
         keywords={`${figure.name}, historia dominicana, ${figure.era}`}
       />
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <Header />
 
         {/* Breadcrumbs */}

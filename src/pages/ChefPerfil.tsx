@@ -63,7 +63,7 @@ export default function ChefPerfil() {
   const chef = pc.data("chef", __pcData.chef);
   const recipes = pc.data("recipes", __pcData.recipes);
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-dvh bg-background">
       <SEOHead
         title={`${chef.name} ${chef.alias.replace(/"/g, "")} - Chef Dominicana`}
         description={`${chef.title} ${chef.description}`}

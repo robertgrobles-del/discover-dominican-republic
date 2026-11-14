@@ -193,7 +193,7 @@ export default function EstadoPlayas() {
         keywords="playas, estado del mar, sargazo, oleaje, República Dominicana, seguridad playas"
         jsonLd={generateBeachSchema({ name: "Playas de República Dominicana", description: "Estado en tiempo real de las playas dominicanas" })}
       />
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <Header />
 
         {/* Hero */}

@@ -94,7 +94,7 @@ export default function TurismoSensorial() {
   const accessibleDestinations = pc.data("accessibleDestinations", __pcData.accessibleDestinations);
   return (
     <PageTransition>
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <Header />
 
         {/* Accessibility Toolbar */}

@@ -141,7 +141,7 @@ const AirbnbDetalle = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-dvh flex items-center justify-center">
         <SEOHead
           title={pc.t("SEOHead.title.1", "Alojamiento en República Dominicana")}
           description={pc.t("SEOHead.description.1", "Consulta este alojamiento tipo Airbnb en República Dominicana: villas, apartamentos y casas con piscina, vista al mar y todas las comodidades.")}

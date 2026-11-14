@@ -134,7 +134,7 @@ export default function Planifica() {
         description={pc.t("SEOHead.description.1", "Prepara tu viaje al Caribe: requisitos de entrada, clima por temporada, consejos de salud y herramientas para diseñar tu itinerario perfecto.")}
         keywords="planificar viaje República Dominicana, requisitos entrada, clima Caribe, itinerario, E-Ticket, visa dominicana"
       />
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <Header />
 
       {/* Hero Section */}

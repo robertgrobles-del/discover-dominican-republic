@@ -106,7 +106,7 @@ export default function CarnavalDominicano() {
         description={pc.t("SEOHead.description.1", "Conoce el Carnaval Dominicano: Diablos Cojuelos de La Vega, Lechones de Santiago, Roba la Gallina y el Desfile Nacional en el Malecón. Fechas y consejos de viaje.")}
         keywords="carnaval dominicano, carnaval de la vega, los lechones santiago, diablo cojuelo, roba la gallina, desfile nacional carnaval santo domingo, fechas carnaval rd"
       />
-      <div className="min-h-screen bg-background text-foreground flex flex-col">
+      <div className="min-h-dvh bg-background text-foreground flex flex-col">
         <Header />
 
         {/* Hero Section */}

@@ -79,7 +79,7 @@ export default function TurismoBuceo() {
         title={pc.t("SEOHead.title.1", "Buceo y Snorkel en RD - Arrecifes, Barcos Hundidos y Cuevas")}
         description={pc.t("SEOHead.description.1", "Descubre los mejores puntos de buceo en República Dominicana. Explora el pecio St. George, cuevas de agua dulce y arrecifes en Sosúa y Catalina.")}
       />
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <Header />
 
         <main className="pt-20">

@@ -58,7 +58,7 @@ export default function CreadorRegistro() {
   if (!loading && dashboard) return <Navigate to="/creadores/panel" replace />;
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
+    <div className="flex min-h-dvh flex-col bg-background">
       <SEOHead title="Registro de creador | Descubre RD" description="Crea tu perfil de creador de contenido en Descubre RD." />
       <Header />
       <main className="container mx-auto max-w-2xl flex-1 px-4 pb-16 pt-28">
