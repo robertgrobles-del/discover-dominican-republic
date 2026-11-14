@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
-  ChevronRight, Sun, Ruler, Landmark, Users, ChevronLeft, MapPin, Star, Calendar,
+  ChevronRight, Sun, Ruler, Landmark, Users, MapPin, Star, Calendar,
   Hotel, UtensilsCrossed, Waves, Award, Building2, Utensils, Mountain, Compass, Crown
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -288,8 +288,8 @@ export function HeroSlideshow({ onOpenSearch }: { onOpenSearch?: () => void }) {
           loading="eager"
           decoding="sync"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/60 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-background/30" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/35 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent via-20% to-black/30" />
       </div>
 
       {/* Animated slides for non-first slides */}
@@ -315,8 +315,8 @@ export function HeroSlideshow({ onOpenSearch }: { onOpenSearch?: () => void }) {
               loading="lazy"
               decoding="async"
             />
-            <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/60 to-transparent" />
-            <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-background/30" />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/35 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent via-20% to-black/30" />
           </motion.div>
         </AnimatePresence>
       )}
@@ -339,9 +339,8 @@ export function HeroSlideshow({ onOpenSearch }: { onOpenSearch?: () => void }) {
                   {slide.isSponsored && (
                     <SponsoredBadge label={slide.sponsorBadge} className="text-2xs uppercase tracking-wider px-2.5 py-0.5 shadow-sm" />
                   )}
-                  <span className="inline-flex items-center gap-2 text-primary text-sm font-semibold tracking-wide">
-                    <span className="w-6 h-px bg-primary" />
-                    {slide.tag}
+                  <span className="inline-flex items-center gap-2 text-white/90 text-sm font-semibold tracking-wide">
+                                        {slide.tag}
                   </span>
                 </div>
               </motion.div>
@@ -358,12 +357,12 @@ export function HeroSlideshow({ onOpenSearch }: { onOpenSearch?: () => void }) {
                 className="mb-4"
               >
                 {/* Rotating slide title is h2; the stable page h1 lives outside the carousel */}
-                <h2 className="font-display text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-foreground leading-[1.08] line-clamp-2">
+                <h2 className="font-display text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-white leading-[1.08] drop-shadow-sm line-clamp-2">
                   {slide.title}
                 </h2>
                 
                 {/* Secondary Subtitle - Refined Accent Scale */}
-                <p className="font-display text-xl sm:text-2xl md:text-3xl font-semibold text-gradient mt-2 leading-snug line-clamp-1">
+                <p className="font-display text-xl sm:text-2xl md:text-3xl font-semibold text-white/90 mt-2 leading-snug line-clamp-1">
                   {slide.subtitle}
                 </p>
               </motion.div>
@@ -377,7 +376,7 @@ export function HeroSlideshow({ onOpenSearch }: { onOpenSearch?: () => void }) {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.4, delay: 0.1, ease: "easeOut" }}
-                className="text-sm sm:text-base md:text-lg text-muted-foreground/90 mb-7 max-w-xl leading-relaxed line-clamp-3 font-normal"
+                className="text-sm sm:text-base md:text-lg text-white/85 mb-7 max-w-xl leading-relaxed line-clamp-2 font-normal"
               >
                 {slide.description}
               </motion.p>
@@ -396,9 +395,9 @@ export function HeroSlideshow({ onOpenSearch }: { onOpenSearch?: () => void }) {
                   <ChevronRight className="h-4 w-4" />
                 </Link>
               </Button>
-              <Button size="lg" variant="outline" className="gap-2 font-display bg-background/50 backdrop-blur-md border-border/80 hover:bg-secondary" asChild>
+              <Button size="lg" variant="outline" className="gap-2 font-display border-white/60 bg-transparent text-white hover:bg-white/15 hover:text-white" asChild>
                 <Link to="/mapa-interactivo">
-                  <MapPin className="h-4 w-4 text-primary" />
+                  <MapPin className="h-4 w-4" />
                   {t("hero.exploreMap")}
                 </Link>
               </Button>
@@ -426,15 +425,6 @@ export function HeroSlideshow({ onOpenSearch }: { onOpenSearch?: () => void }) {
 
             {/* Slide Navigation Controls */}
             <div className="flex items-center gap-4 mt-6 pr-4" role="group" aria-label={pc.t("div.aria-label.2", "Controles del carrusel")}>
-              <Button
-                size="icon"
-                variant="outline"
-                aria-label={pc.t("Button.aria-label.2", "Slide anterior")}
-                className="rounded-full w-10 h-10 bg-background/60 backdrop-blur-md border-border/60 hover:bg-primary/20 hover:border-primary/50 transition-all duration-300"
-                onClick={() => { setIsAutoPlaying(false); prevSlide(); }}
-              >
-                <ChevronLeft className="h-5 w-5" aria-hidden="true" />
-              </Button>
               
               <div className="flex items-center gap-2.5" role="tablist" aria-label={pc.t("div.aria-label.3", "Paginación de slides")}>
                 {slidesData.map((s, index) => {
@@ -471,59 +461,12 @@ export function HeroSlideshow({ onOpenSearch }: { onOpenSearch?: () => void }) {
                   );
                 })}
               </div>
-
-              <Button
-                size="icon"
-                variant="outline"
-                aria-label={pc.t("Button.aria-label.3", "Slide siguiente")}
-                className="rounded-full w-10 h-10 bg-background/60 backdrop-blur-md border-border/60 hover:bg-primary/20 hover:border-primary/50 transition-all duration-300"
-                onClick={() => { setIsAutoPlaying(false); nextSlide(); }}
-              >
-                <ChevronRight className="h-5 w-5" aria-hidden="true" />
-              </Button>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Dynamic Synchronized Statistics Strip (changes per active slide) */}
-      <div className="relative z-10 py-6 bg-transparent">
-        <div className="container mx-auto px-4 lg:px-8">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={`stats-${slide.id}`}
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.4, ease: "easeOut" }}
-              className="grid grid-cols-2 md:grid-cols-4 gap-6 lg:gap-8"
-            >
-              {slide.stats.map((stat) => {
-                const StatIcon = stat.icon;
-                return (
-                  <div
-                    key={stat.label}
-                    className="flex items-center gap-3.5 p-2"
-                  >
-                    <div className="w-11 h-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0 backdrop-blur-sm">
-                      <StatIcon className="h-5 w-5 text-primary" aria-hidden="true" />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="font-display text-xl md:text-2xl font-bold text-foreground truncate">
-                        {stat.value}
-                      </p>
-                      <p className="text-xs text-muted-foreground truncate">
-                        {stat.label}
-                      </p>
-                    </div>
-                  </div>
-                );
-              })}
-            </motion.div>
-          </AnimatePresence>
-        </div>
-      </div>
-    </section>
+      </section>
   );
 }
 

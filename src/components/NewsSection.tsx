@@ -27,7 +27,7 @@ export function NewsSection() {
   if (!featuredNews) return null;
 
   return (
-    <section className="py-16 bg-card">
+    <section className="py-14 lg:py-20 bg-muted/40">
       <div className="container mx-auto px-4 lg:px-8">
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-12">
           <motion.div
@@ -35,12 +35,8 @@ export function NewsSection() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
-            <span className="inline-flex items-center gap-2 text-muted-foreground text-sm font-medium mb-3">
-              <span className="w-8 h-px bg-border" />
-              {t("news.latest")}
-            </span>
             <h2 className="font-display text-3xl md:text-4xl font-bold">
-              {t("news.stayInformed")} <span className="text-gradient">{t("news.informed")}</span>
+              {t("news.stayInformed")} <span className="text-primary">{t("news.informed")}</span>
             </h2>
             <p className="text-muted-foreground mt-3 max-w-lg">
               {t("news.subtitle")}

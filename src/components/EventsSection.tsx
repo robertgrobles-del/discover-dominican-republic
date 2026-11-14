@@ -90,7 +90,7 @@ export function EventsSection() {
   }, []);
 
   return (
-    <section className="relative bg-card py-16">
+    <section className="relative bg-muted/40 py-14 lg:py-20">
       <div className={HOME_SECTION_FRAME}>
         {/* Section Header */}
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-12">
@@ -99,12 +99,8 @@ export function EventsSection() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
-            <span className="inline-flex items-center gap-2 text-muted-foreground text-sm font-medium mb-3">
-              <span className="w-8 h-px bg-border" />
-              {t("events.upcoming")}
-            </span>
             <h2 className="font-display text-3xl md:text-4xl font-bold">
-              {t("events.next")} <span className="text-gradient">{t("events.events")}</span>
+              {t("events.next")} <span className="text-primary">{t("events.events")}</span>
             </h2>
             <p className="text-muted-foreground mt-3 max-w-lg">
               {t("events.subtitle")}

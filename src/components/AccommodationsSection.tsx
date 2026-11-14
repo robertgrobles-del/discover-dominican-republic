@@ -102,7 +102,7 @@ function AccommodationCard({ item, type, t }: AccommodationCardProps) {
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
-      className={`group bg-surface rounded-2xl overflow-hidden hover:bg-surface-elevated transition-all hover:shadow-xl hover:shadow-primary/5 ${
+      className={`group bg-surface rounded-2xl overflow-hidden hover:bg-surface-elevated transition-all hover:shadow-sm hover:shadow-primary/5 ${
         item.isSponsored ? 'ring-2 ring-primary/50' : ''
       }`}
     >
@@ -270,7 +270,7 @@ export function AccommodationsSection() {
   }, [dbAirbnbs]);
 
   return (
-    <section className="relative bg-card py-16">
+    <section className="relative bg-muted/40 py-14 lg:py-20">
       <div className={HOME_SECTION_FRAME}>
         {/* Section Header */}
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-8">
@@ -279,12 +279,8 @@ export function AccommodationsSection() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
-            <span className="inline-flex items-center gap-2 text-muted-foreground text-sm font-medium mb-3">
-              <span className="w-8 h-px bg-border" />
-              {t("accommodations.exclusive")}
-            </span>
             <h2 className="font-display text-3xl md:text-4xl font-bold">
-              {t("accommodations.title")} <span className="text-gradient">{t("accommodations.featured")}</span>
+              {t("accommodations.title")} <span className="text-primary">{t("accommodations.featured")}</span>
             </h2>
             <p className="text-muted-foreground mt-3 max-w-lg">
               {t("accommodations.subtitle")}

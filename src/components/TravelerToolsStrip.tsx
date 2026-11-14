@@ -1,11 +1,9 @@
 import { Link } from "react-router-dom";
 import { useTranslation } from "@/hooks/useI18n";
-import { motion } from "framer-motion";
 import {
   Calculator, Backpack, ArrowLeftRight, Languages, Sparkles,
-  MapPinned, Hotel, Cloud, Umbrella, Plane, Compass, ArrowUpRight
+  MapPinned, Hotel, Cloud, Plane, ArrowUpRight
 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 
 const tools = [
   { 
@@ -43,12 +41,6 @@ const tools = [
     href: "/clima",
   },
   { 
-    icon: Umbrella, 
-    labelKey: "tools.beachStatus", 
-    desc: "Oleaje, viento y sargazo", 
-    href: "/estado-playas",
-  },
-  { 
     icon: Calculator, 
     labelKey: "tools.budgetCalc", 
     desc: "Estima tus gastos por destino", 
@@ -82,101 +74,50 @@ const tools = [
 
 export function TravelerToolsStrip() {
   const { t } = useTranslation();
+  const featured = tools.filter((x) => x.featured);
+  const rest = tools.filter((x) => !x.featured);
 
+  // Sección de uso: las dos herramientas clave en grande a la izquierda y el resto en lista a la derecha.
   return (
-    <section className="py-20 lg:py-24 relative overflow-hidden bg-background">
-      {/* Background ambient lighting */}
-      <div className="absolute top-10 right-10 w-96 h-96 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-10 left-10 w-96 h-96 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
-
-      <div className="container mx-auto px-4 lg:px-8 relative z-10">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-center max-w-2xl mx-auto mb-14"
-        >
-          <Badge className="mb-3 bg-primary/10 text-primary border-primary/20 gap-1.5 px-3 py-1 text-xs">
-            <Compass className="h-3.5 w-3.5" />
-            {t("travelerTools.badge")}
-          </Badge>
-          <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-3 tracking-tight">
-            {t("travelerTools.title")}
-          </h2>
-          <p className="text-muted-foreground text-sm md:text-base leading-relaxed">
-            {t("travelerTools.subtitle")}
-          </p>
-        </motion.div>
-
-        {/* Bento-style tools grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 max-w-6xl mx-auto">
-          {tools.map((tool, i) => (
-            <motion.div
-              key={tool.labelKey}
-              initial={{ opacity: 0, y: 15 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.04, duration: 0.35 }}
-              whileHover={{ y: -3, transition: { duration: 0.18 } }}
-              className={tool.featured ? "sm:col-span-2" : "col-span-1"}
-            >
-              {tool.featured ? (
-                <Link
-                  to={tool.href}
-                  className={`flex flex-col justify-between h-full p-6 sm:p-7 rounded-3xl bg-gradient-to-br ${tool.accent} bg-card/80 backdrop-blur-md border ${tool.border} hover:shadow-xl hover:shadow-primary/10 transition-all group relative overflow-hidden`}
-                >
-                  <div>
-                    <div className="flex items-center justify-between gap-2 mb-4">
-                      <div className="w-12 h-12 rounded-2xl bg-primary/10 border border-primary/25 flex items-center justify-center text-primary group-hover:scale-105 transition-transform">
-                        <tool.icon className="h-6 w-6 text-primary" />
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {tool.badge && (
-                          <span className="px-2.5 py-0.5 text-3xs font-bold uppercase tracking-wider rounded-full bg-primary/15 text-primary border border-primary/30">
-                            {tool.badge}
-                          </span>
-                        )}
-                        <ArrowUpRight className="h-4 w-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
-                      </div>
-                    </div>
-
-                    <h3 className="font-display font-bold text-foreground text-lg sm:text-xl mb-2 group-hover:text-primary transition-colors">
-                      {t(tool.labelKey)}
-                    </h3>
-                    <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed line-clamp-2">
-                      {tool.desc}
-                    </p>
-                  </div>
-
-                  <div className="mt-5 pt-3 border-t border-border/40 flex items-center gap-1.5 text-xs font-semibold text-primary group-hover:gap-2.5 transition-all">
-                    <span>{tool.cta}</span>
-                    <ArrowUpRight className="h-3.5 w-3.5" />
-                  </div>
+    <section className="bg-muted/40 py-14 lg:py-20">
+      <div className="container mx-auto px-4 lg:px-8">
+        <div className="mb-10 max-w-2xl">
+          <h2 className="font-display text-3xl md:text-4xl font-bold tracking-tight text-foreground">{t("travelerTools.title")}</h2>
+          <p className="mt-3 text-sm md:text-base leading-relaxed text-muted-foreground">{t("travelerTools.subtitle")}</p>
+        </div>
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
+          <div className="grid gap-4">
+            {featured.map((tool) => (
+              <Link key={tool.labelKey} to={tool.href}
+                className="group flex flex-col justify-between rounded-2xl border border-border bg-card p-6 transition-colors hover:border-primary/50 sm:p-7">
+                <div className="flex items-start justify-between gap-4">
+                  <tool.icon className="h-6 w-6 text-muted-foreground transition-colors group-hover:text-primary" aria-hidden="true" />
+                  {tool.badge ? <span className="text-xs font-medium text-muted-foreground">{tool.badge}</span> : null}
+                </div>
+                <div className="mt-6">
+                  <h3 className="font-display text-xl font-bold text-foreground">{t(tool.labelKey)}</h3>
+                  <p className="mt-2 max-w-[60ch] text-sm leading-relaxed text-muted-foreground">{tool.desc}</p>
+                  <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-primary">
+                    {tool.cta}<ArrowUpRight className="h-4 w-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" aria-hidden="true" />
+                  </span>
+                </div>
+              </Link>
+            ))}
+          </div>
+          <ul className="divide-y divide-border rounded-2xl border border-border bg-card">
+            {rest.map((tool) => (
+              <li key={tool.labelKey}>
+                <Link to={tool.href} className="group flex items-center gap-4 px-5 py-4 transition-colors hover:bg-muted/50">
+                  <tool.icon className="h-5 w-5 shrink-0 text-muted-foreground transition-colors group-hover:text-primary" aria-hidden="true" />
+                  <span className="min-w-0 flex-1">
+                    <span className="block font-medium text-foreground">{t(tool.labelKey)}</span>
+                    <span className="block truncate text-xs text-muted-foreground">{tool.desc}</span>
+                  </span>
+                  <ArrowUpRight className="h-4 w-4 shrink-0 text-muted-foreground transition-colors group-hover:text-primary" aria-hidden="true" />
                 </Link>
-              ) : (
-                <Link
-                  to={tool.href}
-                  className="flex flex-col justify-between h-full p-4 sm:p-5 rounded-2xl bg-card/60 backdrop-blur-sm border border-border/60 hover:border-primary/40 hover:bg-card/90 hover:shadow-md transition-all group"
-                >
-                  <div className="flex items-start justify-between gap-2 mb-3">
-                    <div className="w-9 h-9 rounded-xl bg-muted/70 border border-border/50 flex items-center justify-center text-muted-foreground group-hover:bg-primary group-hover:text-primary-foreground group-hover:border-primary transition-all">
-                      <tool.icon className="h-4 w-4" />
-                    </div>
-                    <ArrowUpRight className="h-3.5 w-3.5 text-muted-foreground/60 group-hover:text-primary group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
-                  </div>
-
-                  <div>
-                    <h3 className="font-display font-semibold text-foreground text-sm mb-1 group-hover:text-primary transition-colors">
-                      {t(tool.labelKey)}
-                    </h3>
-                    <p className="text-2xs text-muted-foreground line-clamp-1 leading-snug">
-                      {tool.desc}
-                    </p>
-                  </div>
-                </Link>
-              )}
-            </motion.div>
-          ))}
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
     </section>

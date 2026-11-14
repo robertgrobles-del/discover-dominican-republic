@@ -121,7 +121,7 @@ function RestaurantCard({ restaurant, index, t }: { restaurant: RestaurantType; 
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         transition={{ delay: index * 0.1 }}
-        className={`group bg-surface rounded-2xl overflow-hidden cursor-pointer hover:shadow-xl hover:shadow-primary/5 transition-all ${
+        className={`group bg-surface rounded-2xl overflow-hidden cursor-pointer hover:shadow-sm hover:shadow-primary/5 transition-all ${
           restaurant.isSponsored ? 'ring-2 ring-primary/50' : ''
         }`}
       >
@@ -222,7 +222,7 @@ function BarCard({ bar, index, t }: { bar: BarType; index: number; t: (key: stri
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         transition={{ delay: index * 0.05 }}
-        className={`relative h-[360px] lg:h-[390px] rounded-2xl overflow-hidden cursor-pointer shadow-md hover:shadow-xl transition-all ${
+        className={`relative h-[360px] lg:h-[390px] rounded-2xl overflow-hidden cursor-pointer shadow-md hover:shadow-sm transition-all ${
           bar.isSponsored ? 'ring-2 ring-primary/50' : 'border border-border/60'
         }`}
       >
@@ -359,7 +359,7 @@ export function RestaurantsBarsSection() {
   return (
     <>
       {/* Restaurants Section */}
-      <section className="bg-background py-16">
+      <section className="bg-background py-14 lg:py-20">
         <div className={HOME_SECTION_FRAME}>
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-12">
             <motion.div
@@ -367,12 +367,8 @@ export function RestaurantsBarsSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
             >
-              <span className="inline-flex items-center gap-2 text-muted-foreground text-sm font-medium mb-3">
-                <span className="w-8 h-px bg-border" />
-                {t("restaurants.flavors")}
-              </span>
               <h2 className="font-display text-3xl md:text-4xl font-bold">
-                {t("restaurants.title")} <span className="text-gradient">{t("restaurants.featured")}</span>
+                {t("restaurants.title")} <span className="text-primary">{t("restaurants.featured")}</span>
               </h2>
               <p className="text-muted-foreground mt-3 max-w-lg">
                 {t("restaurants.subtitle")}
@@ -417,7 +413,7 @@ export function RestaurantsBarsSection() {
                 {t("bars.nightlife")}
               </span>
               <h2 className="font-display text-2xl sm:text-3xl lg:text-4xl font-extrabold text-foreground">
-                {t("bars.title")} <span className="text-gradient">{t("bars.recommended")}</span>
+                {t("bars.title")} <span className="text-primary">{t("bars.recommended")}</span>
               </h2>
               <p className="text-muted-foreground mt-1.5 text-xs sm:text-sm max-w-lg">
                 {t("bars.subtitle")}

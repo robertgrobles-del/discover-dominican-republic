@@ -121,7 +121,7 @@ export function DestinationsSection() {
   }, []);
 
   return (
-    <section className="bg-background py-20 lg:py-24">
+    <section className="bg-background py-14 lg:py-20">
       <div className={HOME_SECTION_FRAME}>
         {/* Section Header */}
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-12">
@@ -131,12 +131,11 @@ export function DestinationsSection() {
             viewport={{ once: true }}
           >
             <span className="inline-flex items-center gap-2 text-muted-foreground text-sm font-medium mb-3">
-              <span className="w-8 h-px bg-primary" />
               {t("destinations.popular")}
             </span>
             <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight">
               {t("destinations.immerse")}{" "}
-              <span className="text-gradient">{t("destinations.paradise")}</span>
+              <span className="text-primary">{t("destinations.paradise")}</span>
             </h2>
             <p className="text-muted-foreground mt-3 max-w-xl text-sm md:text-base leading-relaxed">
               {t("destinations.subtitle")}
@@ -175,7 +174,7 @@ export function DestinationsSection() {
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                className="col-span-7 h-[460px] group relative rounded-3xl overflow-hidden border border-border/50 bg-card/40 shadow-xl"
+                className="col-span-7 h-[460px] group relative rounded-2xl overflow-hidden bg-muted shadow-sm"
               >
                 <Link to={`/destino/${destinations[0].id}`} className="block h-full">
                   <LazyImage
@@ -189,7 +188,6 @@ export function DestinationsSection() {
                   {/* Top Badges */}
                   <div className="absolute top-5 left-5 z-10 flex items-center gap-2">
                     <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-black/50 backdrop-blur-md text-white border border-white/15 shadow-sm">
-                      <span className="w-1.5 h-1.5 rounded-full bg-primary" />
                       {destinationTags[destinations[0].id] || "Polo Turístico"}
                     </span>
                   </div>
@@ -229,7 +227,7 @@ export function DestinationsSection() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: 0.1 }}
-                className="col-span-5 h-[460px] group relative rounded-3xl overflow-hidden border-2 border-amber-500/50 shadow-xl bg-slate-950"
+                className="col-span-5 h-[460px] group relative rounded-2xl overflow-hidden shadow-sm bg-slate-950"
               >
                 <Link to={ad.target_url || "/alojamientos"} onClick={trackAdClick} className="block h-full">
                   <img
@@ -267,7 +265,7 @@ export function DestinationsSection() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: 0.1 }}
-                className="col-span-5 h-[460px] group relative rounded-3xl overflow-hidden border border-border/50 bg-card/40 shadow-xl"
+                className="col-span-5 h-[460px] group relative rounded-2xl overflow-hidden bg-muted shadow-sm"
               >
                 <Link to={`/destino/${destinations[1].id}`} className="block h-full">
                   <LazyImage
@@ -280,7 +278,6 @@ export function DestinationsSection() {
                   
                   <div className="absolute top-5 left-5 z-10">
                     <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-black/50 backdrop-blur-md text-white border border-white/15 shadow-sm">
-                      <span className="w-1.5 h-1.5 rounded-full bg-primary" />
                       {destinationTags[destinations[1].id] || "Polo Turístico"}
                     </span>
                   </div>
@@ -320,7 +317,7 @@ export function DestinationsSection() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: 0.15 + i * 0.08 }}
-                className="col-span-4 h-[360px] group relative rounded-3xl overflow-hidden border border-border/50 bg-card/40 shadow-xl"
+                className="col-span-4 h-[360px] group relative rounded-2xl overflow-hidden bg-muted shadow-sm"
               >
                 <Link to={`/destino/${dest.id}`} className="block h-full">
                   <LazyImage
@@ -333,7 +330,6 @@ export function DestinationsSection() {
                   
                   <div className="absolute top-4 left-4 z-10">
                     <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-black/50 backdrop-blur-md text-white border border-white/15 shadow-sm">
-                      <span className="w-1.5 h-1.5 rounded-full bg-primary" />
                       {destinationTags[dest.id] || "Destino RD"}
                     </span>
                   </div>
@@ -377,7 +373,7 @@ export function DestinationsSection() {
                       viewport={{ once: true }}
                       className="flex-shrink-0 w-[280px] sm:w-[320px]"
                     >
-                      <div className="group relative aspect-[3/4] rounded-3xl overflow-hidden border-2 border-amber-500/50 shadow-xl bg-slate-950">
+                      <div className="group relative aspect-[3/4] rounded-2xl overflow-hidden shadow-sm bg-slate-950">
                         <Link to={ad?.target_url || "/alojamientos"} onClick={trackAdClick} className="block h-full">
                           <img
                             src={ad?.image_url || hardRockImg}
@@ -416,7 +412,7 @@ export function DestinationsSection() {
                     transition={{ delay: Math.min(index * 0.1, 0.5) }}
                     className="flex-shrink-0 w-[280px] sm:w-[320px]"
                   >
-                    <div className="group relative aspect-[3/4] rounded-3xl overflow-hidden border border-border/50 bg-card/40 shadow-lg">
+                    <div className="group relative aspect-[3/4] rounded-2xl overflow-hidden bg-muted shadow-lg">
                       <Link to={`/destino/${destination.id}`} className="block h-full">
                         <LazyImage
                           src={localImageMap[destination.id] || destination.image}
@@ -428,7 +424,6 @@ export function DestinationsSection() {
                         
                         <div className="absolute top-4 left-4 z-10">
                           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-black/50 backdrop-blur-md text-white border border-white/15 shadow-sm">
-                            <span className="w-1.5 h-1.5 rounded-full bg-primary" />
                             {destinationTags[destination.id] || "Polo Turístico"}
                           </span>
                         </div>

@@ -1,9 +1,8 @@
 import { useRef } from "react";
 import { motion } from "framer-motion";
-import { ChevronRight, ChevronLeft, Compass } from "lucide-react";
+import { ChevronRight, ChevronLeft } from "lucide-react";
 import { Link } from "react-router-dom";
 import { LazyImage } from "@/components/ui/lazy-image";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "@/hooks/useI18n";
 import adventureImg from "@/assets/adventure.jpg";
@@ -61,9 +60,7 @@ export function InterestSection() {
   };
 
   return (
-    <section className="relative flex flex-col bg-muted/20 dark:bg-card/20 overflow-hidden py-20 lg:py-24">
-      {/* Background ambient light */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-primary/5 rounded-full blur-3xl pointer-events-none" />
+    <section className="relative flex flex-col bg-muted/40 overflow-hidden py-14 lg:py-20">
 
       <div className="container mx-auto px-4 lg:px-8 mb-8 relative z-10">
         <div className="flex flex-col md:flex-row items-start md:items-end justify-between gap-4">
@@ -73,13 +70,9 @@ export function InterestSection() {
             viewport={{ once: true }}
             className="max-w-2xl"
           >
-            <div className="flex items-center gap-2 mb-2">
-              <Badge className="bg-primary/10 text-primary border-primary/20 gap-1.5 px-3 py-1 text-xs">
-                <Compass className="h-3.5 w-3.5" aria-hidden="true" />{pc.tx("Badge.1", "¿Qué tipo de viaje estás buscando?")}</Badge>
-            </div>
             <h2 className="font-display text-3xl md:text-4xl font-bold tracking-tight text-foreground">
               {t("interest.title")}{" "}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-cyan-400 to-amber-400">
+              <span className="text-primary">
                 {t("interest.titleHighlight")}
               </span>
             </h2>
@@ -134,7 +127,7 @@ export function InterestSection() {
                     className="block h-full group" 
                     aria-label={ad ? `Publicidad: ${ad.sponsor || ad.name}` : pc.t("a.aria-label.1", "Publicidad: Cerveza Presidente")}
                   >
-                    <div className="relative h-full rounded-3xl overflow-hidden border-2 border-emerald-500/50 bg-gradient-to-br from-emerald-950 via-slate-900 to-black shadow-xl group-hover:scale-[1.02] transition-transform duration-300">
+                    <div className="relative h-full rounded-2xl overflow-hidden border-2 border-emerald-500/50 bg-gradient-to-br from-emerald-950 via-slate-900 to-black shadow-sm">
                       <img
                         src={ad?.image_url || "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=800&auto=format&fit=crop&q=80"}
                         alt={ad?.alt_text || pc.t("img.alt.1", "Cerveza Presidente Publicidad")}
@@ -167,42 +160,22 @@ export function InterestSection() {
 
               <div
                 key={`${interest.title}-${index}`}
-                className="flex-shrink-0 w-[240px] sm:w-[280px] md:w-[320px] h-[400px] snap-start"
+                className="flex-shrink-0 w-[220px] sm:w-[260px] md:w-[280px] snap-start"
               >
-                <Link to={interest.link} className="block h-full group">
-                  <div className="relative h-full rounded-3xl overflow-hidden border border-border/50 bg-card/50 shadow-xl group-hover:scale-[1.02] transition-transform duration-300 will-change-transform">
+                <Link to={interest.link} className="group block">
+                  <div className="relative aspect-[3/4] overflow-hidden rounded-2xl bg-muted">
                     <LazyImage
                       src={interest.image}
                       alt={interest.title}
-                      className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105 will-change-transform"
+                      className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                       containerClassName="absolute inset-0"
                     />
-                    {/* Multi-layer gradient for high-contrast legible editorial text */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent" />
-                    <div className="absolute inset-0 bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-
-                    {/* Top Tag Badge */}
-                    <div className="absolute top-4 left-4 z-10">
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-black/50 backdrop-blur-md text-white border border-white/15 shadow-sm">
-                        <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-                        {interest.tag}
-                      </span>
-                    </div>
-
-                    {/* Bottom Content Area */}
-                    <div className="absolute inset-x-0 bottom-0 p-6 z-10">
-                      <span className="text-3xs uppercase tracking-widest font-bold text-primary/95 mb-1.5 block">
-                        Experiencia
-                      </span>
-                      <h3 className="font-display text-xl sm:text-2xl font-bold text-white mb-2 leading-tight group-hover:text-primary transition-colors">
-                        {interest.title}
-                      </h3>
-                      <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-white/90 group-hover:text-primary transition-colors">
-                        <span>{t("common.viewMore")}</span>
-                        <ChevronRight className="h-3.5 w-3.5 group-hover:translate-x-1 transition-transform duration-200" aria-hidden="true" />
-                      </div>
-                    </div>
                   </div>
+                  <p className="mt-3 text-xs font-medium text-muted-foreground">{interest.tag}</p>
+                  <h3 className="mt-0.5 flex items-center gap-1 font-display text-lg font-semibold text-foreground transition-colors group-hover:text-primary">
+                    {interest.title}
+                    <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+                  </h3>
                 </Link>
               </div>
             </div>

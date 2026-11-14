@@ -29,7 +29,7 @@ export function AboutRepublicaDominicanaSection() {
   const pc = usePageContent("about-republica-dominicana-section");
   const cinematicMoments = pc.data("cinematicMoments", __pcData.cinematicMoments);
   return (
-    <section className="relative py-16 lg:py-24 bg-background text-foreground overflow-hidden">
+    <section className="relative py-14 lg:py-20 bg-background text-foreground overflow-hidden">
       {/* Background ambient light */}
       <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[700px] h-[350px] bg-primary/5 rounded-full blur-[120px] pointer-events-none" />
 
@@ -45,7 +45,7 @@ export function AboutRepublicaDominicanaSection() {
           >
             {/* Main Unified Heading */}
             <h2 className="font-display text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-foreground leading-[1.15]">{pc.tx("h2.1", "Un Viaje Más Allá de lo Ordinario:")}{" "}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-emerald-600 to-amber-500 dark:via-cyan-400 dark:to-amber-300">{pc.tx("span.1", "República Dominicana")}</span>
+              <span className="text-primary">{pc.tx("span.1", "República Dominicana")}</span>
             </h2>
 
             {/* Prominent Lead Statement */}
@@ -72,7 +72,7 @@ export function AboutRepublicaDominicanaSection() {
               <motion.div 
                 whileHover={{ y: -8, scale: 1.02 }}
                 transition={{ duration: 0.3 }}
-                className="absolute left-2 sm:left-4 md:left-6 top-8 w-[150px] sm:w-[190px] md:w-[220px] h-[250px] sm:h-[300px] md:h-[320px] rounded-2xl overflow-hidden border border-border/80 shadow-xl -rotate-6 z-10 bg-card group"
+                className="absolute left-2 sm:left-4 md:left-6 top-8 w-[150px] sm:w-[190px] md:w-[220px] h-[250px] sm:h-[300px] md:h-[320px] rounded-2xl overflow-hidden border border-border/80 shadow-sm -rotate-6 z-10 bg-card group"
               >
                 <img 
                   src={cinematicMoments[0].image} 
@@ -116,7 +116,7 @@ export function AboutRepublicaDominicanaSection() {
               <motion.div 
                 whileHover={{ y: -8, scale: 1.02 }}
                 transition={{ duration: 0.3 }}
-                className="absolute right-2 sm:right-4 md:right-6 bottom-6 w-[150px] sm:w-[190px] md:w-[220px] h-[260px] sm:h-[310px] md:h-[330px] rounded-2xl overflow-hidden border border-border/80 shadow-xl rotate-6 z-30 bg-card group"
+                className="absolute right-2 sm:right-4 md:right-6 bottom-6 w-[150px] sm:w-[190px] md:w-[220px] h-[260px] sm:h-[310px] md:h-[330px] rounded-2xl overflow-hidden border border-border/80 shadow-sm rotate-6 z-30 bg-card group"
               >
                 <img 
                   src={cinematicMoments[2].image} 

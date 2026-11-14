@@ -49,7 +49,7 @@ function DailyChallenge() {
   return (
     <section className="border-y border-border/50 bg-gradient-to-b from-background via-card/40 to-background py-10">
       <div className="container mx-auto max-w-6xl px-4">
-        <div className="flex flex-col gap-6 rounded-3xl border border-primary/25 bg-gradient-to-br from-card via-card to-primary/5 p-6 shadow-lg shadow-primary/5 sm:p-8 md:flex-row md:items-center md:justify-between">
+        <div className="flex flex-col gap-6 rounded-2xl border border-primary/25 bg-gradient-to-br from-card via-card to-primary/5 p-6 shadow-lg shadow-primary/5 sm:p-8 md:flex-row md:items-center md:justify-between">
           <div className="flex min-w-0 items-start gap-4">
             <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-primary/25 bg-primary/10 text-primary">
               {done ? <CheckCircle2 className="h-6 w-6 text-emerald-500" /> : <Target className="h-6 w-6" />}
@@ -96,7 +96,7 @@ function PassportInvite() {
   const isInView = useInView(ref, { once: true, amount: 0.2 });
 
   return (
-    <section ref={ref} className="relative py-14 md:py-16 overflow-hidden bg-gradient-to-b from-background via-card/40 to-background border-y border-border/50">
+    <section ref={ref} className="relative py-14 lg:py-20 overflow-hidden bg-gradient-to-b from-background via-card/40 to-background border-y border-border/50">
       <div className="absolute inset-0 pointer-events-none opacity-30">
         <div className="absolute top-1/2 -left-20 w-80 h-80 bg-primary/10 rounded-full blur-3xl -translate-y-1/2" />
         <div className="absolute top-1/2 -right-20 w-80 h-80 bg-amber-500/10 rounded-full blur-3xl -translate-y-1/2" />
@@ -107,7 +107,7 @@ function PassportInvite() {
           initial={{ opacity: 0, y: 16 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.5 }}
-          className="rounded-3xl bg-gradient-to-br from-card via-card to-primary/5 border border-primary/25 p-6 sm:p-8 md:p-10 shadow-lg shadow-primary/5"
+          className="rounded-2xl bg-gradient-to-br from-card via-card to-primary/5 border border-primary/25 p-6 sm:p-8 md:p-10 shadow-lg shadow-primary/5"
         >
           <div className="grid lg:grid-cols-12 gap-8 items-center">
             <div className="lg:col-span-7 space-y-4">
@@ -143,7 +143,7 @@ function PassportInvite() {
 
             {/* Vista del pasaporte: una página con los sellos que se pueden coleccionar */}
             <div className="lg:col-span-5">
-              <div className="relative overflow-hidden rounded-3xl border border-primary/25 bg-gradient-to-br from-primary/10 via-background to-background p-6 shadow-sm">
+              <div className="relative overflow-hidden rounded-2xl border border-primary/25 bg-gradient-to-br from-primary/10 via-background to-background p-6 shadow-sm">
                 <Stamp className="pointer-events-none absolute -right-6 -top-6 h-32 w-32 rotate-12 text-primary/[0.07]" aria-hidden="true" />
                 <p className="text-3xs font-bold uppercase tracking-[0.2em] text-muted-foreground">{pc.tx("p.2", "República Dominicana")}</p>
                 <h3 className="mt-1 font-display text-xl font-bold text-foreground">{pc.tx("h4.1", "Pasaporte de Explorador")}</h3>

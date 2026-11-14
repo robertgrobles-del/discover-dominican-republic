@@ -69,7 +69,7 @@ const Index = () => {
         </DeferredSection>
 
         {/* Entre secciones de contenido (no entre dos bloques promocionales) */}
-        <BetweenSectionsAd showDemo />
+        <BetweenSectionsAd />
 
         <DeferredSection minHeight="500px">
           <SectionErrorBoundary sectionName="RestaurantsBarsSection">
@@ -104,8 +104,6 @@ const Index = () => {
             </Suspense>
           </SectionErrorBoundary>
         </DeferredSection>
-
-        <BetweenSectionsAd showDemo />
 
         <DeferredSection minHeight="380px">
           <SectionErrorBoundary sectionName="TravelerToolsStrip">
